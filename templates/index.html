@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+
+{% block title %}HostPro — High Performance Web Hosting Automation & Cloud Billing{% endblock %}
+
+{% block content %}
+<!-- ─── Hero Section ──────────────────────────────────────────────────────── -->
+<section class="relative pt-16 pb-28 overflow-hidden">
+    <!-- Ambient glowing light spots -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-brand-600/20 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+    <div class="absolute top-1/3 right-10 w-[400px] h-[250px] bg-purple-600/15 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <!-- Top pill badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs font-semibold text-slate-300 mb-8 backdrop-blur-md">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-emerald-400 font-bold">NEXT-GEN AUTOMATION</span>
+            <span class="text-slate-500">•</span>
+            <span>Instant Provisioning with bKash & cPanel</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.15]">
+            Ultra-Fast Cloud Hosting with <span class="gradient-text">Zero-Touch Automation</span>
+        </h1>
+
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+            Engineered for high-traffic websites, agencies, and developers. Built on enterprise NVMe SSDs, automated WHM/cPanel provisioning, and seamless bKash / SSLCommerz billing.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="#packages" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white font-bold text-base shadow-xl shadow-brand-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-bolt"></i> View Hosting Packages
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-semibold text-base border border-slate-700 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-gauge"></i> Open Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-semibold text-base border border-slate-700 transition flex items-center justify-center gap-2">
+                <i class="fa-regular fa-user"></i> Client Portal Login
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Key Metrics Strip -->
+        <div class="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-4xl mx-auto border-t border-slate-800/80 pt-10">
+            <div>
+                <div class="text-3xl font-extrabold text-white">99.9%</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Uptime SLA</div>
+            </div>
+            <div>
+                <div class="text-3xl font-extrabold text-emerald-400">&lt; 10ms</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">BDIX Ping</div>
+            </div>
+            <div>
+                <div class="text-3xl font-extrabold text-brand-400">Instant</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Auto Provisioning</div>
+            </div>
+            <div>
+                <div class="text-3xl font-extrabold text-purple-400">24/7/365</div>
+                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Expert Support</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Interactive Domain Search Section ─────────────────────────────────── -->
+<section id="domain" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+    <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700/80">
+        <div class="text-center mb-6">
+            <span class="text-xs font-bold uppercase tracking-widest text-brand-400">Domain Registration</span>
+            <h3 class="text-2xl font-bold text-white mt-1">Claim your perfect website address</h3>
+        </div>
+
+        <form onsubmit="handleDomainSearch(event)" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-globe text-base"></i>
+                </div>
+                <input type="text" id="domain-input" placeholder="e.g. mybusinessname.com" required
+                    class="w-full pl-11 pr-4 py-4 bg-slate-900/90 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm transition">
+            </div>
+            <select id="domain-tld" class="sm:w-36 py-4 px-4 bg-slate-900/90 border border-slate-700 rounded-2xl text-white text-sm focus:outline-none focus:border-brand-500">
+                <option value=".com">.com — ৳1,350</option>
+                <option value=".com.bd">.com.bd — ৳1,800</option>
+                <option value=".net">.net — ৳1,450</option>
+                <option value=".org">.org — ৳1,500</option>
+                <option value=".xyz">.xyz — ৳350</option>
+            </select>
+            <button type="submit" class="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+        </form>
+
+        <!-- Dynamic search result feedback box -->
+        <div id="domain-result" class="hidden mt-4 p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-circle-check text-xl text-emerald-400"></i>
+                <div>
+                    <span id="domain-result-name" class="font-bold text-white text-base"></span>
+                    <span class="text-xs text-emerald-300 ml-2">is available!</span>
+                </div>
+            </div>
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'register' %}{% endif %}" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition">
+                Order with Hosting
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Pricing & Packages Section ────────────────────────────────────────── -->
+<section id="packages" class="pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-brand-400">Transparent Pricing</span>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-2 tracking-tight">
+            High-Performance Web Hosting Plans
+        </h2>
+        <p class="mt-4 text-base text-slate-300">
+            Powered by high-frequency NVMe drives, LiteSpeed Enterprise web servers, and cPanel automation.
+        </p>
+    </div>
+
+    <!-- Pricing Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        {% for pkg in packages %}
+        <div class="relative rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02]
+            {% if pkg.is_featured %}
+            glass-card border-2 border-brand-500 shadow-2xl shadow-brand-500/20 bg-slate-900/90
+            {% else %}
+            glass-card border border-slate-800/90 shadow-xl bg-slate-900/60
+            {% endif %}">
+
+            {% if pkg.is_featured %}
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-md">
+                ⭐ Most Popular Plan
+            </div>
+            {% endif %}
+
+            <div>
+                <!-- Plan Title & Desc -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-2xl font-bold text-white">{{ pkg.name }}</h3>
+                    <span class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center text-lg">
+                        {% if forloop.counter == 1 %}<i class="fa-solid fa-feather"></i>
+                        {% elif forloop.counter == 2 %}<i class="fa-solid fa-rocket"></i>
+                        {% else %}<i class="fa-solid fa-server"></i>{% endif %}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 min-h-[40px] leading-relaxed mb-6">{{ pkg.description }}</p>
+
+                <!-- Price Tag -->
+                <div class="mb-6 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-lg font-bold text-brand-400">৳</span>
+                        <span class="text-4xl font-extrabold text-white">{{ pkg.monthly_price|floatformat:0 }}</span>
+                        <span class="text-xs text-slate-400 font-medium">/ month</span>
+                    </div>
+                    {% if pkg.annual_price %}
+                    <div class="text-[11px] text-emerald-400 font-semibold mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-tag"></i> ৳{{ pkg.annual_price|floatformat:0 }} / year (Save 15%)
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Features list -->
+                <ul class="space-y-3.5 text-xs text-slate-300 mb-8">
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span><strong>{{ pkg.disk_quota_mb }} MB</strong> NVMe SSD Storage</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span>
+                            {% if pkg.bandwidth_mb == 0 %}<strong>Unlimited</strong> Bandwidth{% else %}<strong>{{ pkg.bandwidth_mb }} MB</strong> Monthly Bandwidth{% endif %}
+                        </span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span><strong>{{ pkg.max_databases }}</strong> MySQL Databases</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span><strong>{{ pkg.max_email_accounts }}</strong> Business Email Accounts</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span><strong>Free AutoSSL</strong> by Let's Encrypt</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span><strong>cPanel Control Panel</strong> included</span>
+                    </li>
+                    <li class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+                        <span>Instant <strong>bKash / Nagad</strong> Auto-Activation</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Action Button -->
+            <div>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}?order_package={{ pkg.id }}" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-center block transition shadow-lg
+                    {% if pkg.is_featured %}
+                    bg-brand-600 hover:bg-brand-500 text-white shadow-brand-600/30
+                    {% else %}
+                    bg-slate-800 hover:bg-slate-700 text-white border border-slate-700
+                    {% endif %}">
+                    Order Now in Dashboard <i class="fa-solid fa-arrow-right ml-1"></i>
+                </a>
+                {% else %}
+                <a href="{% url 'register' %}" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-center block transition shadow-lg
+                    {% if pkg.is_featured %}
+                    bg-brand-600 hover:bg-brand-500 text-white shadow-brand-600/30
+                    {% else %}
+                    bg-slate-800 hover:bg-slate-700 text-white border border-slate-700
+                    {% endif %}">
+                    Get Started <i class="fa-solid fa-arrow-right ml-1"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12 text-slate-400">
+            No hosting packages configured yet. Run the demo seeder to populate packages.
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ─── Architecture & Features Section ──────────────────────────────────── -->
+<section id="features" class="py-24 bg-dark-900/50 border-y border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold uppercase tracking-widest text-brand-400">Infrastructure</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2 tracking-tight">
+                Architected for High Concurrency & Zero Downtime
+            </h2>
+            <p class="mt-4 text-sm text-slate-300">
+                Every component is decoupled and automated. No manual ticketing to get your hosting server online.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Enterprise NVMe SSDs</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    PCIe Gen4 NVMe arrays deliver up to 7,000 MB/s read/write speeds, cutting WordPress and database query latency to milliseconds.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">BDIX Connected Network</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Direct local peering with all Bangladeshi ISPs gives users ultra-low ping (< 5ms) across Dhaka, Chittagong, and all divisions.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Real-Time WHM / cPanel Driver</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Account creation, resource upgrades, suspension, and password resets execute asynchronously via Celery worker queues in seconds.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Fernet Encrypted Credentials</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    All server root hashes, WHM API tokens, and payment secrets are symmetrically encrypted at rest using AES-128-CBC with HMAC.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Idempotent Payment Hooks</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    IPN webhooks from bKash and SSLCommerz use database locking (select_for_update) to guarantee no double-charge or race conditions.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="glass-card p-8 rounded-3xl border border-slate-800/80 hover:border-brand-500/50 transition duration-300">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-6">
+                    <i class="fa-solid fa-shield-virus"></i>
+                </div>
+                <h4 class="text-lg font-bold text-white mb-2">Free SSL & DDoS Defense</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Automatic Let's Encrypt certificates issued within 10 minutes of DNS propagation, backed by multi-layered volumetric DDoS filtering.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Supported Gateways Banner ─────────────────────────────────────────── -->
+<section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Automated Payments</span>
+    <h3 class="text-xl sm:text-2xl font-bold text-white mt-1 mb-8">Pay instantly using your favorite gateway</h3>
+    
+    <div class="flex flex-wrap items-center justify-center gap-6 max-w-4xl mx-auto">
+        <div class="glass-card px-6 py-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-pink-500"></span>
+            <span class="font-bold text-sm text-pink-400">bKash Tokenized</span>
+        </div>
+        <div class="glass-card px-6 py-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+            <span class="font-bold text-sm text-orange-400">Nagad Direct</span>
+        </div>
+        <div class="glass-card px-6 py-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+            <span class="font-bold text-sm text-sky-400">SSLCommerz Hosted</span>
+        </div>
+        <div class="glass-card px-6 py-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <span class="font-bold text-sm text-emerald-400">Prepaid Account Credit</span>
+        </div>
+    </div>
+</section>
+
+<!-- ─── Call to Action ────────────────────────────────────────────────────── -->
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
+    <div class="rounded-3xl p-10 sm:p-14 bg-gradient-to-r from-brand-900 via-indigo-900 to-purple-900 border border-brand-500/40 text-center relative overflow-hidden shadow-2xl">
+        <div class="relative z-10">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Launch your website on HostPro today
+            </h2>
+            <p class="mt-4 text-sm text-slate-200 max-w-xl mx-auto leading-relaxed">
+                Instant setup. Full control via cPanel. 30-day money-back guarantee with 24/7 dedicated support.
+            </p>
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-dark-950 font-bold text-sm hover:bg-slate-100 transition shadow-lg">
+                    Create Free Account
+                </a>
+                <a href="{% url 'login' %}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-dark-900/80 text-white font-semibold text-sm border border-white/20 hover:bg-dark-900 transition">
+                    Client Login <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function handleDomainSearch(e) {
+        e.preventDefault();
+        const input = document.getElementById('domain-input').value.trim();
+        const tld = document.getElementById('domain-tld').value;
+        if (!input) return;
+
+        let cleanName = input.replace(/\.[a-z.]+$/, '');
+        let fullDomain = cleanName + tld;
+
+        const resultBox = document.getElementById('domain-result');
+        const resultName = document.getElementById('domain-result-name');
+
+        resultName.textContent = fullDomain;
+        resultBox.classList.remove('hidden');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HostPro — High Performance Cloud Web Hosting Automation{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        dark: {
+                            800: '#1e293b',
+                            850: '#172033',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(30, 41, 59, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glow-brand { box-shadow: 0 0 50px -10px rgba(99, 102, 241, 0.35); }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full px-4">
+        {% for message in messages %}
+        <div class="flex items-start p-4 rounded-xl shadow-2xl transition transform duration-300 border backdrop-blur-lg
+            {% if message.tags == 'success' %} bg-emerald-950/90 border-emerald-500/50 text-emerald-200
+            {% elif message.tags == 'error' %} bg-rose-950/90 border-rose-500/50 text-rose-200
+            {% elif message.tags == 'warning' %} bg-amber-950/90 border-amber-500/50 text-amber-200
+            {% else %} bg-sky-950/90 border-sky-500/50 text-sky-200 {% endif %}"
+            id="toast-{{ forloop.counter }}">
+            <div class="mr-3 text-lg mt-0.5">
+                {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                {% elif message.tags == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                {% elif message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+                {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+            </div>
+            <div class="flex-1 text-sm font-medium leading-relaxed">{{ message }}</div>
+            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white ml-2 text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="{% url 'landing' %}" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform duration-300">
+                    <i class="fa-solid fa-server text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+                        Host<span class="text-brand-400">Pro</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-500/20 text-brand-300 font-semibold border border-brand-500/30">CLOUD</span>
+                    </span>
+                    <span class="block text-[10px] text-slate-400 -mt-0.5 font-medium">BDIX & Global Hosting</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="{% url 'landing' %}#packages" class="hover:text-white transition">Packages</a>
+                <a href="{% url 'landing' %}#features" class="hover:text-white transition">Features</a>
+                <a href="{% url 'landing' %}#domain" class="hover:text-white transition">Domains</a>
+                <a href="{% url 'landing' %}#reviews" class="hover:text-white transition">Why Us</a>
+                <a href="/api/docs/" target="_blank" class="hover:text-white transition flex items-center gap-1.5 text-xs text-slate-400">
+                    <i class="fa-solid fa-code text-[11px]"></i> API Docs
+                </a>
+            </nav>
+
+            <!-- Auth Buttons -->
+            <div class="flex items-center gap-3">
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-600/30 transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="{% url 'logout' %}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 transition" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-800 transition">
+                    <i class="fa-regular fa-user"></i> Client Login
+                </a>
+                <a href="{% url 'register' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white shadow-lg shadow-brand-600/25 transition transform hover:-translate-y-0.5">
+                    Get Started <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Block -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="bg-dark-900 border-t border-slate-800/80 pt-16 pb-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                <!-- Col 1: About -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-server text-sm"></i>
+                        </div>
+                        <span class="text-lg font-bold tracking-tight text-white">Host<span class="text-brand-400">Pro</span></span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Next-generation web hosting automation and billing platform designed for extreme speed, instant WHM/CyberPanel provisioning, and seamless Bangladeshi payment gateways.
+                    </p>
+                    <div class="flex items-center gap-3 text-slate-400">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-brand-600 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-brand-600 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-brand-600 hover:text-white flex items-center justify-center text-xs transition"><i class="fa-brands fa-github"></i></a>
+                    </div>
+                </div>
+
+                <!-- Col 2: Hosting -->
+                <div>
+                    <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Hosting Solutions</h4>
+                    <ul class="space-y-2.5 text-xs text-slate-400">
+                        <li><a href="{% url 'landing' %}#packages" class="hover:text-white transition">Shared NVMe Hosting</a></li>
+                        <li><a href="{% url 'landing' %}#packages" class="hover:text-white transition">cPanel High Performance</a></li>
+                        <li><a href="{% url 'landing' %}#packages" class="hover:text-white transition">CyberPanel LiteSpeed</a></li>
+                        <li><a href="{% url 'landing' %}#packages" class="hover:text-white transition">BDIX Low Latency</a></li>
+                        <li><a href="{% url 'landing' %}#packages" class="hover:text-white transition">Reseller Hosting</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Portal & Help -->
+                <div>
+                    <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Client Portal</h4>
+                    <ul class="space-y-2.5 text-xs text-slate-400">
+                        <li><a href="{% url 'login' %}" class="hover:text-white transition">Client Login</a></li>
+                        <li><a href="{% url 'register' %}" class="hover:text-white transition">Create Account</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="hover:text-white transition">My Invoices</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="hover:text-white transition">Manage Services</a></li>
+                        <li><a href="/admin/" target="_blank" class="hover:text-white transition">Staff Admin Area</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Payment Badges & Contact -->
+                <div class="space-y-4">
+                    <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Accepted Payments</h4>
+                    <p class="text-xs text-slate-400">Automated instant activation with:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2.5 py-1 rounded bg-slate-800/90 text-[11px] font-bold text-pink-400 border border-slate-700/60">bKash</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-800/90 text-[11px] font-bold text-orange-400 border border-slate-700/60">Nagad</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-800/90 text-[11px] font-bold text-sky-400 border border-slate-700/60">SSLCommerz</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-800/90 text-[11px] font-bold text-emerald-400 border border-slate-700/60">Visa / MC</span>
+                    </div>
+                    <div class="pt-2 text-xs text-slate-400">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-headset text-brand-400"></i> 24/7 Priority Support</div>
+                        <div class="flex items-center gap-2 mt-1"><i class="fa-solid fa-shield-halved text-emerald-400"></i> 99.9% Uptime Guarantee</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="border-t border-slate-800/60 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p>&copy; 2026 HostPro Inc. All rights reserved. Powered by Django 6 & Celery Automation.</p>
+                <div class="flex items-center gap-6">
+                    <a href="#" class="hover:text-slate-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-slate-400">Terms of Service</a>
+                    <a href="/api/schema/" class="hover:text-slate-400">OpenAPI Spec</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
