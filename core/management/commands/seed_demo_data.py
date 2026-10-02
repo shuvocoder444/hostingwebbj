@@ -173,5 +173,58 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS(f"[OK] Sample invoice: {invoice.invoice_number} (BDT {invoice.total})"))
 
+        # 7. Domain Registrar & TLD Pricing
+        from domains.models import DomainRegistrar, TLDPricing, Domain, RegistrarType
+        registrar, _ = DomainRegistrar.objects.get_or_create(
+            name="ResellerClub / Sandbox Registrar",
+            defaults={
+                "driver": RegistrarType.MOCK,
+                "api_user": "demo_reseller_123",
+                "is_sandbox": True,
+                "is_active": True,
+                "is_default": True,
+            }
+        )
+        registrar.set_api_key("secret-registrar-api-key")
+        registrar.save()
+
+        tlds = [
+            (".com", Decimal("1350.00"), Decimal("1350.00"), True),
+            (".com.bd", Decimal("1800.00"), Decimal("1800.00"), True),
+            (".net", Decimal("1450.00"), Decimal("1450.00"), False),
+            (".org", Decimal("1500.00"), Decimal("1500.00"), False),
+            (".xyz", Decimal("350.00"), Decimal("950.00"), True),
+        ]
+        for tld_str, reg_p, ren_p, is_feat in tlds:
+            TLDPricing.objects.get_or_create(
+                tld=tld_str,
+                defaults={
+                    "registrar": registrar,
+                    "register_price": reg_p,
+                    "renew_price": ren_p,
+                    "is_active": True,
+                    "is_featured": is_feat,
+                }
+            )
+        self.stdout.write(self.style.SUCCESS("[OK] Domain registrar and 5 TLD prices configured."))
+
+        # 8. Sample Client Domain
+        client_domain, _ = Domain.objects.get_or_create(
+            domain_name="ahmedsolutions.com.bd",
+            defaults={
+                "user": client_user,
+                "registrar": registrar,
+                "status": Domain.Status.ACTIVE,
+                "registration_years": 1,
+                "registration_date": today,
+                "expiry_date": today + timezone.timedelta(days=365),
+                "next_due_date": today + timezone.timedelta(days=358),
+                "nameserver_1": "ns1.hostpro.bd",
+                "nameserver_2": "ns2.hostpro.bd",
+                "registrar_order_id": "REG-RC-98421",
+            }
+        )
+        self.stdout.write(self.style.SUCCESS(f"[OK] Sample client domain: {client_domain.domain_name} (Status: ACTIVE)"))
+
         self.stdout.write(self.style.SUCCESS("\n[SUCCESS] Demo seeding completed successfully!"))
 

@@ -2,10 +2,11 @@
 HostPro Root URL Configuration
 ================================
 Routes:
-  - Web UI: Landing page, Login, Register, Logout, Dashboard, Order, Payment
+  - Web UI: Landing page, Login, Register, Logout, Client Dashboard, Order, Payment
+  - Custom Admin Portal: Full administrative operations (/admin-dashboard/)
   - API v1: Namespaced REST endpoints (/api/v1/...)
   - OpenAPI & Swagger: Interactive documentation
-  - Django Admin: Staff management
+  - Django Admin: Staff fallback management (/admin/)
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -24,9 +25,15 @@ from core.views import (
     order_hosting_view,
     pay_invoice_view,
 )
+from core.admin_views import (
+    admin_dashboard_view,
+    admin_test_server_view,
+    admin_check_registrar_balance_view,
+    admin_action_handler_view,
+)
 
 urlpatterns = [
-    # ── Web UI Pages ──────────────────────────────────────────────────────────
+    # ── Client Web UI Pages ───────────────────────────────────────────────────
     path('', landing_page_view, name='landing'),
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
@@ -35,7 +42,13 @@ urlpatterns = [
     path('hosting/order/', order_hosting_view, name='order_hosting'),
     path('billing/invoices/<uuid:invoice_id>/pay/', pay_invoice_view, name='pay_invoice'),
 
-    # ── Django Admin ──────────────────────────────────────────────────────────
+    # ── Custom Admin Management Portal ────────────────────────────────────────
+    path('admin-dashboard/', admin_dashboard_view, name='admin_dashboard'),
+    path('admin-dashboard/servers/<uuid:server_id>/test/', admin_test_server_view, name='admin_test_server'),
+    path('admin-dashboard/registrars/<uuid:registrar_id>/balance/', admin_check_registrar_balance_view, name='admin_check_registrar_balance'),
+    path('admin-dashboard/action/<str:action_type>/', admin_action_handler_view, name='admin_action_handler'),
+
+    # ── Django Native Admin ───────────────────────────────────────────────────
     path('admin/', admin.site.urls),
 
     # ── OpenAPI Schema & Swagger Docs ─────────────────────────────────────────

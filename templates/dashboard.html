@@ -1,573 +1,1077 @@
 {% extends 'base.html' %}
 
-{% block title %}Client Dashboard — HostPro Cloud Automation{% endblock %}
+{% block title %}Dashboard — HostPro Cloud Automation Portal{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="min-h-screen bg-slate-50 flex flex-col antialiased">
 
-    <!-- ─── Top Banner ────────────────────────────────────────────────────────── -->
-    <div class="glass-card rounded-3xl p-6 sm:p-8 mb-8 border border-slate-800/90 shadow-2xl relative overflow-hidden bg-slate-900/80">
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ─── Off-Canvas Mobile Backdrop ──────────────────────────────────────── -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()"
+        class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity duration-300 md:hidden"></div>
 
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-            <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white text-2xl font-bold shadow-xl shadow-brand-500/20">
-                    {{ user.first_name|default:user.email|slice:":1"|upper }}
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                            {{ user.get_full_name|default:user.email }}
-                        </h1>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
-                            {% if user.role == 'admin' %} bg-purple-500/20 text-purple-300 border border-purple-500/30
-                            {% elif user.role == 'reseller' %} bg-sky-500/20 text-sky-300 border border-sky-500/30
-                            {% else %} bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 {% endif %}">
-                            {{ user.get_role_display|default:"Client" }}
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
-                        <span><i class="fa-regular fa-envelope text-slate-500 mr-1"></i> {{ user.email }}</span>
-                        {% if profile.phone %}
-                        <span>•</span>
-                        <span><i class="fa-solid fa-phone text-slate-500 mr-1"></i> {{ profile.phone }}</span>
-                        {% endif %}
-                        {% if profile.company_name %}
-                        <span>•</span>
-                        <span><i class="fa-regular fa-building text-slate-500 mr-1"></i> {{ profile.company_name }}</span>
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+    <div class="flex flex-1 min-h-screen relative overflow-x-hidden">
 
-            <!-- Balance & Action buttons -->
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <!-- Wallet Balance Widget -->
-                <div class="px-4 py-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-base">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Account Credit</div>
-                        <div class="text-lg font-extrabold text-emerald-400 leading-tight">৳ {{ profile.credit_balance|floatformat:2 }} <span class="text-xs text-slate-400">BDT</span></div>
-                    </div>
-                </div>
+        <!-- ─── COLLAPSIBLE SIDEBAR ───────────────────────────────────────────── -->
+        <aside id="main-sidebar"
+            class="fixed md:sticky top-0 left-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 md:translate-x-0 -translate-x-full shadow-card md:shadow-none">
 
-                <!-- Order New Service Button -->
-                <button onclick="openOrderModal()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-brand-600/30 transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Order New Service
-                </button>
-            </div>
-        </div>
-    </div>
+            <!-- Sidebar Top: Brand & Minimize Button -->
+            <div>
+                <div class="h-20 px-5 border-b border-slate-100 flex items-center justify-between">
+                    <!-- Brand (full & icon mode) -->
+                    <a href="{% url 'landing' %}" class="flex items-center gap-3 overflow-hidden group">
+                        <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white shrink-0 shadow-md shadow-brand-500/20">
+                            <i class="fa-solid fa-server text-base"></i>
+                        </div>
+                        <div class="sidebar-text-element transition-opacity duration-200 whitespace-nowrap">
+                            <span class="text-lg font-extrabold tracking-tight text-slate-900">
+                                Host<span class="text-brand-600">Pro</span>
+                            </span>
+                            <span class="block text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Client Portal</span>
+                        </div>
+                    </a>
 
-    <!-- ─── Metric Cards ──────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Card 1: Active Services -->
-        <div class="glass-card rounded-2xl p-5 border border-slate-800/80 shadow-lg">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Services</span>
-                <span class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-server"></i>
-                </span>
-            </div>
-            <div class="text-3xl font-extrabold text-white mt-3">{{ active_accounts_count }}</div>
-            <div class="text-xs text-emerald-400 font-medium mt-1 flex items-center gap-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online & Operational
-            </div>
-        </div>
+                    <!-- Sidebar Toggle (Collapse / Minimize) -->
+                    <button type="button" onclick="toggleSidebarCollapse()" title="Toggle Sidebar"
+                        class="hidden md:flex w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 items-center justify-center text-xs transition">
+                        <i id="sidebar-collapse-icon" class="fa-solid fa-chevron-left"></i>
+                    </button>
 
-        <!-- Card 2: Unpaid Invoices -->
-        <div class="glass-card rounded-2xl p-5 border border-slate-800/80 shadow-lg">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Unpaid Invoices</span>
-                <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
-                </span>
-            </div>
-            <div class="text-3xl font-extrabold {% if unpaid_invoices_count > 0 %}text-amber-400{% else %}text-white{% endif %} mt-3">
-                {{ unpaid_invoices_count }}
-            </div>
-            <div class="text-xs text-slate-400 font-medium mt-1">
-                Due: <strong class="text-slate-200">৳ {{ total_unpaid_amount|floatformat:2 }} BDT</strong>
-            </div>
-        </div>
-
-        <!-- Card 3: Total Services -->
-        <div class="glass-card rounded-2xl p-5 border border-slate-800/80 shadow-lg">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Invoices</span>
-                <span class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-receipt"></i>
-                </span>
-            </div>
-            <div class="text-3xl font-extrabold text-white mt-3">{{ invoices|length }}</div>
-            <div class="text-xs text-slate-400 font-medium mt-1">
-                Lifetime billing records
-            </div>
-        </div>
-
-        <!-- Card 4: Support Status -->
-        <div class="glass-card rounded-2xl p-5 border border-slate-800/80 shadow-lg">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Help & Automation</span>
-                <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-bolt"></i>
-                </span>
-            </div>
-            <div class="text-xl font-bold text-white mt-3">24/7 Priority</div>
-            <div class="text-xs text-brand-400 font-semibold mt-1 flex items-center gap-1">
-                <i class="fa-solid fa-shield-halved"></i> 99.9% Uptime Guarantee
-            </div>
-        </div>
-    </div>
-
-    <!-- ─── Tabbed Dashboard Content ─────────────────────────────────────────── -->
-    <div class="glass-card rounded-3xl border border-slate-800/90 shadow-2xl overflow-hidden bg-slate-900/80">
-        <!-- Tab Headers -->
-        <div class="flex items-center gap-2 border-b border-slate-800/80 px-6 pt-4 overflow-x-auto">
-            <button onclick="switchTab('services')" id="tab-btn-services"
-                class="tab-btn pb-4 px-4 text-xs font-bold uppercase tracking-wider text-brand-400 border-b-2 border-brand-500 flex items-center gap-2 transition">
-                <i class="fa-solid fa-server"></i> My Hosting Accounts ({{ hosting_accounts|length }})
-            </button>
-            <button onclick="switchTab('invoices')" id="tab-btn-invoices"
-                class="tab-btn pb-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2 transition">
-                <i class="fa-solid fa-file-invoice-dollar"></i> Billing & Invoices ({{ invoices|length }})
-                {% if unpaid_invoices_count > 0 %}
-                <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">
-                    {{ unpaid_invoices_count }} DUE
-                </span>
-                {% endif %}
-            </button>
-            <button onclick="switchTab('packages')" id="tab-btn-packages"
-                class="tab-btn pb-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2 transition">
-                <i class="fa-solid fa-cart-plus"></i> Order New Plan
-            </button>
-        </div>
-
-        <div class="p-6 sm:p-8">
-
-            <!-- ─── TAB 1: My Hosting Services ───────────────────────────────── -->
-            <div id="tab-content-services" class="tab-pane">
-                {% if hosting_accounts %}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="text-slate-400 border-b border-slate-800 uppercase tracking-wider">
-                                <th class="pb-4 font-semibold">Domain & Details</th>
-                                <th class="pb-4 font-semibold">Package</th>
-                                <th class="pb-4 font-semibold">Status</th>
-                                <th class="pb-4 font-semibold">Next Due Date</th>
-                                <th class="pb-4 font-semibold">Amount</th>
-                                <th class="pb-4 font-semibold text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/80">
-                            {% for acct in hosting_accounts %}
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <!-- Domain -->
-                                <td class="py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center text-sm font-bold">
-                                            <i class="fa-solid fa-globe"></i>
-                                        </div>
-                                        <div>
-                                            <a href="http://{{ acct.domain }}" target="_blank" class="font-bold text-white hover:text-brand-400 text-sm flex items-center gap-1.5 transition">
-                                                {{ acct.domain }} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500"></i>
-                                            </a>
-                                            <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                                Username: <span class="text-slate-300 font-semibold">{{ acct.username|default:"Auto-Generated" }}</span>
-                                                {% if acct.server %} • IP: {{ acct.server.ip_address }}{% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Package -->
-                                <td class="py-4">
-                                    <div class="font-semibold text-white">{{ acct.package.name }}</div>
-                                    <div class="text-[11px] text-slate-400 capitalize">{{ acct.get_billing_cycle_display }}</div>
-                                </td>
-
-                                <!-- Status Badge -->
-                                <td class="py-4">
-                                    {% if acct.status == 'active' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ACTIVE
-                                    </span>
-                                    {% elif acct.status == 'pending' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> PENDING PAYMENT
-                                    </span>
-                                    {% elif acct.status == 'suspended' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> SUSPENDED
-                                    </span>
-                                    {% else %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-500/20 text-slate-300 border border-slate-500/30">
-                                        {{ acct.status|upper }}
-                                    </span>
-                                    {% endif %}
-                                </td>
-
-                                <!-- Next Due -->
-                                <td class="py-4 text-slate-300 font-mono text-[11px]">
-                                    {{ acct.next_due_date|default:"Pending setup" }}
-                                </td>
-
-                                <!-- Amount -->
-                                <td class="py-4 font-bold text-white text-sm">
-                                    ৳ {{ acct.amount|floatformat:2 }}
-                                </td>
-
-                                <!-- Action -->
-                                <td class="py-4 text-right">
-                                    {% if acct.status == 'active' %}
-                                    <button onclick="alert('Auto-logging in to cPanel for {{ acct.domain }} via Single Sign-On (WHM JSON API)...')"
-                                        class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs transition inline-flex items-center gap-1.5 shadow">
-                                        <i class="fa-solid fa-terminal text-[10px]"></i> cPanel Login
-                                    </button>
-                                    {% elif acct.status == 'pending' %}
-                                    <button onclick="switchTab('invoices')"
-                                        class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition inline-flex items-center gap-1.5 shadow">
-                                        <i class="fa-solid fa-credit-card text-[10px]"></i> Pay to Activate
-                                    </button>
-                                    {% else %}
-                                    <button onclick="switchTab('invoices')"
-                                        class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition">
-                                        Unsuspend
-                                    </button>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-16">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-800 mx-auto flex items-center justify-center text-slate-500 text-2xl mb-4">
-                        <i class="fa-solid fa-server"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white">No hosting accounts yet</h3>
-                    <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-6">
-                        Order your first high-speed cPanel hosting plan with instant auto-provisioning!
-                    </p>
-                    <button onclick="openOrderModal()" class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition shadow-lg shadow-brand-600/30">
-                        <i class="fa-solid fa-plus mr-1"></i> Order Hosting Package
+                    <!-- Mobile Close Button -->
+                    <button type="button" onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-slate-700 text-base">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                {% endif %}
+
+                <!-- Navigation Links -->
+                <div class="px-3 py-6 space-y-1">
+                    <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                        Main Navigation
+                    </div>
+
+                    <!-- 1. Overview -->
+                    <button type="button" onclick="switchTab('overview')" id="tab-btn-overview"
+                        class="tab-btn w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-brand-600 bg-brand-50 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-table-cells-large"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Dashboard</span>
+                    </button>
+
+                    <!-- 2. Hosting Services -->
+                    <button type="button" onclick="switchTab('services')" id="tab-btn-services"
+                        class="tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-server"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Hosting Services</span>
+                        </div>
+                        <span class="sidebar-text-element text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                            {{ active_accounts_count }}
+                        </span>
+                    </button>
+
+                    <!-- 3. Domain Portfolio -->
+                    <button type="button" onclick="switchTab('domains')" id="tab-btn-domains"
+                        class="tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-globe"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Domains Portfolio</span>
+                        </div>
+                        <span class="sidebar-text-element text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {{ active_domains_count }}
+                        </span>
+                    </button>
+
+                    <!-- 4. Invoices & Billing -->
+                    <button type="button" onclick="switchTab('invoices')" id="tab-btn-invoices"
+                        class="tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Invoices & Billing</span>
+                        </div>
+                        {% if unpaid_invoices_count > 0 %}
+                        <span class="sidebar-text-element text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            {{ unpaid_invoices_count }} Unpaid
+                        </span>
+                        {% endif %}
+                    </button>
+
+                    <!-- 5. Order New Services -->
+                    <button type="button" onclick="switchTab('packages')" id="tab-btn-packages"
+                        class="tab-btn w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-cart-plus"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Order Packages</span>
+                    </button>
+
+                    <!-- 6. Account Profile -->
+                    <button type="button" onclick="switchTab('profile')" id="tab-btn-profile"
+                        class="tab-btn w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-user-gear"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Profile & Security</span>
+                    </button>
+
+                    {% if user.is_staff or user.role == 'admin' %}
+                    <div class="pt-4 border-t border-slate-100 mt-4 space-y-1">
+                        <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-purple-600 sidebar-text-element">
+                            Management Control
+                        </div>
+                        <a href="{% url 'admin_dashboard' %}"
+                            class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
+                            <div class="w-6 text-center text-sm shrink-0"><i class="fa-solid fa-gauge-high"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Admin Operations Portal</span>
+                        </a>
+                        <a href="/admin/" target="_blank"
+                            class="flex items-center gap-3.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition">
+                            <div class="w-6 text-center text-sm shrink-0"><i class="fa-solid fa-wrench"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Django Fallback Admin</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- ─── TAB 2: Invoices & Billing ────────────────────────────────── -->
-            <div id="tab-content-invoices" class="tab-pane hidden">
-                {% if invoices %}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="text-slate-400 border-b border-slate-800 uppercase tracking-wider">
-                                <th class="pb-4 font-semibold">Invoice #</th>
-                                <th class="pb-4 font-semibold">Type & Description</th>
-                                <th class="pb-4 font-semibold">Invoice Date</th>
-                                <th class="pb-4 font-semibold">Due Date</th>
-                                <th class="pb-4 font-semibold">Total Amount</th>
-                                <th class="pb-4 font-semibold">Status</th>
-                                <th class="pb-4 font-semibold text-right">Payment Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/80">
-                            {% for inv in invoices %}
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="py-4 font-mono font-bold text-white text-sm">
-                                    {{ inv.invoice_number }}
-                                </td>
+            <!-- Sidebar Bottom: User Card & Logout -->
+            <div class="p-3 border-t border-slate-100 bg-surface-50">
+                <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-lg bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-sm">
+                            {{ user.first_name|default:user.email|slice:":1"|upper }}
+                        </div>
+                        <div class="sidebar-text-element min-w-0">
+                            <div class="text-xs font-bold text-slate-800 truncate">{{ user.get_full_name|default:user.email }}</div>
+                            <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-wallet text-[10px]"></i> ৳{{ profile.credit_balance|floatformat:0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" title="Logout"
+                        class="w-8 h-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition shrink-0">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
 
-                                <td class="py-4">
-                                    <div class="font-semibold text-white">
-                                        {% if inv.items.first %}
-                                        {{ inv.items.first.description }}
-                                        {% else %}
-                                        {{ inv.get_invoice_type_display }} Service
+        <!-- ─── MAIN DASHBOARD CONTENT AREA ───────────────────────────────────── -->
+        <div class="flex-1 flex flex-col min-w-0">
+
+            <!-- Top Header Bar -->
+            <header class="sticky top-0 z-30 bg-white border-b border-slate-200 h-20 px-4 sm:px-8 flex items-center justify-between shadow-2xs">
+                <div class="flex items-center gap-4">
+                    <!-- Hamburger / Sidebar Toggle Button -->
+                    <button type="button" onclick="handleHeaderToggle()"
+                        class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center text-sm"
+                        title="Toggle Navigation Menu">
+                        <i class="fa-solid fa-bars text-base"></i>
+                    </button>
+
+                    <!-- Breadcrumbs & Active Title -->
+                    <div>
+                        <h1 id="page-title" class="text-lg font-extrabold text-slate-900 tracking-tight">Overview Dashboard</h1>
+                        <p class="text-xs text-slate-500 hidden sm:block">Automated WHM / cPanel Cloud & Domain Infrastructure</p>
+                    </div>
+                </div>
+
+                <!-- Right Quick Actions -->
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="openDomainOrderModal()"
+                        class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition">
+                        <i class="fa-solid fa-plus"></i> Register Domain
+                    </button>
+                    <button type="button" onclick="openOrderModal()"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">
+                        <i class="fa-solid fa-cart-plus"></i> New Service
+                    </button>
+                    <a href="{% url 'landing' %}" title="View Website" target="_blank"
+                        class="w-9 h-9 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Container -->
+            <main class="p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-8 flex-grow">
+
+                <!-- ─── TOP KPI STATS STRIP ───────────────────────────────────── -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Stat 1: Hosting -->
+                    <div onclick="switchTab('services')" class="cursor-pointer bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover:shadow-card hover:border-brand-300 transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Hosting</span>
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-brand-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-server"></i>
+                            </div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900">{{ active_accounts_count }}</div>
+                        <div class="text-xs text-brand-600 font-semibold mt-2 flex items-center gap-1">
+                            <span>Manage cPanel & WHM</span> <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stat 2: Domains -->
+                    <div onclick="switchTab('domains')" class="cursor-pointer bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover:shadow-card hover:border-purple-300 transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Domains</span>
+                            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-globe"></i>
+                            </div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-slate-900">{{ active_domains_count }}</div>
+                        <div class="text-xs text-purple-600 font-semibold mt-2 flex items-center gap-1">
+                            <span>Wholesale API Connected</span> <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stat 3: Unpaid Invoices -->
+                    <div onclick="switchTab('invoices')" class="cursor-pointer bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover:shadow-card hover:border-amber-300 transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Unpaid Invoices</span>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="text-3xl font-extrabold {% if unpaid_invoices_count > 0 %}text-amber-600{% else %}text-slate-900{% endif %}">
+                            {{ unpaid_invoices_count }}
+                        </div>
+                        <div class="text-xs text-slate-500 mt-2 font-medium">
+                            Due: <strong class="text-slate-800">৳{{ total_unpaid_amount|floatformat:2 }} BDT</strong>
+                        </div>
+                    </div>
+
+                    <!-- Stat 4: Account Credit Balance -->
+                    <div onclick="switchTab('profile')" class="cursor-pointer bg-white p-5 rounded-2xl border border-slate-200 shadow-soft hover:shadow-card hover:border-emerald-300 transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Prepaid Credit</span>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="text-3xl font-extrabold text-emerald-600">৳{{ profile.credit_balance|floatformat:0 }}</div>
+                        <div class="text-xs text-emerald-700 font-semibold mt-2 flex items-center gap-1">
+                            <span>Instant 1-Click Pay Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 1: OVERVIEW PANE                                          -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-overview" class="tab-pane space-y-8">
+                    <!-- Quick WHOIS & Domain Checker inside Dashboard -->
+                    <div class="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-3xl border border-blue-200/80 shadow-xs">
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider bg-brand-600 text-white px-2 py-0.5 rounded-full">WHOIS LIVE SEARCH</span>
+                                <h3 class="text-lg font-bold text-slate-900 mt-1">Register a New Domain with Wholesale API</h3>
+                                <p class="text-xs text-slate-500">Instant registration via Namecheap / ResellerClub upon payment confirmation.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="openDomainOrderModal()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-xs transition">
+                                    <i class="fa-solid fa-globe mr-1"></i> Register Domain Now
+                                </button>
+                                <button onclick="openOrderModal()" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 shadow-xs transition">
+                                    <i class="fa-solid fa-server mr-1"></i> Order Hosting
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid: Recent Services & Unpaid Invoices -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Left: Active Services Summary -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-server text-brand-600"></i> Active Hosting Services
+                                </h3>
+                                <button onclick="switchTab('services')" class="text-xs text-brand-600 hover:text-brand-700 font-semibold">
+                                    View All ({{ hosting_accounts.count }}) &rarr;
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                {% for acc in hosting_accounts|slice:":3" %}
+                                <div class="p-4 rounded-2xl bg-surface-50 border border-slate-200 flex items-center justify-between">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm text-slate-900 truncate">{{ acc.domain }}</span>
+                                            {% if acc.status == 'active' %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">ACTIVE</span>
+                                            {% elif acc.status == 'pending' %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300">PENDING</span>
+                                            {% else %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-300">{{ acc.status|upper }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-1">
+                                            {{ acc.package.name }} &bull; {{ acc.server.name }}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        {% if acc.status == 'active' %}
+                                        <a href="https://{{ acc.server.hostname }}:2083" target="_blank"
+                                            class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-700 hover:text-brand-600 hover:border-brand-300 shadow-2xs transition">
+                                            cPanel
+                                        </a>
                                         {% endif %}
                                     </div>
-                                    {% if inv.hosting_account %}
-                                    <div class="text-[11px] text-slate-400">Account: {{ inv.hosting_account.domain }}</div>
-                                    {% endif %}
-                                </td>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-8 text-xs text-slate-400">
+                                    No hosting services found. Click "New Service" to get started!
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
 
-                                <td class="py-4 text-slate-300 font-mono text-[11px]">
-                                    {{ inv.issued_date }}
-                                </td>
+                        <!-- Right: Open Invoices Summary -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-file-invoice text-amber-600"></i> Open Invoices
+                                </h3>
+                                <button onclick="switchTab('invoices')" class="text-xs text-brand-600 hover:text-brand-700 font-semibold">
+                                    View All ({{ invoices.count }}) &rarr;
+                                </button>
+                            </div>
 
-                                <td class="py-4 text-slate-300 font-mono text-[11px]">
-                                    {{ inv.due_date }}
-                                </td>
-
-                                <td class="py-4 font-extrabold text-white text-base">
-                                    ৳ {{ inv.total|floatformat:2 }} <span class="text-[10px] text-slate-400 font-normal">BDT</span>
-                                </td>
-
-                                <td class="py-4">
-                                    {% if inv.status == 'paid' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                        <i class="fa-solid fa-check"></i> PAID
-                                    </span>
-                                    {% elif inv.status == 'unpaid' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                        <i class="fa-solid fa-clock"></i> UNPAID
-                                    </span>
-                                    {% elif inv.status == 'overdue' %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> OVERDUE
-                                    </span>
-                                    {% else %}
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-500/20 text-slate-300">
-                                        {{ inv.status|upper }}
-                                    </span>
-                                    {% endif %}
-                                </td>
-
-                                <td class="py-4 text-right">
-                                    {% if inv.status == 'unpaid' or inv.status == 'overdue' %}
-                                    <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total|floatformat:2 }}')"
-                                        class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5 inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-credit-card"></i> Pay ৳{{ inv.total|floatformat:0 }}
-                                    </button>
-                                    {% else %}
-                                    <button onclick="alert('Invoice {{ inv.invoice_number }} was paid on {{ inv.paid_at|date:'Y-m-d H:i' }}. Receipt generated.')"
-                                        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
-                                        <i class="fa-solid fa-receipt mr-1"></i> Receipt
-                                    </button>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-16 text-slate-400">
-                    <i class="fa-solid fa-receipt text-3xl mb-3 text-slate-600 block"></i>
-                    No billing invoices generated yet.
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- ─── TAB 3: Available Hosting Packages Catalog ────────────────── -->
-            <div id="tab-content-packages" class="tab-pane hidden">
-                <div class="mb-6 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Choose a Cloud Hosting Package</h3>
-                        <p class="text-xs text-slate-400 mt-1">Instant provisioning upon payment. Free SSL and cPanel included.</p>
+                            <div class="space-y-3">
+                                {% for inv in invoices|slice:":3" %}
+                                <div class="p-4 rounded-2xl bg-surface-50 border border-slate-200 flex items-center justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm text-slate-900">#{{ inv.invoice_number }}</span>
+                                            {% if inv.status == 'paid' %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">PAID</span>
+                                            {% elif inv.status == 'unpaid' %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">UNPAID</span>
+                                            {% else %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">{{ inv.status|upper }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-1">
+                                            Due: {{ inv.due_date }} &bull; <strong class="text-slate-800">৳{{ inv.total|floatformat:2 }}</strong>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {% if inv.status == 'unpaid' or inv.status == 'overdue' %}
+                                        <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total }}')"
+                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition">
+                                            Pay Now
+                                        </button>
+                                        {% else %}
+                                        <span class="text-xs text-slate-400 font-medium">Completed</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-8 text-xs text-slate-400">
+                                    All clear! No unpaid invoices found.
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {% for pkg in packages %}
-                    <div class="glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between hover:border-brand-500/50 transition">
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 2: HOSTING ACCOUNTS PANE                                  -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-services" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-lg font-bold text-white">{{ pkg.name }}</h4>
-                                {% if pkg.is_featured %}
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">POPULAR</span>
-                                {% endif %}
-                            </div>
-                            <div class="text-2xl font-extrabold text-white mb-4">
-                                ৳ {{ pkg.monthly_price|floatformat:0 }} <span class="text-xs font-normal text-slate-400">/ mo</span>
-                            </div>
-                            <ul class="space-y-2 text-xs text-slate-300 mb-6">
-                                <li><i class="fa-solid fa-check text-brand-400 mr-2"></i> {{ pkg.disk_quota_mb }} MB NVMe SSD</li>
-                                <li><i class="fa-solid fa-check text-brand-400 mr-2"></i> {% if pkg.bandwidth_mb == 0 %}Unlimited{% else %}{{ pkg.bandwidth_mb }} MB{% endif %} Bandwidth</li>
-                                <li><i class="fa-solid fa-check text-brand-400 mr-2"></i> {{ pkg.max_databases }} MySQL Databases</li>
-                                <li><i class="fa-solid fa-check text-brand-400 mr-2"></i> {{ pkg.max_email_accounts }} Email Accounts</li>
-                                <li><i class="fa-solid fa-check text-brand-400 mr-2"></i> Instant WHM/cPanel Setup</li>
-                            </ul>
+                            <h2 class="text-xl font-bold text-slate-900">Hosting Accounts & Servers</h2>
+                            <p class="text-xs text-slate-500">Live cPanel and CyberPanel automated web hosting services.</p>
                         </div>
-                        <button onclick="openOrderModal('{{ pkg.id }}', '{{ pkg.name }}', '{{ pkg.monthly_price }}')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition shadow-md shadow-brand-600/30 flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-cart-plus"></i> Order {{ pkg.name }}
+                        <button onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Order New Hosting
                         </button>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
 
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-700">
+                                <thead class="bg-surface-50 text-[11px] uppercase font-bold text-slate-500 border-b border-slate-200 tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Domain & Plan</th>
+                                        <th class="px-6 py-4">Server Node</th>
+                                        <th class="px-6 py-4">IP Address</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4">Billing Cycle</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for acc in hosting_accounts %}
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4">
+                                            <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                                                <i class="fa-solid fa-globe text-brand-600 text-xs"></i>
+                                                <a href="http://{{ acc.domain }}" target="_blank" class="hover:underline">{{ acc.domain }}</a>
+                                            </div>
+                                            <div class="text-xs text-slate-500 font-medium">{{ acc.package.name }} (User: {{ acc.username }})</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="font-semibold text-slate-800 text-xs">{{ acc.server.name }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ acc.server.hostname }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 font-mono text-xs text-slate-600">
+                                            {{ acc.ip_address|default:acc.server.ip_address }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if acc.status == 'active' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                            {% elif acc.status == 'pending' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending Payment
+                                            </span>
+                                            {% elif acc.status == 'suspended' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                Suspended
+                                            </span>
+                                            {% else %}
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                                {{ acc.status|title }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-xs font-semibold text-slate-700 capitalize">
+                                            {{ acc.billing_cycle }}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            {% if acc.status == 'active' %}
+                                            <a href="https://{{ acc.server.hostname }}:2083" target="_blank"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg text-xs font-bold transition border border-brand-200">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i> cPanel Login
+                                            </a>
+                                            {% elif acc.status == 'pending' %}
+                                            <button onclick="switchTab('invoices')" class="text-xs font-bold text-amber-600 hover:text-amber-700 underline">
+                                                Pay Invoice
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-xs">
+                                            You don't have any hosting accounts provisioned yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 3: DOMAIN PORTFOLIO PANE                                  -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-domains" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Domain Portfolio & WHOIS</h2>
+                            <p class="text-xs text-slate-500">Domains registered and managed via wholesale registrar driver APIs.</p>
+                        </div>
+                        <button onclick="openDomainOrderModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Register New Domain
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-700">
+                                <thead class="bg-surface-50 text-[11px] uppercase font-bold text-slate-500 border-b border-slate-200 tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Domain Name</th>
+                                        <th class="px-6 py-4">Registrar</th>
+                                        <th class="px-6 py-4">Registration Date</th>
+                                        <th class="px-6 py-4">Expiration Date</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Nameservers</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for dom in client_domains %}
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4">
+                                            <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                                <i class="fa-solid fa-globe text-purple-600 text-xs"></i>
+                                                {{ dom.domain_name }}
+                                            </div>
+                                            {% if dom.auto_renew %}
+                                            <span class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                                                <i class="fa-solid fa-arrows-rotate"></i> Auto-Renew Enabled
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="text-xs font-semibold text-slate-800">{{ dom.registrar.name }}</span>
+                                            <span class="block text-[10px] text-slate-400 font-mono">{{ dom.registrar.driver|upper }} API</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-600 font-medium">
+                                            {{ dom.registration_date|default:"Pending Payment" }}
+                                        </td>
+                                        <td class="px-6 py-4 text-xs font-bold {% if dom.is_expired %}text-rose-600{% else %}text-slate-900{% endif %}">
+                                            {{ dom.expiry_date|default:"-" }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if dom.status == 'active' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                            {% elif dom.status == 'pending' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending API
+                                            </span>
+                                            {% else %}
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                                {{ dom.status|title }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="text-[11px] font-mono text-slate-500">
+                                                {{ dom.nameservers|join:", "|default:"ns1.hostpro.bd, ns2.hostpro.bd" }}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-xs">
+                                            No domains registered in your portfolio yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 4: INVOICES & BILLING PANE                                -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-invoices" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Invoices & Billing History</h2>
+                            <p class="text-xs text-slate-500">Track and pay your hosting and domain registration invoices.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-700">
+                                <thead class="bg-surface-50 text-[11px] uppercase font-bold text-slate-500 border-b border-slate-200 tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Invoice #</th>
+                                        <th class="px-6 py-4">Issue Date</th>
+                                        <th class="px-6 py-4">Due Date</th>
+                                        <th class="px-6 py-4">Description</th>
+                                        <th class="px-6 py-4">Amount</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for inv in invoices %}
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900 text-sm">
+                                            #{{ inv.invoice_number }}
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-600">
+                                            {{ inv.issued_date }}
+                                        </td>
+                                        <td class="px-6 py-4 text-xs font-semibold text-slate-700">
+                                            {{ inv.due_date }}
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-600 max-w-xs truncate">
+                                            {% for item in inv.items.all %}
+                                            {{ item.description }}{% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                            Hosting Services
+                                            {% endfor %}
+                                        </td>
+                                        <td class="px-6 py-4 font-extrabold text-sm text-slate-900">
+                                            ৳{{ inv.total|floatformat:2 }} BDT
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if inv.status == 'paid' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                <i class="fa-solid fa-check text-[10px]"></i> Paid
+                                            </span>
+                                            {% elif inv.status == 'unpaid' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                                <i class="fa-solid fa-clock text-[10px]"></i> Unpaid
+                                            </span>
+                                            {% elif inv.status == 'overdue' %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                                <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Overdue
+                                            </span>
+                                            {% else %}
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                                {{ inv.status|title }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            {% if inv.status == 'unpaid' or inv.status == 'overdue' %}
+                                            <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total }}')"
+                                                class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-lock text-[10px]"></i> Pay Now
+                                            </button>
+                                            {% else %}
+                                            <span class="text-xs text-slate-400 font-medium">
+                                                Paid on {{ inv.paid_at|date:"M d, Y" }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 text-xs">
+                                            No invoices generated yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 5: PACKAGES / ORDER STORE                                 -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-packages" class="tab-pane hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Order Web Hosting Services</h2>
+                            <p class="text-xs text-slate-500">Pick a high-performance plan with zero-touch automated WHM provisioning.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {% for pkg in packages %}
+                        <div class="bg-white rounded-3xl p-6 border {% if pkg.is_featured %}border-2 border-brand-500 shadow-card{% else %}border border-slate-200 shadow-soft{% endif %} flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-xl font-bold text-slate-900">{{ pkg.name }}</h3>
+                                    <span class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold">
+                                        <i class="fa-solid fa-cloud"></i>
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4 min-h-[35px]">{{ pkg.description }}</p>
+
+                                <div class="p-3 rounded-xl bg-surface-50 border border-slate-200 mb-5">
+                                    <span class="text-2xl font-extrabold text-slate-900">৳{{ pkg.monthly_price|floatformat:0 }}</span>
+                                    <span class="text-xs text-slate-500">/ month</span>
+                                </div>
+
+                                <ul class="space-y-2 text-xs text-slate-700 font-medium mb-6">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> {{ pkg.disk_quota_mb }} MB NVMe SSD Storage</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> {% if pkg.bandwidth_mb == 0 %}Unlimited{% else %}{{ pkg.bandwidth_mb }} MB{% endif %} Bandwidth</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> {{ pkg.max_databases }} MySQL Databases</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> {{ pkg.max_email_accounts }} Email Accounts</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Free Let's Encrypt SSL & cPanel</li>
+                                </ul>
+                            </div>
+
+                            <button onclick="openOrderModal('{{ pkg.id }}')"
+                                class="w-full py-3 px-4 rounded-xl font-bold text-xs text-center transition shadow-xs {% if pkg.is_featured %}bg-brand-600 hover:bg-brand-700 text-white{% else %}bg-slate-900 hover:bg-slate-800 text-white{% endif %}">
+                                <i class="fa-solid fa-cart-shopping mr-1"></i> Order {{ pkg.name }}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- TAB 6: CLIENT PROFILE PANE                                    -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="tab-content-profile" class="tab-pane hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Client Profile & Wallet</h2>
+                        <p class="text-xs text-slate-500">View and update your contact information and platform currency.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Profile Card -->
+                        <div class="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                            <h3 class="text-base font-bold text-slate-900 mb-6">Account Details</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                                    <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl font-semibold text-slate-800">{{ user.get_full_name|default:"Not specified" }}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                                    <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl font-semibold text-slate-800">{{ user.email }}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                                    <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">{{ profile.phone|default:"None on file" }}</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Company</label>
+                                    <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">{{ profile.company_name|default:"Individual" }}</div>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Billing Country</label>
+                                    <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">Bangladesh (BD) &bull; Currency: BDT (৳)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wallet & Quick Stats -->
+                        <div class="space-y-6">
+                            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-3xl p-6 shadow-card">
+                                <span class="text-xs uppercase tracking-wider font-semibold text-emerald-200">Account Wallet</span>
+                                <div class="text-4xl font-extrabold mt-2">৳{{ profile.credit_balance|floatformat:2 }}</div>
+                                <p class="text-xs text-emerald-100 mt-2">Use your account credit balance to instantly pay invoices without external redirection.</p>
+                            </div>
+
+                            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Security & Role</h4>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex justify-between py-1 border-b border-slate-100">
+                                        <span class="text-slate-500">Account Role</span>
+                                        <strong class="text-slate-800 uppercase">{{ user.role }}</strong>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-slate-100">
+                                        <span class="text-slate-500">Member Since</span>
+                                        <strong class="text-slate-800">{{ user.date_joined|date:"M d, Y" }}</strong>
+                                    </div>
+                                    <div class="flex justify-between py-1">
+                                        <span class="text-slate-500">Two-Factor Auth</span>
+                                        <strong class="text-emerald-600">Standard</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 </div>
 
-<!-- ─── Order Service Modal ────────────────────────────────────────────────── -->
-<div id="order-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md hidden">
-    <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-700 shadow-2xl relative">
-        <button onclick="closeOrderModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODALS (LIGHT ENTERPRISE THEME)                                           -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+
+<!-- 1. ORDER HOSTING MODAL -->
+<div id="order-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-200 shadow-floating relative">
+        <button onclick="closeOrderModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
             <i class="fa-solid fa-xmark text-lg"></i>
         </button>
 
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center text-lg">
-                <i class="fa-solid fa-cart-shopping"></i>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-brand-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-server"></i>
             </div>
             <div>
-                <h3 class="text-xl font-bold text-white">Order New Hosting Account</h3>
-                <p class="text-xs text-slate-400">Pending account and invoice will be created instantly.</p>
+                <h3 class="text-xl font-bold text-slate-900">Order Web Hosting</h3>
+                <p class="text-xs text-slate-500">Instant provisioning on WHM server node upon invoice payment.</p>
             </div>
         </div>
 
         <form method="POST" action="{% url 'order_hosting' %}" class="space-y-4">
             {% csrf_token %}
-
-            <!-- Package Selection -->
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Select Hosting Package</label>
-                <select name="package_id" id="modal-package-select" required
-                    class="w-full p-3 bg-slate-950/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-brand-500">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Hosting Plan</label>
+                <select id="modal-package-select" name="package_id" required
+                    class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
                     {% for pkg in packages %}
                     <option value="{{ pkg.id }}">{{ pkg.name }} — ৳{{ pkg.monthly_price|floatformat:0 }}/mo</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <!-- Domain Name Input -->
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Primary Domain Name</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                        <i class="fa-solid fa-globe text-sm"></i>
-                    </div>
-                    <input type="text" name="domain" required placeholder="e.g. mynewbrand.com"
-                        class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500">
-                </div>
-                <p class="text-[11px] text-slate-500 mt-1">Enter your domain name (without http:// or www)</p>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Domain Name</label>
+                <input type="text" name="domain" required placeholder="e.g. mynewbrand.com"
+                    class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
             </div>
 
-            <!-- Billing Cycle -->
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Billing Cycle</label>
-                <select name="billing_cycle" class="w-full p-3 bg-slate-950/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-brand-500">
-                    {% for cycle_val, cycle_label in billing_cycles %}
-                    <option value="{{ cycle_val }}">{{ cycle_label }}</option>
-                    {% endfor %}
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Billing Cycle</label>
+                <select name="billing_cycle" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
+                    <option value="monthly">Monthly</option>
+                    <option value="annual">Annual (Save 15%)</option>
                 </select>
             </div>
 
             <div class="pt-4 flex gap-3">
-                <button type="button" onclick="closeOrderModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+                <button type="button" onclick="closeOrderModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check"></i> Submit Order
+                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Confirm Order
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ─── Payment Gateway Modal ──────────────────────────────────────────────── -->
-<div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md hidden">
-    <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-700 shadow-2xl relative">
-        <button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white">
+<!-- 2. REGISTER DOMAIN MODAL -->
+<div id="domain-order-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-slate-200 shadow-floating relative">
+        <button onclick="closeDomainOrderModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
             <i class="fa-solid fa-xmark text-lg"></i>
         </button>
 
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-lg">
-                <i class="fa-solid fa-credit-card"></i>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-globe"></i>
             </div>
             <div>
-                <h3 class="text-xl font-bold text-white">Complete Invoice Payment</h3>
-                <p class="text-xs text-slate-400">Invoice: <span id="pay-modal-invoice-num" class="font-bold text-white"></span></p>
+                <h3 class="text-xl font-bold text-slate-900">Register a New Domain</h3>
+                <p class="text-xs text-slate-500">Automated wholesale registration via Namecheap / ResellerClub API.</p>
             </div>
         </div>
 
-        <!-- Total display -->
-        <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 mb-6 flex items-center justify-between">
-            <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Payable</span>
-            <div class="text-2xl font-extrabold text-emerald-400">৳ <span id="pay-modal-amount"></span> <span class="text-xs text-slate-400">BDT</span></div>
+        <form method="POST" action="/api/v1/domains/web/order/" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Domain Name</label>
+                <input type="text" name="domain" required placeholder="e.g. cloudscalebd.com"
+                    class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Duration</label>
+                    <select name="years" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
+                        <option value="1">1 Year</option>
+                        <option value="2">2 Years</option>
+                        <option value="3">3 Years</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Wholesale Rate</label>
+                    <div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-700 font-semibold flex items-center justify-between">
+                        <span>.com from</span>
+                        <strong class="text-brand-600 font-bold">৳1,350/yr</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TLD Price list strip -->
+            <div class="p-3 bg-surface-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 flex flex-wrap gap-2">
+                {% for tld in tld_prices %}
+                <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">
+                    <strong>{{ tld.tld }}</strong>: ৳{{ tld.register_price|floatformat:0 }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <button type="button" onclick="closeDomainOrderModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Order Domain
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. PAY INVOICE MODAL -->
+<div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-floating relative">
+        <button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center text-xl mb-3">
+                <i class="fa-solid fa-shield-check"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">Instant Invoice Payment</h3>
+            <p class="text-xs text-slate-500 mt-1">Invoice <span id="pay-modal-invoice-num" class="font-bold text-slate-800"></span></p>
+            <div class="text-3xl font-extrabold text-slate-900 mt-3">
+                ৳<span id="pay-modal-amount">0.00</span> <span class="text-xs font-semibold text-slate-500">BDT</span>
+            </div>
         </div>
 
         <form id="payment-form" method="POST" action="" class="space-y-4">
             {% csrf_token %}
-
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Choose Payment Gateway</label>
-                <div class="grid grid-cols-2 gap-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Choose Payment Gateway</label>
+                <div class="grid grid-cols-2 gap-2.5">
                     <!-- bKash -->
-                    <label class="payment-method-card relative p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 cursor-pointer flex items-center gap-3 hover:border-pink-500 transition">
-                        <input type="radio" name="gateway" value="bkash" checked class="text-pink-500 focus:ring-0">
-                        <div>
-                            <span class="block text-xs font-bold text-pink-400">bKash</span>
-                            <span class="text-[10px] text-slate-400">Tokenized Checkout</span>
-                        </div>
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-pink-300 cursor-pointer transition has-checked:border-pink-500 has-checked:bg-pink-50/50">
+                        <input type="radio" name="gateway" value="bkash" checked class="text-pink-600 focus:ring-0">
+                        <div class="text-xs font-bold text-slate-800">bKash</div>
                     </label>
 
                     <!-- Nagad -->
-                    <label class="payment-method-card relative p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 cursor-pointer flex items-center gap-3 hover:border-orange-500 transition">
-                        <input type="radio" name="gateway" value="nagad" class="text-orange-500 focus:ring-0">
-                        <div>
-                            <span class="block text-xs font-bold text-orange-400">Nagad</span>
-                            <span class="text-[10px] text-slate-400">Direct Payment</span>
-                        </div>
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-orange-300 cursor-pointer transition has-checked:border-orange-500 has-checked:bg-orange-50/50">
+                        <input type="radio" name="gateway" value="nagad" class="text-orange-600 focus:ring-0">
+                        <div class="text-xs font-bold text-slate-800">Nagad</div>
                     </label>
 
                     <!-- SSLCommerz -->
-                    <label class="payment-method-card relative p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 cursor-pointer flex items-center gap-3 hover:border-sky-500 transition">
-                        <input type="radio" name="gateway" value="sslcommerz" class="text-sky-500 focus:ring-0">
-                        <div>
-                            <span class="block text-xs font-bold text-sky-400">SSLCommerz</span>
-                            <span class="text-[10px] text-slate-400">Cards & Net Banking</span>
-                        </div>
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-blue-300 cursor-pointer transition has-checked:border-blue-500 has-checked:bg-blue-50/50">
+                        <input type="radio" name="gateway" value="sslcommerz" class="text-blue-600 focus:ring-0">
+                        <div class="text-xs font-bold text-slate-800">SSLCommerz</div>
                     </label>
 
-                    <!-- Account Credit -->
-                    <label class="payment-method-card relative p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 cursor-pointer flex items-center gap-3 hover:border-emerald-500 transition">
-                        <input type="radio" name="gateway" value="credit" class="text-emerald-500 focus:ring-0">
-                        <div>
-                            <span class="block text-xs font-bold text-emerald-400">Wallet Credit</span>
-                            <span class="text-[10px] text-slate-400">Balance: ৳{{ profile.credit_balance|floatformat:0 }}</span>
-                        </div>
+                    <!-- Account Balance -->
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 hover:border-emerald-300 cursor-pointer transition has-checked:border-emerald-500 has-checked:bg-emerald-50/50">
+                        <input type="radio" name="gateway" value="credit" class="text-emerald-600 focus:ring-0">
+                        <div class="text-xs font-bold text-slate-800">Wallet Credit</div>
                     </label>
                 </div>
             </div>
 
-            <!-- Transaction Reference Note in Dev Mode -->
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400">
-                <i class="fa-solid fa-circle-info text-brand-400 mr-1"></i>
-                In development mode, payment verification is instant and automatically provisions or unsuspends your server account.
+            <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-[11px] text-brand-900 leading-relaxed">
+                <i class="fa-solid fa-bolt text-brand-600 mr-1"></i>
+                Upon payment confirmation, your server account and domain are automatically provisioned in real time.
             </div>
 
             <div class="pt-3 flex gap-3">
-                <button type="button" onclick="closePaymentModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+                <button type="button" onclick="closePaymentModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-lock"></i> Confirm & Pay Now
                 </button>
             </div>
         </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+    // ─── TAB SWITCHING LOGIC ─────────────────────────────────────────────────
+    const TAB_TITLES = {
+        'overview': 'Overview Dashboard',
+        'services': 'Hosting Accounts & Servers',
+        'domains': 'Domain Portfolio & WHOIS',
+        'invoices': 'Invoices & Billing',
+        'packages': 'Order Web Hosting',
+        'profile': 'Profile & Account Settings'
+    };
+
     function switchTab(tabName) {
+        // Hide all panes
         document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+
+        // Reset all tab button styles
         document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('text-brand-400', 'border-brand-500');
-            el.classList.add('text-slate-400', 'border-transparent');
+            el.classList.remove('bg-brand-50', 'text-brand-600');
+            el.classList.add('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
         });
 
+        // Show target pane
         const targetPane = document.getElementById('tab-content-' + tabName);
         const targetBtn = document.getElementById('tab-btn-' + tabName);
 
         if (targetPane) targetPane.classList.remove('hidden');
         if (targetBtn) {
-            targetBtn.classList.remove('text-slate-400', 'border-transparent');
-            targetBtn.classList.add('text-brand-400', 'border-brand-500');
+            targetBtn.classList.remove('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+            targetBtn.classList.add('bg-brand-50', 'text-brand-600');
+        }
+
+        // Update Header Title
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle && TAB_TITLES[tabName]) {
+            pageTitle.textContent = TAB_TITLES[tabName];
+        }
+
+        // Close mobile drawer if open
+        closeMobileSidebar();
+    }
+
+    // ─── COLLAPSIBLE SIDEBAR LOGIC ───────────────────────────────────────────
+    let isCollapsed = false;
+
+    function initSidebarState() {
+        const saved = localStorage.getItem('hostpro_sidebar_collapsed');
+        if (saved === 'true') {
+            collapseSidebar(true);
         }
     }
 
+    function toggleSidebarCollapse() {
+        collapseSidebar(!isCollapsed);
+    }
+
+    function collapseSidebar(collapse) {
+        isCollapsed = collapse;
+        localStorage.setItem('hostpro_sidebar_collapsed', collapse ? 'true' : 'false');
+
+        const sidebar = document.getElementById('main-sidebar');
+        const collapseIcon = document.getElementById('sidebar-collapse-icon');
+        const textElements = document.querySelectorAll('.sidebar-text-element');
+
+        if (collapse) {
+            sidebar.classList.remove('w-64');
+            sidebar.classList.add('w-20');
+            textElements.forEach(el => el.classList.add('hidden'));
+            if (collapseIcon) {
+                collapseIcon.classList.remove('fa-chevron-left');
+                collapseIcon.classList.add('fa-chevron-right');
+            }
+        } else {
+            sidebar.classList.remove('w-20');
+            sidebar.classList.add('w-64');
+            textElements.forEach(el => el.classList.remove('hidden'));
+            if (collapseIcon) {
+                collapseIcon.classList.remove('fa-chevron-right');
+                collapseIcon.classList.add('fa-chevron-left');
+            }
+        }
+    }
+
+    // Header hamburger button handles both mobile drawer and desktop collapse
+    function handleHeaderToggle() {
+        if (window.innerWidth < 768) {
+            toggleMobileSidebar();
+        } else {
+            toggleSidebarCollapse();
+        }
+    }
+
+    // Mobile Off-Canvas Drawer Logic
+    function toggleMobileSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        const isHidden = sidebar.classList.contains('-translate-x-full');
+
+        if (isHidden) {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            backdrop.classList.remove('hidden');
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            backdrop.classList.add('hidden');
+        }
+    }
+
+    function closeMobileSidebar() {
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById('main-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            backdrop.classList.add('hidden');
+        }
+    }
+
+    // ─── MODAL CONTROLLERS ───────────────────────────────────────────────────
     function openOrderModal(pkgId = null) {
         const modal = document.getElementById('order-modal');
         if (pkgId) {
@@ -581,6 +1085,14 @@
         document.getElementById('order-modal').classList.add('hidden');
     }
 
+    function openDomainOrderModal() {
+        document.getElementById('domain-order-modal').classList.remove('hidden');
+    }
+
+    function closeDomainOrderModal() {
+        document.getElementById('domain-order-modal').classList.add('hidden');
+    }
+
     function openPaymentModal(invoiceId, invoiceNum, amount) {
         document.getElementById('pay-modal-invoice-num').textContent = '#' + invoiceNum;
         document.getElementById('pay-modal-amount').textContent = amount;
@@ -592,11 +1104,17 @@
         document.getElementById('payment-modal').classList.add('hidden');
     }
 
-    // Auto open order tab if url has parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('order_package')) {
-        switchTab('packages');
-        openOrderModal(urlParams.get('order_package'));
-    }
+    // Auto open tab if URL has parameters
+    document.addEventListener('DOMContentLoaded', () => {
+        initSidebarState();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('order_package')) {
+            switchTab('packages');
+            openOrderModal(urlParams.get('order_package'));
+        } else if (urlParams.has('tab')) {
+            switchTab(urlParams.get('tab'));
+        }
+    });
 </script>
 {% endblock %}

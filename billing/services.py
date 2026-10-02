@@ -103,6 +103,41 @@ class InvoiceService:
         return invoice
 
     @staticmethod
+    @db_transaction.atomic
+    def create_domain_invoice(
+        user,
+        domain,
+        amount: Decimal,
+        description: str,
+        due_days: int = 7,
+    ) -> Invoice:
+        """Create an invoice for a domain registration or renewal."""
+        today = timezone.now().date()
+        invoice = Invoice.objects.create(
+            invoice_number=InvoiceNumberGenerator.generate(),
+            user=user,
+            invoice_type=Invoice.InvoiceType.DOMAIN,
+            domain=domain,
+            status=Invoice.Status.UNPAID,
+            subtotal=amount,
+            total=amount,
+            issued_date=today,
+            due_date=today + timezone.timedelta(days=due_days),
+        )
+
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description=description,
+            quantity=Decimal('1.00'),
+            unit_price=amount,
+            line_total=amount,
+        )
+
+        logger.info("Domain Invoice %s created for %s, BDT %s", invoice.invoice_number, user.email, amount)
+        invalidate_cache(make_cache_key('invoice_list', str(user.id)))
+        return invoice
+
+    @staticmethod
     def mark_overdue_invoices() -> int:
         """
         Batch-update all unpaid invoices past their due date to OVERDUE.
@@ -248,3 +283,13 @@ class PaymentService:
                         countdown=5,
                     )
                     logger.info("Unsuspend task queued for account %s", account.id)
+
+        # ── Domain Post-Payment Trigger ───────────────────────────────────
+        if invoice.invoice_type == Invoice.InvoiceType.DOMAIN or invoice.domain:
+            if invoice.domain and invoice.domain.status == invoice.domain.Status.PENDING:
+                from domains.tasks import register_domain_task
+                register_domain_task.apply_async(
+                    args=[str(invoice.domain.id)],
+                    countdown=5,
+                )
+                logger.info("Domain registration task queued for domain %s", invoice.domain.id)

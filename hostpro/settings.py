@@ -108,25 +108,38 @@ DATABASES = {
 #         },
 #     }
 # }
-# ─── Redis Cache ──────────────────────────────────────────────────────────────
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {'max_connections': 50},
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'IGNORE_EXCEPTIONS': True,   # Redis বন্ধ থাকলে বা এরর দিলে অ্যাপ ডাউন হবে না
-        },
-        'KEY_PREFIX': 'hostpro',
-        'TIMEOUT': 300,  # Default TTL: 5 minutes
+# ─── Cache & Session Strategy ────────────────────────────────────────────────
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
+USE_REDIS = config('USE_REDIS', default=False, cast=_safe_bool)
+
+if USE_REDIS:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {'max_connections': 50},
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+                'IGNORE_EXCEPTIONS': True,
+            },
+            'KEY_PREFIX': 'hostpro',
+            'TIMEOUT': 300,
+        }
     }
-}
-# Use Redis for sessions too
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'hostpro-cache',
+            'KEY_PREFIX': 'hostpro',
+            'TIMEOUT': 300,
+        }
+    }
+
+# Use DB sessions so user login and authentication always works reliably
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # ─── Celery ───────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/1')
@@ -140,6 +153,10 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_TASK_MAX_RETRIES = 3
+
+# If Redis is disabled (e.g. local development), execute Celery tasks eagerly in-memory
+CELERY_TASK_ALWAYS_EAGER = not USE_REDIS
+CELERY_TASK_EAGER_PROPAGATES = True
 
 # ─── Authentication ───────────────────────────────────────────────────────────
 AUTH_USER_MODEL = 'accounts.User'  # Custom user model in accounts app

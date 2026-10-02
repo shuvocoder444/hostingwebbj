@@ -61,13 +61,26 @@ def login_view(request):
             messages.error(request, 'Please provide both email and password.')
             return render(request, 'login.html', {'next': next_url, 'email': email})
 
-        # authenticate uses USERNAME_FIELD which is email
+        # Try authenticating via Django backend
         user = authenticate(request, username=email, password=password)
+        if user is None:
+            user = authenticate(request, email=email, password=password)
+        if user is None:
+            # Fallback direct check for custom user model
+            try:
+                candidate = User.objects.get(email__iexact=email)
+                if candidate.check_password(password):
+                    user = candidate
+            except User.DoesNotExist:
+                user = None
 
         if user is not None:
             if not user.is_active:
                 messages.error(request, 'Your account is inactive. Please contact support.')
                 return render(request, 'login.html', {'next': next_url, 'email': email})
+
+            if not hasattr(user, 'backend') or not user.backend:
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
 
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name or user.email}!')
@@ -134,6 +147,7 @@ def register_view(request):
                 currency='BDT',
             )
 
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             messages.success(request, f'Account created successfully! Welcome to HostPro, {user.first_name}.')
             return redirect('dashboard')
@@ -185,8 +199,13 @@ def dashboard_view(request):
 
     packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
 
+    from domains.models import Domain, TLDPricing
+    client_domains = Domain.objects.filter(user=user).select_related('registrar').order_by('-created_at')
+    tld_prices = TLDPricing.objects.filter(is_active=True).order_by('register_price')
+
     # Compute key stats
     active_accounts_count = hosting_accounts.filter(status=HostingAccount.Status.ACTIVE).count()
+    active_domains_count = client_domains.filter(status=Domain.Status.ACTIVE).count()
     unpaid_invoices = invoices.filter(status=Invoice.Status.UNPAID)
     unpaid_invoices_count = unpaid_invoices.count()
     total_unpaid_amount = sum(inv.total for inv in unpaid_invoices)
@@ -195,9 +214,12 @@ def dashboard_view(request):
         'user': user,
         'profile': profile,
         'hosting_accounts': hosting_accounts,
+        'client_domains': client_domains,
+        'tld_prices': tld_prices,
         'invoices': invoices,
         'packages': packages,
         'active_accounts_count': active_accounts_count,
+        'active_domains_count': active_domains_count,
         'unpaid_invoices_count': unpaid_invoices_count,
         'total_unpaid_amount': total_unpaid_amount,
         'billing_cycles': BillingCycle.choices,
@@ -304,26 +326,46 @@ def pay_invoice_view(request, invoice_id):
         profile.save(update_fields=['credit_balance'])
 
     try:
-        # Confirm payment via PaymentService (handles idempotency, invoice status, Celery trigger)
-        txn = PaymentService.confirm_payment(
-            invoice_id=str(invoice.id),
-            gateway=gateway,
+        # 1. Create or get successful transaction record
+        txn, created = Transaction.objects.get_or_create(
             gateway_transaction_id=trx_id,
-            amount=invoice.total,
-            gateway_response={'status': 'SUCCESS', 'gateway': gateway, 'channel': 'web_portal'},
+            defaults={
+                'invoice': invoice,
+                'user': request.user,
+                'gateway': gateway,
+                'status': Transaction.Status.SUCCESS,
+                'amount': invoice.total,
+                'gateway_response': {'status': 'SUCCESS', 'gateway': gateway, 'channel': 'web_portal'},
+            }
         )
 
-        # In dev mode, if account is pending, activate it directly so user sees instant result
-        if invoice.hosting_account and invoice.hosting_account.status == HostingAccount.Status.PENDING:
+        # 2. Mark invoice as PAID
+        invoice.mark_paid()
+        invoice.save(update_fields=['status', 'paid_at', 'updated_at'])
+
+        # 3. Transition hosting account to ACTIVE
+        if invoice.hosting_account:
             acct = invoice.hosting_account
-            acct.status = HostingAccount.Status.ACTIVE
-            acct.provisioned_at = timezone.now()
-            acct.save(update_fields=['status', 'provisioned_at'])
+            if acct.status in (HostingAccount.Status.PENDING, HostingAccount.Status.SUSPENDED):
+                acct.status = HostingAccount.Status.ACTIVE
+                acct.provisioned_at = timezone.now()
+                if not acct.next_due_date:
+                    from hosting.services import _compute_next_due_date
+                    acct.next_due_date = _compute_next_due_date(acct.billing_cycle)
+                acct.save(update_fields=['status', 'provisioned_at', 'next_due_date'])
+
+        # 4. Automatically provision domain at registrar if invoice is for a domain
+        if invoice.domain:
+            from domains.services import DomainService
+            try:
+                DomainService.provision_domain(str(invoice.domain.id))
+            except Exception as e:
+                logger.error("Domain automatic provisioning error: %s", e)
 
         messages.success(
             request,
-            f"Payment of BDT {invoice.total} received via {gateway.upper()}! "
-            f"Invoice #{invoice.invoice_number} is now PAID and your service is ACTIVE."
+            f"Payment of BDT {invoice.total} confirmed via {gateway.upper()}! "
+            f"Invoice #{invoice.invoice_number} is now PAID and your services have been automatically activated."
         )
 
     except Exception as exc:

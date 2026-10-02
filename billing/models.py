@@ -63,6 +63,12 @@ class Invoice(models.Model):
         null=True, blank=True,
         related_name='invoices',
     )
+    domain = models.ForeignKey(
+        'domains.Domain',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='invoices',
+    )
 
     # ── Financials ─────────────────────────────────────────────────────────
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
