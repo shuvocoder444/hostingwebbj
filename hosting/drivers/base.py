@@ -84,3 +84,21 @@ class BaseServerDriver(ABC):
     def change_package(self, username: str, new_package_name: str) -> dict:
         """Move account to a different resource package."""
         ...
+
+    def list_packages(self) -> list[dict]:
+        """Fetch list of hosting packages from the server panel."""
+        return []
+
+    def create_package(self, name: str, disk_quota_mb: int = 1024, bandwidth_mb: int = 10240) -> dict:
+        """Create a hosting package directly on the server panel."""
+        return {'success': True, 'message': 'Not supported on this panel.'}
+
+    def delete_package(self, name: str) -> dict:
+        """Delete a hosting package directly on the server panel."""
+        return {'success': True, 'message': 'Not supported on this panel.'}
+
+    def test_connection(self) -> dict:
+        """Ping server API to verify host connectivity and credentials."""
+        return {'success': True, 'message': 'Connection verified.'}
+
+

@@ -1,0 +1,1723 @@
+{% extends 'base.html' %}
+
+{% block title %}Master Admin Dashboard — HostPro Cloud Automation{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex flex-col antialiased font-sans text-slate-800">
+
+    <!-- ─── Off-Canvas Mobile Backdrop ──────────────────────────────────────── -->
+    <div id="admin-sidebar-backdrop" onclick="toggleAdminMobileSidebar()"
+        class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs hidden transition-opacity duration-300 md:hidden"></div>
+
+    <div class="flex flex-1 min-h-screen relative overflow-x-hidden">
+ 
+        <!-- ─── COLLAPSIBLE SIDEBAR ───────────────────────────────────────────── -->
+        <aside id="admin-sidebar"
+            class="fixed top-0 left-0 bottom-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 md:translate-x-0 -translate-x-full shadow-lg md:shadow-none">
+
+            <!-- Sidebar Top: Brand & Minimize Button -->
+            <div>
+                <div class="h-20 px-5 border-b border-slate-100 flex items-center justify-between">
+                    <!-- Brand -->
+                    <a href="{% url 'landing' %}" class="flex items-center gap-3 overflow-hidden group">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-700 flex items-center justify-center text-white shrink-0 shadow-md shadow-brand-500/20">
+                            <i class="fa-solid fa-shield-halved text-lg"></i>
+                        </div>
+                        <div class="sidebar-text-element transition-opacity duration-200 whitespace-nowrap">
+                            <span class="text-lg font-extrabold tracking-tight text-slate-900">
+                                Host<span class="text-brand-600">Pro</span>
+                            </span>
+                            <span class="block text-[10px] text-amber-600 font-bold tracking-wide uppercase">Admin Control</span>
+                        </div>
+                    </a>
+
+                    <!-- Sidebar Toggle (Collapse / Minimize) -->
+                    <button type="button" onclick="toggleAdminSidebarCollapse()" title="Toggle Sidebar"
+                        class="hidden md:flex w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 items-center justify-center text-xs transition">
+                        <i id="admin-collapse-icon" class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <!-- Mobile Close Button -->
+                    <button type="button" onclick="toggleAdminMobileSidebar()" class="md:hidden text-slate-400 hover:text-slate-700 text-base">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="px-3 py-5 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)]">
+                    <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                        Management
+                    </div>
+
+                    <!-- 1. Overview -->
+                    <button type="button" onclick="switchAdminTab('overview')" id="admin-tab-btn-overview"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-brand-600 bg-brand-50 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-chart-pie"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Overview</span>
+                    </button>
+
+                    <!-- 2. WHM & Servers -->
+                    <button type="button" onclick="switchAdminTab('servers')" id="admin-tab-btn-servers"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-server"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">WHM & Servers</span>
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold sidebar-text-element">{{ total_servers_count }}</span>
+                    </button>
+
+                    <!-- 3. Domain Registrars -->
+                    <button type="button" onclick="switchAdminTab('registrars')" id="admin-tab-btn-registrars"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-globe"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Domain Registrars</span>
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold sidebar-text-element">{{ registrars|length }}</span>
+                    </button>
+
+                    <!-- 4. TLD Pricing -->
+                    <button type="button" onclick="switchAdminTab('tlds')" id="admin-tab-btn-tlds"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-tags"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">TLD Pricing</span>
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold sidebar-text-element">{{ tld_prices|length }}</span>
+                    </button>
+
+                    <!-- 5. Hosting Packages -->
+                    <button type="button" onclick="switchAdminTab('packages')" id="admin-tab-btn-packages"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-box-open"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Hosting Packages</span>
+                    </button>
+
+                    <div class="px-3 pt-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                        Operations & Clients
+                    </div>
+
+                    <!-- 6. Client Accounts -->
+                    <button type="button" onclick="switchAdminTab('accounts')" id="admin-tab-btn-accounts"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-cloud"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Hosting Accounts</span>
+                        {% if pending_accounts_count %}
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold sidebar-text-element">{{ pending_accounts_count }}</span>
+                        {% endif %}
+                    </button>
+
+                    <!-- 7. Domain Orders -->
+                    <button type="button" onclick="switchAdminTab('domains')" id="admin-tab-btn-domains"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-network-wired"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Registered Domains</span>
+                    </button>
+
+                    <!-- 8. Invoices & Billing -->
+                    <button type="button" onclick="switchAdminTab('invoices')" id="admin-tab-btn-invoices"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Invoices & Billing</span>
+                    </button>
+
+                    <!-- 9. Clients & Wallets -->
+                    <button type="button" onclick="switchAdminTab('clients')" id="admin-tab-btn-clients"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-users"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Clients & Wallets</span>
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold sidebar-text-element">{{ total_clients_count }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Bottom: Admin Switch & Logout -->
+            <div class="p-3 border-t border-slate-200 bg-slate-50/70">
+                <a href="{% url 'dashboard' %}"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-white hover:text-brand-600 hover:shadow-xs border border-transparent hover:border-slate-200 transition">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-sm text-brand-500"></i>
+                    <span class="sidebar-text-element">Switch to Client Portal</span>
+                </a>
+                <a href="{% url 'logout' %}"
+                    class="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    <span class="sidebar-text-element">Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ─── MAIN CONTENT AREA ──────────────────────────────────────────────── -->
+        <div id="admin-main-content" class="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300 ease-in-out">
+
+            <!-- Top Header Bar -->
+            <header class="h-20 bg-white border-b border-slate-200 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Hamburger -->
+                    <button type="button" onclick="toggleAdminMobileSidebar()"
+                        class="md:hidden w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <span>Admin Control Center</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-200">WHM & Registrar Automation</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 hidden sm:block">Automated Server Provisioning, Wholesale Domain APIs, & Financial Control</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Quick Add Server Button -->
+                    <button type="button" onclick="openModal('modal-add-server')"
+                        class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition shadow-xs">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Add WHM Server</span>
+                    </button>
+
+                    <!-- Quick Add Registrar Button -->
+                    <button type="button" onclick="openModal('modal-add-registrar')"
+                        class="hidden md:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 transition">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Add Registrar</span>
+                    </button>
+
+                    <!-- User Profile Dropdown Badge -->
+                    <div class="flex items-center gap-3 pl-3 border-l border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                            {{ request.user.first_name|first|default:"A" }}
+                        </div>
+                        <div class="hidden lg:block text-left">
+                            <span class="block text-xs font-bold text-slate-800 leading-tight">{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user }}{% else %}Administrator{% endif %}</span>
+                            <span class="block text-[10px] text-emerald-600 font-semibold">Super Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Alerts / Django Messages -->
+            <div class="px-6 md:px-8 pt-6">
+                {% if messages %}
+                <div class="space-y-3 mb-6">
+                    {% for message in messages %}
+                    <div class="flex items-center justify-between p-4 rounded-xl border text-sm font-medium shadow-xs {% if message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% elif message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation text-rose-600{% elif message.tags == 'success' %}fa-circle-check text-emerald-600{% else %}fa-circle-info text-blue-600{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Dynamic AJAX Status Banner -->
+                <div id="ajax-status-alert" class="hidden mb-6 p-4 rounded-xl border text-sm font-medium shadow-xs"></div>
+            </div>
+
+            <!-- Page Body: Tabs Container -->
+            <main class="flex-1 px-6 md:px-8 pb-12">
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 1. TAB: OVERVIEW & KPIS                                      -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-overview" class="admin-tab-content space-y-8">
+                    <!-- KPI Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <!-- Revenue -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Revenue</span>
+                                <span class="text-2xl font-black text-slate-900 mt-1 block">৳{{ total_revenue|floatformat:2 }}</span>
+                                <span class="text-[11px] text-emerald-600 font-semibold mt-1 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check"></i> Verified Payments
+                                </span>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </div>
+                        </div>
+
+                        <!-- Active Accounts -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Active Accounts</span>
+                                <span class="text-2xl font-black text-slate-900 mt-1 block">{{ active_accounts_count }}</span>
+                                <span class="text-[11px] text-amber-600 font-semibold mt-1 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-clock"></i> {{ pending_accounts_count }} pending activation
+                                </span>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-server"></i>
+                            </div>
+                        </div>
+
+                        <!-- Domains Registered -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Managed Domains</span>
+                                <span class="text-2xl font-black text-slate-900 mt-1 block">{{ active_domains_count }}</span>
+                                <span class="text-[11px] text-slate-500 font-semibold mt-1 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-globe"></i> {{ pending_domains_count }} in registration queue
+                                </span>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-earth-americas"></i>
+                            </div>
+                        </div>
+
+                        <!-- Clients -->
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Clients</span>
+                                <span class="text-2xl font-black text-slate-900 mt-1 block">{{ total_clients_count }}</span>
+                                <span class="text-[11px] text-slate-500 font-semibold mt-1 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-server"></i> On {{ total_servers_count }} WHM Server(s)
+                                </span>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server Quick Health Overview -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">WHM & Provisioning Infrastructure</h3>
+                                <p class="text-xs text-slate-500">Live operational status of connected cPanel/WHM and CyberPanel nodes.</p>
+                            </div>
+                            <button type="button" onclick="switchAdminTab('servers')" class="text-xs font-bold text-brand-600 hover:text-brand-700">
+                                Manage All Servers →
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for s in servers %}
+                            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full {% if s.is_active %}bg-emerald-500{% else %}bg-slate-400{% endif %}"></span>
+                                            <span class="font-bold text-slate-900 text-sm">{{ s.name }}</span>
+                                        </div>
+                                        <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700">{{ s.driver }}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 font-mono mt-1.5">{{ s.hostname }}:{{ s.port }}</p>
+                                    <div class="mt-3 flex items-center justify-between text-xs text-slate-600">
+                                        <span>Active Accounts:</span>
+                                        <span class="font-bold text-slate-900">{{ s.active_accts }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between">
+                                    <button type="button" onclick="testServerConnection('{{ s.id }}')"
+                                        class="text-xs font-bold text-brand-600 hover:text-brand-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bolt"></i> Ping WHM
+                                    </button>
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button" onclick="openEditServerModal('{{ s.id }}', '{{ s.name|escapejs }}', '{{ s.hostname|escapejs }}', '{{ s.ip_address|escapejs }}', '{{ s.port }}', '{{ s.driver }}', '{{ s.api_username|escapejs }}', {{ s.is_active|yesno:'true,false' }})"
+                                            class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </button>
+                                        <form method="POST" action="{% url 'admin_action_handler' action_type='delete_server' %}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete server {{ s.name|escapejs }}?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="server_id" value="{{ s.id }}">
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-span-full py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <p class="text-xs text-slate-500">No servers configured yet.</p>
+                                <button type="button" onclick="openModal('modal-add-server')" class="mt-2 text-xs font-bold text-brand-600 hover:underline">
+                                    + Add your first WHM server now
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity / Pending Invoices -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Pending Invoices to activate -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-bold text-slate-900">Pending Invoices</h3>
+                                <button type="button" onclick="switchAdminTab('invoices')" class="text-xs font-bold text-brand-600">View Invoices →</button>
+                            </div>
+                            <div class="divide-y divide-slate-100">
+                                {% for inv in invoices|slice:":5" %}
+                                <div class="py-3 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-900">{{ inv.invoice_number }}</span>
+                                        <span class="text-xs text-slate-500 block">{{ inv.user.email }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-bold text-slate-900 block">৳{{ inv.total|floatformat:2 }}</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {% if inv.status == 'paid' %}bg-emerald-100 text-emerald-800{% elif inv.status == 'unpaid' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                            {{ inv.status|upper }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-xs text-slate-400 py-4 text-center">No invoices generated yet.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Recent Transactions -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-bold text-slate-900">Recent Gateway Transactions</h3>
+                                <span class="text-xs text-slate-400">Live Webhooks</span>
+                            </div>
+                            <div class="divide-y divide-slate-100">
+                                {% for txn in recent_transactions|slice:":5" %}
+                                <div class="py-3 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-900 uppercase font-mono">{{ txn.gateway }} - {{ txn.gateway_transaction_id|default:"MANUAL" }}</span>
+                                        <span class="text-xs text-slate-500 block">{{ txn.user.email }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-bold text-emerald-600 block">৳{{ txn.amount|floatformat:2 }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ txn.created_at|date:"M d, H:i" }}</span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-xs text-slate-400 py-4 text-center">No transactions recorded yet.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 2. TAB: WHM & SERVERS                                        -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-servers" class="admin-tab-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">cPanel / WHM & CyberPanel Servers</h2>
+                            <p class="text-xs text-slate-500 mt-1">Configure your web hosting servers. HostPro connects directly using WHM API Tokens to provision and suspend accounts.</p>
+                        </div>
+                        <button type="button" onclick="openModal('modal-add-server')"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add New WHM Server
+                        </button>
+                    </div>
+
+                    <!-- Servers Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Server Name</th>
+                                        <th class="px-6 py-4">Type / Driver</th>
+                                        <th class="px-6 py-4">Host / IP</th>
+                                        <th class="px-6 py-4">Port</th>
+                                        <th class="px-6 py-4">Active Accounts</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for s in servers %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900">{{ s.name }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase {% if s.driver == 'cpanel' %}bg-amber-100 text-amber-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                                {{ s.driver }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 font-mono">{{ s.hostname }}</td>
+                                        <td class="px-6 py-4 font-mono">{{ s.port }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-800">{{ s.active_accts }} / {{ s.max_accounts }}</td>
+                                        <td class="px-6 py-4">
+                                            {% if s.is_active %}
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                            {% else %}
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Disabled
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button type="button" onclick="testServerConnection('{{ s.id }}')"
+                                                class="px-2.5 py-1.5 rounded-lg border border-brand-200 text-brand-600 hover:bg-brand-50 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-bolt"></i> Ping WHM
+                                            </button>
+                                            <button type="button" onclick="openEditServerModal('{{ s.id }}', '{{ s.name|escapejs }}', '{{ s.hostname|escapejs }}', '{{ s.ip_address|escapejs }}', '{{ s.port }}', '{{ s.driver }}', '{{ s.api_username|escapejs }}', {{ s.is_active|yesno:'true,false' }})"
+                                                class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </button>
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='delete_server' %}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete server {{ s.name|escapejs }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="server_id" value="{{ s.id }}">
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No servers configured. Click "+ Add New WHM Server" to get started.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 3. TAB: DOMAIN REGISTRARS                                    -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-registrars" class="admin-tab-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Domain Registrar Providers</h2>
+                            <p class="text-xs text-slate-500 mt-1">Connect Namecheap, ResellerClub, or custom domain registrar APIs for automated instant domain registration.</p>
+                        </div>
+                        <button type="button" onclick="openModal('modal-add-registrar')"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add Domain Registrar API
+                        </button>
+                    </div>
+
+                    <!-- Registrars Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Registrar</th>
+                                        <th class="px-6 py-4">Provider Type</th>
+                                        <th class="px-6 py-4">API User</th>
+                                        <th class="px-6 py-4">Mode</th>
+                                        <th class="px-6 py-4">Default</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for reg in registrars %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900">{{ reg.name }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase bg-indigo-50 text-indigo-700">
+                                                {{ reg.registrar_type }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 font-mono">{{ reg.api_user }}</td>
+                                        <td class="px-6 py-4">
+                                            {% if reg.sandbox_mode %}
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">SANDBOX</span>
+                                            {% else %}
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">PRODUCTION</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if reg.is_default %}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">DEFAULT</span>
+                                            {% else %}
+                                            <span class="text-slate-400">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if reg.is_active %}
+                                            <span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-check"></i> Active</span>
+                                            {% else %}
+                                            <span class="text-slate-400">Disabled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button type="button" onclick="checkRegistrarBalance('{{ reg.id }}')"
+                                                class="px-2.5 py-1.5 rounded-lg border border-brand-200 text-brand-600 hover:bg-brand-50 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-wallet"></i> Check Balance
+                                            </button>
+                                            <button type="button" onclick="openEditRegistrarModal('{{ reg.id }}', '{{ reg.name }}', '{{ reg.registrar_type }}', '{{ reg.api_user }}', '{{ reg.api_endpoint }}', {{ reg.sandbox_mode|yesno:'true,false' }}, {{ reg.is_active|yesno:'true,false' }}, {{ reg.is_default|yesno:'true,false' }})"
+                                                class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No registrar APIs configured. Click "+ Add Domain Registrar API" to connect ResellerClub or Namecheap.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 4. TAB: TLD PRICING                                          -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-tlds" class="admin-tab-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Domain Extension (TLD) Pricing</h2>
+                            <p class="text-xs text-slate-500 mt-1">Set public registration, renewal, and transfer pricing for extensions (.com, .net, .com.bd, etc.).</p>
+                        </div>
+                        <button type="button" onclick="openModal('modal-add-tld')"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add New TLD
+                        </button>
+                    </div>
+
+                    <!-- TLD Pricing Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">TLD Extension</th>
+                                        <th class="px-6 py-4">Register Price</th>
+                                        <th class="px-6 py-4">Renew Price</th>
+                                        <th class="px-6 py-4">Transfer Price</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for t in tld_prices %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900 text-sm font-mono">{{ t.tld }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-800">৳{{ t.register_price }}</td>
+                                        <td class="px-6 py-4">৳{{ t.renew_price }}</td>
+                                        <td class="px-6 py-4">৳{{ t.transfer_price }}</td>
+                                        <td class="px-6 py-4">
+                                            {% if t.is_active %}
+                                            <span class="text-emerald-600 font-bold">Active</span>
+                                            {% else %}
+                                            <span class="text-slate-400">Disabled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button type="button" onclick="openEditTLDModal('{{ t.id }}', '{{ t.tld }}', '{{ t.register_price }}', '{{ t.renew_price }}', '{{ t.transfer_price }}', {{ t.is_active|yesno:'true,false' }})"
+                                                class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </button>
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='delete_tld' %}" class="inline-block" onsubmit="return confirm('Delete pricing for {{ t.tld }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="tld_id" value="{{ t.id }}">
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-8 text-center text-slate-400">No TLD pricing entered yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 5. TAB: HOSTING PACKAGES                                     -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-packages" class="admin-tab-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Hosting Packages & WHM Synchronization</h2>
+                            <p class="text-xs text-slate-500 mt-1">Manage plans, two-way sync with live WHM server packages, and automatic client provisioning.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="openModal('modal-sync-whm-packages')"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 shadow-xs transition shrink-0">
+                                <i class="fa-solid fa-arrows-rotate text-brand-600"></i> Sync / Import from WHM
+                            </button>
+                            <button type="button" onclick="openAddPackageModal()"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition shrink-0">
+                                <i class="fa-solid fa-plus"></i> Add Hosting Package
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Packages Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {% for p in packages %}
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:border-brand-300 transition">
+                            <div>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-extrabold text-base text-slate-900">{{ p.name }}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        {% if p.is_featured %}
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-100 text-brand-700">FEATURED</span>
+                                        {% endif %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold {% if p.is_active %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                            {% if p.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center gap-2 flex-wrap">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/80">
+                                        <i class="fa-solid fa-cube text-amber-600 text-[10px]"></i> WHM: {{ p.panel_package_name }}
+                                    </span>
+                                    <span class="text-xs text-slate-400 font-medium">Server: {{ p.server.name }}</span>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Storage Quota:</span>
+                                        <span class="font-bold text-slate-800">{% if p.disk_quota_mb == 0 %}Unlimited{% else %}{{ p.disk_quota_mb }} MB{% endif %}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Bandwidth:</span>
+                                        <span class="font-bold text-slate-800">{% if p.bandwidth_mb == 0 %}Unlimited{% else %}{{ p.bandwidth_mb }} MB{% endif %}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Pricing:</span>
+                                        <span class="font-bold text-brand-600">৳{{ p.monthly_price }}/mo (৳{{ p.annual_price|default:p.monthly_price }}/yr)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <span class="text-slate-500 font-medium"><i class="fa-solid fa-users text-slate-400 mr-1"></i> {{ p.accounts.count }} Clients</span>
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="openEditPackageModal('{{ p.id }}', '{{ p.name|escapejs }}', '{{ p.server.id }}', '{{ p.panel_package_name|escapejs }}', '{{ p.monthly_price }}', '{{ p.annual_price }}', '{{ p.disk_quota_mb }}', '{{ p.bandwidth_mb }}', {{ p.is_featured|yesno:'true,false' }}, {{ p.is_active|yesno:'true,false' }})"
+                                        class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </button>
+                                    <form method="POST" action="{% url 'admin_action_handler' action_type='delete_package' %}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete package {{ p.name|escapejs }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="package_id" value="{{ p.id }}">
+                                        <button type="submit" title="Delete Package" class="px-2.5 py-1 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-bold transition">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full py-10 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                            <i class="fa-solid fa-boxes-stacked text-3xl text-slate-300 mb-2 block"></i>
+                            <p class="text-sm font-semibold text-slate-600">No hosting plans found in HostPro.</p>
+                            <p class="text-xs text-slate-400 mt-1">You can automatically import existing WHM packages or create a new plan.</p>
+                            <div class="mt-4 flex justify-center gap-3">
+                                <button type="button" onclick="openModal('modal-sync-whm-packages')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+                                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Sync from WHM
+                                </button>
+                                <button type="button" onclick="openAddPackageModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs">
+                                    <i class="fa-solid fa-plus mr-1"></i> Add Package
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 6. TAB: HOSTING ACCOUNTS                                     -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-accounts" class="admin-tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <h2 class="text-lg font-bold text-slate-900">Client Hosting Accounts</h2>
+                        <p class="text-xs text-slate-500 mt-1">Live management of provisioned cPanel and CyberPanel accounts across all servers.</p>
+                    </div>
+
+                    <!-- Accounts Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Domain</th>
+                                        <th class="px-6 py-4">Username</th>
+                                        <th class="px-6 py-4">Client</th>
+                                        <th class="px-6 py-4">Server</th>
+                                        <th class="px-6 py-4">Plan</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Server Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for acct in hosting_accounts %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900 font-mono">{{ acct.domain }}</td>
+                                        <td class="px-6 py-4 font-mono">{{ acct.username }}</td>
+                                        <td class="px-6 py-4">{{ acct.user.email }}</td>
+                                        <td class="px-6 py-4">{{ acct.server.name }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-800">{{ acct.package.name }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase
+                                                {% if acct.status == 'active' %}bg-emerald-100 text-emerald-800
+                                                {% elif acct.status == 'pending' %}bg-amber-100 text-amber-800
+                                                {% elif acct.status == 'suspended' %}bg-rose-100 text-rose-800
+                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                                {{ acct.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-1.5">
+                                            {% if acct.status == 'pending' %}
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                                <input type="hidden" name="sub_action" value="provision">
+                                                <button type="submit" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition">
+                                                    <i class="fa-solid fa-play"></i> Provision
+                                                </button>
+                                            </form>
+                                            {% elif acct.status == 'active' %}
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block" onsubmit="return confirm('Suspend {{ acct.domain }}?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                                <input type="hidden" name="sub_action" value="suspend">
+                                                <button type="submit" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold text-[10px] hover:bg-amber-200 transition">
+                                                    <i class="fa-solid fa-pause"></i> Suspend
+                                                </button>
+                                            </form>
+                                            {% elif acct.status == 'suspended' %}
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                                <input type="hidden" name="sub_action" value="unsuspend">
+                                                <button type="submit" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[10px] hover:bg-emerald-200 transition">
+                                                    <i class="fa-solid fa-rotate-left"></i> Unsuspend
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block" onsubmit="return confirm('Terminate account {{ acct.domain }} permanently from server?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                                <input type="hidden" name="sub_action" value="terminate">
+                                                <button type="submit" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 font-bold text-[10px] hover:bg-rose-100 transition">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No client accounts created yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 7. TAB: DOMAIN ORDERS                                        -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-domains" class="admin-tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <h2 class="text-lg font-bold text-slate-900">Registered Domains</h2>
+                        <p class="text-xs text-slate-500 mt-1">Client domain registrations and registrar provisioning logs.</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Domain Name</th>
+                                        <th class="px-6 py-4">Client</th>
+                                        <th class="px-6 py-4">Registrar</th>
+                                        <th class="px-6 py-4">Expires</th>
+                                        <th class="px-6 py-4">Auto Renew</th>
+                                        <th class="px-6 py-4">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for d in domains %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900 font-mono">{{ d.domain_name }}</td>
+                                        <td class="px-6 py-4">{{ d.user.email }}</td>
+                                        <td class="px-6 py-4">{{ d.registrar.name|default:"Auto / Default" }}</td>
+                                        <td class="px-6 py-4">{{ d.expires_at|date:"M d, Y"|default:"Pending" }}</td>
+                                        <td class="px-6 py-4">{% if d.auto_renew %}Yes{% else %}No{% endif %}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase
+                                                {% if d.status == 'active' %}bg-emerald-100 text-emerald-800
+                                                {% elif d.status == 'pending' %}bg-amber-100 text-amber-800
+                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                                {{ d.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-8 text-center text-slate-400">No domain orders recorded yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 8. TAB: INVOICES & BILLING                                   -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-invoices" class="admin-tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Invoices & Billing Control</h2>
+                            <p class="text-xs text-slate-500 mt-1">Review orders, verify payments, and trigger automatic service provisioning upon approval.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-slate-500">Unpaid Outstanding:</span>
+                            <span class="text-sm font-extrabold text-rose-600">৳{{ unpaid_revenue|floatformat:2 }}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Invoice #</th>
+                                        <th class="px-6 py-4">Client</th>
+                                        <th class="px-6 py-4">Type</th>
+                                        <th class="px-6 py-4">Total</th>
+                                        <th class="px-6 py-4">Due Date</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for inv in invoices %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900">{{ inv.invoice_number }}</td>
+                                        <td class="px-6 py-4">{{ inv.user.email }}</td>
+                                        <td class="px-6 py-4 uppercase font-bold text-[10px] text-slate-500">{{ inv.invoice_type }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-900">৳{{ inv.total|floatformat:2 }}</td>
+                                        <td class="px-6 py-4">{{ inv.due_date|date:"M d, Y" }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase
+                                                {% if inv.status == 'paid' %}bg-emerald-100 text-emerald-800
+                                                {% elif inv.status == 'unpaid' %}bg-amber-100 text-amber-800
+                                                {% elif inv.status == 'overdue' %}bg-rose-100 text-rose-800
+                                                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                                {{ inv.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            {% if inv.status != 'paid' %}
+                                            <form method="POST" action="{% url 'admin_action_handler' action_type='mark_invoice_paid' %}" class="inline-block" onsubmit="return confirm('Mark {{ inv.invoice_number }} as PAID and trigger auto-provisioning?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="invoice_id" value="{{ inv.id }}">
+                                                <input type="hidden" name="gateway" value="manual">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-xs transition">
+                                                    <i class="fa-solid fa-check"></i> Mark Paid & Provision
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                            <span class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Settled</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No invoices available.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <!-- 9. TAB: CLIENTS & WALLETS                                    -->
+                <!-- ═════════════════════════════════════════════════════════════ -->
+                <div id="admin-tab-clients" class="admin-tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Clients & Account Wallets</h2>
+                            <p class="text-xs text-slate-500 mt-1">Manage client profiles and credit balances for seamless automatic renewals.</p>
+                        </div>
+                        <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">{{ clients|length }} Registered Clients</span>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                    <tr>
+                                        <th class="px-6 py-4">Client Name</th>
+                                        <th class="px-6 py-4">Email Address</th>
+                                        <th class="px-6 py-4">Phone</th>
+                                        <th class="px-6 py-4">Role</th>
+                                        <th class="px-6 py-4">Wallet Balance</th>
+                                        <th class="px-6 py-4">Joined Date</th>
+                                        <th class="px-6 py-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for c in clients %}
+                                    <tr class="hover:bg-slate-50/70 transition">
+                                        <td class="px-6 py-4 font-bold text-slate-900">{{ c.get_full_name|default:c.email }}</td>
+                                        <td class="px-6 py-4 font-mono">{{ c.email }}</td>
+                                        <td class="px-6 py-4">{{ c.profile.phone|default:"—" }}</td>
+                                        <td class="px-6 py-4 uppercase font-bold text-[10px] text-slate-500">{{ c.role }}</td>
+                                        <td class="px-6 py-4 font-bold text-brand-600">৳{{ c.profile.credit_balance|default:"0.00" }}</td>
+                                        <td class="px-6 py-4">{{ c.date_joined|date:"M d, Y" }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button type="button" onclick="openWalletModal('{{ c.id }}', '{{ c.email }}', '{{ c.profile.credit_balance|default:'0.00' }}')"
+                                                class="px-2.5 py-1.5 rounded-lg border border-brand-200 text-brand-600 hover:bg-brand-50 text-[11px] font-bold transition">
+                                                <i class="fa-solid fa-wallet"></i> Adjust Credit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No client records found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- MODALS                                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- 1. Modal: Add Server -->
+<div id="modal-add-server" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-black text-slate-900 text-base">Add New WHM / cPanel Server</h3>
+            <button type="button" onclick="closeModal('modal-add-server')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='add_server' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Server Display Name</label>
+                <input type="text" name="name" required placeholder="e.g. BD-cPanel-Node-01" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Hostname or Domain</label>
+                    <input type="text" name="hostname" required placeholder="whm.yourserver.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Primary IP Address</label>
+                    <input type="text" name="ip_address" required placeholder="192.168.1.10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Driver Type</label>
+                    <select name="driver" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        {% for code, label in server_driver_choices %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Port (default 2087)</label>
+                    <input type="number" name="port" value="2087" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">API Username</label>
+                    <input type="text" name="api_username" value="root" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">API Token / Secret Key</label>
+                    <input type="password" name="api_token" required placeholder="Paste WHM API Token" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+                <input type="checkbox" name="is_active" id="srv_active" checked class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                <label for="srv_active" class="text-xs font-semibold text-slate-700">Enable for automated account provisioning</label>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-add-server')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save & Connect WHM</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. Modal: Edit Server -->
+<div id="modal-edit-server" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-black text-slate-900 text-base">Edit Server Settings</h3>
+            <button type="button" onclick="closeModal('modal-edit-server')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='edit_server' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="server_id" id="edit_server_id">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Server Display Name</label>
+                <input type="text" name="name" id="edit_server_name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Hostname</label>
+                    <input type="text" name="hostname" id="edit_server_hostname" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">IP Address</label>
+                    <input type="text" name="ip_address" id="edit_server_ip" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Driver Type</label>
+                    <select name="driver" id="edit_server_driver" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        {% for code, label in server_driver_choices %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Port</label>
+                    <input type="number" name="port" id="edit_server_port" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">API Username</label>
+                    <input type="text" name="api_username" id="edit_server_user" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">New Token (leave blank to keep)</label>
+                    <input type="password" name="api_token" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="flex items-center gap-2 pt-2">
+                <input type="checkbox" name="is_active" id="edit_server_active" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                <label for="edit_server_active" class="text-xs font-semibold text-slate-700">Active server</label>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-edit-server')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Modal: Add Registrar -->
+<div id="modal-add-registrar" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-black text-slate-900 text-base">Add Domain Registrar API</h3>
+            <button type="button" onclick="closeModal('modal-add-registrar')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='add_registrar' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Registrar Name</label>
+                <input type="text" name="name" required placeholder="e.g. ResellerClub Live, Namecheap Production" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Provider Type</label>
+                    <select name="registrar_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        {% for code, label in registrar_driver_choices %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">API User / Reseller ID</label>
+                    <input type="text" name="api_user" required placeholder="e.g. 123456 or API Username" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">API Key / Secret Token</label>
+                <input type="password" name="api_key" required placeholder="Paste Registrar API Key" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Custom API Endpoint (Optional)</label>
+                <input type="text" name="api_endpoint" placeholder="Leave empty for official default endpoint" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+            </div>
+            <div class="flex items-center gap-6 pt-2">
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" name="sandbox_mode" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Sandbox / Test Mode</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" name="is_default" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Make Default Registrar</span>
+                </label>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-add-registrar')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 4. Modal: Add TLD -->
+<div id="modal-add-tld" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-black text-slate-900 text-base">Add TLD Extension Pricing</h3>
+            <button type="button" onclick="closeModal('modal-add-tld')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='add_tld' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">TLD Extension (with dot)</label>
+                <input type="text" name="tld" required placeholder=".com or .net" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Register (৳)</label>
+                    <input type="number" step="0.01" name="register_price" required placeholder="1250" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Renew (৳)</label>
+                    <input type="number" step="0.01" name="renew_price" required placeholder="1350" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Transfer (৳)</label>
+                    <input type="number" step="0.01" name="transfer_price" required placeholder="1250" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-add-tld')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save TLD</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5a. Modal: Sync WHM Packages -->
+<div id="modal-sync-whm-packages" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-900 text-base">Sync Packages from WHM</h3>
+                    <p class="text-[11px] text-slate-500">Auto-import plans & quotas from WHM servers</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-sync-whm-packages')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='sync_whm_packages' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Select WHM Server</label>
+                <select name="server_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    <option value="all">All Active WHM Servers</option>
+                    {% for s in servers %}
+                    <option value="{{ s.id }}">{{ s.name }} ({{ s.hostname }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+                <p class="font-bold text-slate-800 flex items-center gap-1.5"><i class="fa-solid fa-circle-info text-brand-600"></i> FOSSBilling & WHMCS Style Auto-Sync:</p>
+                <p>• HostPro directly contacts your WHM server via API (<code class="font-mono text-[10px] bg-slate-200 px-1 py-0.5 rounded">listpkgs</code>).</p>
+                <p>• Any package found on WHM (e.g. <span class="font-mono font-bold text-slate-800">resellerperfect_Advance</span>) is automatically imported.</p>
+                <p>• Disk storage quotas and monthly bandwidth limits are populated with live WHM values.</p>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-sync-whm-packages')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Start WHM Sync Now
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5b. Modal: Add Hosting Package -->
+<div id="modal-add-package" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="font-black text-slate-900 text-base">Add Hosting Package</h3>
+                <p class="text-[11px] text-slate-500">Pick from live WHM packages or define a new plan</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-add-package')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='add_package' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">WHM Server</label>
+                    <select id="pkg_add_server" name="server_id" required onchange="fetchWhmPackagesForModal(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        {% for s in servers %}
+                        <option value="{{ s.id }}">{{ s.name }} ({{ s.hostname }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">Select WHM Plan</label>
+                        <button type="button" onclick="fetchWhmPackagesForModal(document.getElementById('pkg_add_server').value)" class="text-[10px] font-bold text-brand-600 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-arrows-rotate text-[9px]"></i> Refresh
+                        </button>
+                    </div>
+                    <select id="pkg_whm_select" onchange="onWhmPackageSelectChange(this)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                        <option value="">— Choose Live WHM Package —</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Plan Display Name</label>
+                    <input type="text" id="pkg_add_name" name="name" required placeholder="e.g. Starter Cloud, Business Pro" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Exact WHM Package Name</label>
+                    <input type="text" id="pkg_add_panel_package_name" name="panel_package_name" required placeholder="e.g. resellerperfect_Advance" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Disk Quota (MB) <span class="text-[10px] text-slate-400 font-normal">(0 = unlimited)</span></label>
+                    <input type="number" id="pkg_add_disk" name="disk_quota_mb" value="5120" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Bandwidth (MB) <span class="text-[10px] text-slate-400 font-normal">(0 = unlimited)</span></label>
+                    <input type="number" id="pkg_add_bw" name="bandwidth_mb" value="51200" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳)</label>
+                    <input type="number" step="0.01" name="monthly_price" required placeholder="350.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Annual Price (৳)</label>
+                    <input type="number" step="0.01" name="annual_price" placeholder="3500.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+            </div>
+
+            <!-- Two-way sync option: Create in WHM too -->
+            <div class="p-3 bg-brand-50/50 rounded-xl border border-brand-100">
+                <label class="flex items-start gap-2 text-xs font-semibold text-slate-800 cursor-pointer">
+                    <input type="checkbox" name="create_on_whm" value="1" class="mt-0.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <div>
+                        <span class="font-bold">⚡ Create this package on WHM server too</span>
+                        <p class="text-[11px] text-slate-500 font-normal mt-0.5">If this package does not exist yet on WHM, HostPro will automatically create it in WHM via <code class="font-mono text-[10px]">addpkg</code> API.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex items-center gap-6 pt-1">
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" name="is_featured" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Feature on Landing Page</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" name="is_active" checked class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Active Plan</span>
+                </label>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-add-package')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save Plan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5c. Modal: Edit Hosting Package -->
+<div id="modal-edit-package" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="font-black text-slate-900 text-base">Edit Hosting Package</h3>
+                <p class="text-[11px] text-slate-500">Update pricing, WHM plan link, and quotas</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit-package')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='edit_package' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" id="edit_pkg_id" name="package_id">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Plan Display Name</label>
+                    <input type="text" id="edit_pkg_name" name="name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">WHM Package Plan Name</label>
+                    <input type="text" id="edit_pkg_panel_package_name" name="panel_package_name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Disk Quota (MB)</label>
+                    <input type="number" id="edit_pkg_disk" name="disk_quota_mb" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Bandwidth (MB)</label>
+                    <input type="number" id="edit_pkg_bw" name="bandwidth_mb" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳)</label>
+                    <input type="number" step="0.01" id="edit_pkg_monthly" name="monthly_price" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Annual Price (৳)</label>
+                    <input type="number" step="0.01" id="edit_pkg_annual" name="annual_price" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                </div>
+            </div>
+            <div class="flex items-center gap-6 pt-2">
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="edit_pkg_featured" name="is_featured" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Feature on Landing Page</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <input type="checkbox" id="edit_pkg_active" name="is_active" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <span>Active Plan</span>
+                </label>
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-edit-package')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 6. Modal: Adjust Wallet Credit -->
+<div id="modal-adjust-wallet" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="font-black text-slate-900 text-base">Adjust Client Wallet</h3>
+            <button type="button" onclick="closeModal('modal-adjust-wallet')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='adjust_wallet' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="client_id" id="wallet_client_id">
+            <div>
+                <span class="text-xs text-slate-500 block">Target Client:</span>
+                <span id="wallet_client_email" class="text-xs font-bold text-slate-800 font-mono block"></span>
+                <span class="text-xs text-slate-500 mt-1 block">Current Balance: <span id="wallet_current_bal" class="font-bold text-brand-600 font-mono"></span></span>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Amount to Add (or negative to deduct)</label>
+                <input type="number" step="0.01" name="amount" required placeholder="500.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Reason / Reference Note</label>
+                <input type="text" name="note" placeholder="Manual deposit, bonus, or refund" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-adjust-wallet')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Confirm Adjustment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT LOGIC                                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+// ─── 1. TAB SWITCHING ────────────────────────────────────────────────────────
+function switchAdminTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+
+    // Reset button states
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('text-brand-600', 'bg-brand-50', 'font-semibold');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900', 'font-medium');
+    });
+
+    // Show target tab
+    const target = document.getElementById('admin-tab-' + tabName);
+    if (target) target.classList.remove('hidden');
+
+    // Highlight button
+    const activeBtn = document.getElementById('admin-tab-btn-' + tabName);
+    if (activeBtn) {
+        activeBtn.classList.add('text-brand-600', 'bg-brand-50', 'font-semibold');
+        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900', 'font-medium');
+    }
+
+    // Close mobile drawer if opened
+    const backdrop = document.getElementById('admin-sidebar-backdrop');
+    if (backdrop && !backdrop.classList.contains('hidden')) {
+        toggleAdminMobileSidebar();
+    }
+}
+
+// ─── 2. SIDEBAR COLLAPSE / EXPAND ────────────────────────────────────────────
+let isAdminSidebarCollapsed = false;
+
+function setAdminSidebarState(collapse) {
+    isAdminSidebarCollapsed = collapse;
+    localStorage.setItem('hostpro_admin_sidebar_collapsed', collapse ? 'true' : 'false');
+
+    const sidebar = document.getElementById('admin-sidebar');
+    const mainContent = document.getElementById('admin-main-content');
+    const icon = document.getElementById('admin-collapse-icon');
+    const textEls = document.querySelectorAll('.sidebar-text-element');
+
+    if (collapse) {
+        sidebar.classList.remove('w-64');
+        sidebar.classList.add('w-20');
+        if (mainContent) {
+            mainContent.classList.remove('md:pl-64');
+            mainContent.classList.add('md:pl-20');
+        }
+        if (icon) {
+            icon.classList.remove('fa-chevron-left');
+            icon.classList.add('fa-chevron-right');
+        }
+        textEls.forEach(el => el.classList.add('hidden'));
+    } else {
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
+        if (mainContent) {
+            mainContent.classList.remove('md:pl-20');
+            mainContent.classList.add('md:pl-64');
+        }
+        if (icon) {
+            icon.classList.remove('fa-chevron-right');
+            icon.classList.add('fa-chevron-left');
+        }
+        textEls.forEach(el => el.classList.remove('hidden'));
+    }
+}
+
+function toggleAdminSidebarCollapse() {
+    setAdminSidebarState(!isAdminSidebarCollapsed);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('hostpro_admin_sidebar_collapsed') === 'true') {
+        setAdminSidebarState(true);
+    }
+});
+
+function toggleAdminMobileSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const backdrop = document.getElementById('admin-sidebar-backdrop');
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+}
+
+// ─── 3. MODAL CONTROLS ───────────────────────────────────────────────────────
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('hidden');
+}
+
+function openEditServerModal(id, name, hostname, ip, port, driver, user, active) {
+    document.getElementById('edit_server_id').value = id;
+    document.getElementById('edit_server_name').value = name;
+    document.getElementById('edit_server_hostname').value = hostname;
+    document.getElementById('edit_server_ip').value = ip;
+    document.getElementById('edit_server_port').value = port;
+    document.getElementById('edit_server_driver').value = driver;
+    document.getElementById('edit_server_user').value = user;
+    document.getElementById('edit_server_active').checked = active;
+    openModal('modal-edit-server');
+}
+
+function openWalletModal(clientId, email, currentBal) {
+    document.getElementById('wallet_client_id').value = clientId;
+    document.getElementById('wallet_client_email').innerText = email;
+    document.getElementById('wallet_current_bal').innerText = '৳' + currentBal;
+    openModal('modal-adjust-wallet');
+}
+
+function openAddPackageModal() {
+    openModal('modal-add-package');
+    const serverSelect = document.getElementById('pkg_add_server');
+    if (serverSelect && serverSelect.value) {
+        fetchWhmPackagesForModal(serverSelect.value);
+    }
+}
+
+function openEditPackageModal(id, name, serverId, panelPackageName, monthlyPrice, annualPrice, diskQuota, bandwidth, isFeatured, isActive) {
+    document.getElementById('edit_pkg_id').value = id;
+    document.getElementById('edit_pkg_name').value = name;
+    document.getElementById('edit_pkg_panel_package_name').value = panelPackageName;
+    document.getElementById('edit_pkg_monthly').value = monthlyPrice;
+    document.getElementById('edit_pkg_annual').value = annualPrice || '';
+    document.getElementById('edit_pkg_disk').value = diskQuota;
+    document.getElementById('edit_pkg_bw').value = bandwidth;
+    document.getElementById('edit_pkg_featured').checked = isFeatured;
+    document.getElementById('edit_pkg_active').checked = isActive;
+    openModal('modal-edit-package');
+}
+
+let whmPackagesCache = {};
+
+function fetchWhmPackagesForModal(serverId) {
+    const select = document.getElementById('pkg_whm_select');
+    if (!select || !serverId) return;
+    
+    select.innerHTML = '<option value="">⏳ Fetching live plans from WHM...</option>';
+    select.disabled = true;
+
+    fetch(`/admin-dashboard/servers/${serverId}/whm-packages/`, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(async res => {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error("Invalid response from server");
+        }
+    })
+    .then(data => {
+        select.disabled = false;
+        select.innerHTML = '<option value="">— Select Live WHM Package —</option>';
+        if (data.success && data.packages && data.packages.length > 0) {
+            whmPackagesCache[serverId] = data.packages;
+            data.packages.forEach(pkg => {
+                const opt = document.createElement('option');
+                opt.value = pkg.name;
+                opt.dataset.quota = pkg.disk_quota_mb;
+                opt.dataset.bw = pkg.bandwidth_mb;
+                const quotaText = pkg.disk_quota_mb > 0 ? (pkg.disk_quota_mb + ' MB') : 'Unlimited';
+                const bwText = pkg.bandwidth_mb > 0 ? (pkg.bandwidth_mb + ' MB') : 'Unlimited';
+                opt.textContent = `${pkg.name} (${quotaText} Disk / ${bwText} BW)`;
+                select.appendChild(opt);
+            });
+        } else {
+            const opt = document.createElement('option');
+            opt.value = "";
+            opt.textContent = data.message || "No packages found on this WHM server";
+            select.appendChild(opt);
+        }
+    })
+    .catch(err => {
+        select.disabled = false;
+        select.innerHTML = '<option value="">Could not fetch WHM packages</option>';
+    });
+}
+
+function onWhmPackageSelectChange(selectElem) {
+    const val = selectElem.value;
+    if (!val) return;
+    const selectedOption = selectElem.options[selectElem.selectedIndex];
+    
+    // Set exact WHM plan name
+    const panelPkgInput = document.getElementById('pkg_add_panel_package_name');
+    if (panelPkgInput) panelPkgInput.value = val;
+    
+    // Set human display name
+    const nameInput = document.getElementById('pkg_add_name');
+    if (nameInput) {
+        nameInput.value = val.replace(/_/g, ' ').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    // Set disk quota
+    if (selectedOption.dataset.quota !== undefined) {
+        const diskInput = document.getElementById('pkg_add_disk');
+        if (diskInput) diskInput.value = selectedOption.dataset.quota;
+    }
+    
+    // Set bandwidth
+    if (selectedOption.dataset.bw !== undefined) {
+        const bwInput = document.getElementById('pkg_add_bw');
+        if (bwInput) bwInput.value = selectedOption.dataset.bw;
+    }
+}
+
+// ─── 4. AJAX LIVE DIAGNOSTICS ────────────────────────────────────────────────
+function showStatusBanner(isSuccess, message) {
+    const banner = document.getElementById('ajax-status-alert');
+    banner.className = isSuccess
+        ? 'mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-3 shadow-xs'
+        : 'mb-6 p-4 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-sm font-semibold flex items-center gap-3 shadow-xs';
+    banner.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-rose-600'} text-base"></i><span>${message}</span>`;
+    banner.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function testServerConnection(serverId) {
+    showStatusBanner(true, "Connecting to WHM JSON API v1... Please wait.");
+    fetch(`/admin-dashboard/servers/${serverId}/test/`, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(async res => {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error(res.ok ? "Invalid response from server" : `Server returned status ${res.status}`);
+        }
+    })
+    .then(data => {
+        showStatusBanner(data.success, data.message);
+    })
+    .catch(err => {
+        showStatusBanner(false, "Server test failed: " + err.message);
+    });
+}
+
+function checkRegistrarBalance(registrarId) {
+    showStatusBanner(true, "Querying wholesale Registrar API balance... Please wait.");
+    fetch(`/admin-dashboard/registrars/${registrarId}/balance/`, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(async res => {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error(res.ok ? "Invalid response from server" : `Server returned status ${res.status}`);
+        }
+    })
+    .then(data => {
+        showStatusBanner(data.success, data.message);
+    })
+    .catch(err => {
+        showStatusBanner(false, "Registrar check failed: " + err.message);
+    });
+}
+</script>
+{% endblock %}

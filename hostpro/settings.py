@@ -12,7 +12,7 @@ from decouple import config, Csv
 # ─── Base ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-hostpro-live-key-xyz-77889900112233')
 
 # Use a safe boolean cast that won't fail on system env vars like DEBUG=release
 def _safe_bool(val):
@@ -21,8 +21,17 @@ def _safe_bool(val):
         return val
     return str(val).lower() in ('true', '1', 'yes')
 
-DEBUG = config('DEBUG', default='False', cast=_safe_bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1', cast=Csv())
+DEBUG = config('DEBUG', default=False, cast=_safe_bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='host.webkoders.com,195.250.26.201,127.0.0.1,localhost,testserver,*', cast=Csv())
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://host.webkoders.com',
+    'http://host.webkoders.com',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://195.250.26.201',
+    'https://195.250.26.201',
+]
 
 
 # ─── Installed Apps ───────────────────────────────────────────────────────────
@@ -233,20 +242,18 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@hostpro.com')
 
 # ─── Encryption ───────────────────────────────────────────────────────────────
-FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='')
+FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='OGtjeXFEUZevmNXtDSR_SwQb0_W_N38B5yu1uoQ4cBQ=')
 
 # ─── Billing Settings ─────────────────────────────────────────────────────────
 RENEWAL_INVOICE_DAYS_BEFORE = config('RENEWAL_INVOICE_DAYS_BEFORE', default=7, cast=int)
 AUTO_SUSPEND_GRACE_DAYS = config('AUTO_SUSPEND_GRACE_DAYS', default=3, cast=int)
 
 # ─── Security Headers (Production) ───────────────────────────────────────────
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=_safe_bool)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=_safe_bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=_safe_bool)
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_CONTENT_TYPE_NOSNIFF = True

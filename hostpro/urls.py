@@ -28,6 +28,7 @@ from core.views import (
 from core.admin_views import (
     admin_dashboard_view,
     admin_test_server_view,
+    admin_whm_packages_api,
     admin_check_registrar_balance_view,
     admin_action_handler_view,
 )
@@ -45,7 +46,10 @@ urlpatterns = [
     # ── Custom Admin Management Portal ────────────────────────────────────────
     path('admin-dashboard/', admin_dashboard_view, name='admin_dashboard'),
     path('admin-dashboard/servers/<uuid:server_id>/test/', admin_test_server_view, name='admin_test_server'),
+    path('admin-dashboard/test-server/<uuid:server_id>/', admin_test_server_view),
+    path('admin-dashboard/servers/<uuid:server_id>/whm-packages/', admin_whm_packages_api, name='admin_whm_packages'),
     path('admin-dashboard/registrars/<uuid:registrar_id>/balance/', admin_check_registrar_balance_view, name='admin_check_registrar_balance'),
+    path('admin-dashboard/check-registrar-balance/<uuid:registrar_id>/', admin_check_registrar_balance_view),
     path('admin-dashboard/action/<str:action_type>/', admin_action_handler_view, name='admin_action_handler'),
 
     # ── Django Native Admin ───────────────────────────────────────────────────

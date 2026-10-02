@@ -16,7 +16,7 @@
 
         <!-- ─── COLLAPSIBLE SIDEBAR ───────────────────────────────────────────── -->
         <aside id="main-sidebar"
-            class="fixed md:sticky top-0 left-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 md:translate-x-0 -translate-x-full shadow-card md:shadow-none">
+            class="fixed top-0 left-0 bottom-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 md:translate-x-0 -translate-x-full shadow-lg md:shadow-none">
 
             <!-- Sidebar Top: Brand & Minimize Button -->
             <div>
@@ -154,7 +154,7 @@
         </aside>
 
         <!-- ─── MAIN DASHBOARD CONTENT AREA ───────────────────────────────────── -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div id="main-content-area" class="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300 ease-in-out">
 
             <!-- Top Header Bar -->
             <header class="sticky top-0 z-30 bg-white border-b border-slate-200 h-20 px-4 sm:px-8 flex items-center justify-between shadow-2xs">
@@ -1013,12 +1013,17 @@
         localStorage.setItem('hostpro_sidebar_collapsed', collapse ? 'true' : 'false');
 
         const sidebar = document.getElementById('main-sidebar');
+        const mainContent = document.getElementById('main-content-area');
         const collapseIcon = document.getElementById('sidebar-collapse-icon');
         const textElements = document.querySelectorAll('.sidebar-text-element');
 
         if (collapse) {
             sidebar.classList.remove('w-64');
             sidebar.classList.add('w-20');
+            if (mainContent) {
+                mainContent.classList.remove('md:pl-64');
+                mainContent.classList.add('md:pl-20');
+            }
             textElements.forEach(el => el.classList.add('hidden'));
             if (collapseIcon) {
                 collapseIcon.classList.remove('fa-chevron-left');
@@ -1027,6 +1032,10 @@
         } else {
             sidebar.classList.remove('w-20');
             sidebar.classList.add('w-64');
+            if (mainContent) {
+                mainContent.classList.remove('md:pl-20');
+                mainContent.classList.add('md:pl-64');
+            }
             textElements.forEach(el => el.classList.remove('hidden'));
             if (collapseIcon) {
                 collapseIcon.classList.remove('fa-chevron-right');

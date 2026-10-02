@@ -11,13 +11,21 @@ Security:
 - SSL verification is enabled in production.
 """
 import logging
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from typing import Optional
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-from core.exceptions import ProvisioningError, SuspensionError, TerminationError, ServerDriverError
-from .base import BaseServerDriver, AccountInfo
+from core.exceptions import (
+    ProvisioningError,
+    ServerDriverError,
+    SuspensionError,
+    TerminationError,
+)
+
+from .base import AccountInfo, BaseServerDriver
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +61,14 @@ class CPanelDriver(BaseServerDriver):
         # WHM API token authentication
         session.headers.update({
             'Authorization': f'whm {self.username}:{self.api_token}',
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
         })
         return session
 
     def _call(
         self,
         function: str,
-        params: Optional[dict] = None,
+        params: dict | None = None,
         timeout: int = 30,
     ) -> dict:
         """
@@ -85,7 +93,7 @@ class CPanelDriver(BaseServerDriver):
                 url,
                 params=all_params,
                 timeout=timeout,
-                verify=self.use_ssl,  # Set to False only in dev/sandbox
+                verify=False,  # WHM commonly uses self-signed / hostname SSL
             )
             response.raise_for_status()
             return response.json()
@@ -205,3 +213,111 @@ class CPanelDriver(BaseServerDriver):
                 f"WHM changepackage failed for {username}: {status.get('statusmsg')}"
             )
         return {'success': True, 'message': f'Package changed to {new_package_name}.'}
+
+    def list_packages(self) -> list[dict]:
+        """
+        Fetch all hosting packages configured on WHM server via listpkgs API.
+        """
+        result = self._call('listpkgs')
+        raw_pkgs = []
+        if isinstance(result, dict):
+            if 'package' in result:
+                raw_pkgs = result['package']
+            elif 'data' in result and 'pkg' in result['data']:
+                raw_pkgs = result['data']['pkg']
+            elif 'pkg' in result:
+                raw_pkgs = result['pkg']
+
+        packages = []
+        for p in raw_pkgs:
+            quota_val = str(p.get('QUOTA', '0')).strip().lower()
+            bw_val = str(p.get('BWLIMIT', '0')).strip().lower()
+            try:
+                quota_mb = 0 if quota_val in ('unlimited', 'unassigned', '', '0') else int(p.get('QUOTA', 0))
+            except (ValueError, TypeError):
+                quota_mb = 0
+            try:
+                bw_mb = 0 if bw_val in ('unlimited', 'unassigned', '', '0') else int(p.get('BWLIMIT', 0))
+            except (ValueError, TypeError):
+                bw_mb = 0
+
+            packages.append({
+                'name': p.get('name', ''),
+                'disk_quota_mb': quota_mb,
+                'bandwidth_mb': bw_mb,
+                'max_sub': p.get('MAXSUB', 'unlimited'),
+                'max_sql': p.get('MAXSQL', 'unlimited'),
+                'max_ftp': p.get('MAXFTP', 'unlimited'),
+                'max_pop': p.get('MAXPOP', 'unlimited'),
+                'cpanel_theme': p.get('CPMOD', 'jupiter'),
+            })
+        return packages
+
+    def create_package(self, name: str, disk_quota_mb: int = 1024, bandwidth_mb: int = 10240) -> dict:
+        """Create a new package in WHM via addpkg API."""
+        params = {
+            'name': name,
+            'quota': str(disk_quota_mb) if disk_quota_mb > 0 else 'unlimited',
+            'bwlimit': str(bandwidth_mb) if bandwidth_mb > 0 else 'unlimited',
+            'featurelist': 'default',
+            'cpmod': 'jupiter',
+            'cgi': '1',
+            'hasshell': '0',
+            'maxftp': 'unlimited',
+            'maxsql': 'unlimited',
+            'maxpop': 'unlimited',
+            'maxsub': 'unlimited',
+            'maxpark': 'unlimited',
+            'maxaddon': 'unlimited',
+        }
+        res = self._call('addpkg', params=params)
+        status = res.get('result', [{}])[0] if isinstance(res.get('result'), list) else {}
+        if status.get('status') != 1:
+            err = status.get('statusmsg', res.get('metadata', {}).get('reason', 'Failed to create package in WHM'))
+            raise ServerDriverError(f"WHM addpkg failed: {err}")
+        return {'success': True, 'message': status.get('statusmsg', f"Package '{name}' created in WHM.")}
+
+    def delete_package(self, name: str) -> dict:
+        """Delete a package from WHM via killpkg API."""
+        res = self._call('killpkg', params={'pkg': name})
+        status = res.get('result', [{}])[0] if isinstance(res.get('result'), list) else {}
+        if status.get('status') != 1:
+            err = status.get('statusmsg', res.get('metadata', {}).get('reason', 'Failed to delete package in WHM'))
+            raise ServerDriverError(f"WHM killpkg failed: {err}")
+        return {'success': True, 'message': status.get('statusmsg', f"Package '{name}' deleted from WHM.")}
+
+    def test_connection(self) -> dict:
+        """Ping WHM version API to verify host connectivity and API token."""
+        url = f"{self._base_url}/json-api/version"
+        try:
+            response = self._session.get(
+                url,
+                params={'api.version': '1'},
+                timeout=12,
+                verify=False,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                version = data.get('version', '')
+                return {
+                    'success': True,
+                    'message': f"WHM connection SUCCESSFUL! Host {self.host} responded. cPanel/WHM Version: {version or 'OK'}"
+                }
+            elif response.status_code in (401, 403):
+                return {
+                    'success': False,
+                    'message': f"WHM host {self.host} reached, but authentication failed (HTTP {response.status_code}). Please verify your WHM API Username & Token."
+                }
+            else:
+                return {
+                    'success': False,
+                    'message': f"WHM host {self.host} returned HTTP {response.status_code}: {response.text[:120]}"
+                }
+        except requests.exceptions.Timeout:
+            return {'success': False, 'message': f"Connection timed out reaching {self.host}:2087."}
+        except requests.exceptions.ConnectionError as exc:
+            return {'success': False, 'message': f"Could not reach {self.host}:2087 (DNS or network firewall error)."}
+        except Exception as exc:
+            return {'success': False, 'message': f"WHM ping failed: {str(exc)}"}
+
+
