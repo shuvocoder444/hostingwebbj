@@ -1,0 +1,27 @@
+{% load static %}
+<!-- ─── REUSABLE BRAND LOGO (Dynamic Logo / Image Auto-Detect / Text Fallback) ─────── -->
+<div class="inline-flex items-center group min-w-0">
+    <!-- Custom Image Logo (Configured from Admin Settings or /static/img/logo.png) -->
+    <img src="{% if LOGO_URL %}{{ LOGO_URL }}{% else %}{% static 'img/logo.png' %}{% endif %}" 
+         alt="{{ COMPANY_NAME|default:'VeloHoster' }}" 
+         class="h-8 sm:h-10 w-auto max-w-[200px] object-contain block group-hover:opacity-95 transition"
+         onerror="this.style.display='none'; const fb = this.nextElementSibling; if(fb) { fb.classList.remove('hidden'); fb.classList.add('flex'); }">
+
+    <!-- Fallback Text Logo (Displayed when custom image logo is not set) -->
+    <div class="hidden items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl gradient-brand flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform duration-300 shrink-0">
+            <i class="fa-solid fa-bolt text-base sm:text-lg"></i>
+        </div>
+        <div class="min-w-0">
+            <span class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-1 sm:gap-1.5 truncate">
+                {% if COMPANY_NAME and not COMPANY_NAME == 'HostPro' %}
+                {{ COMPANY_NAME }}
+                {% else %}
+                Velo<span class="text-brand-600">Hoster</span>
+                {% endif %}
+                <span class="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-bold border border-brand-200">CLOUD</span>
+            </span>
+            <span class="block text-[10px] sm:text-[11px] text-slate-500 -mt-0.5 font-medium truncate">{{ SITE_TAGLINE|default:'Next-Gen Cloud Web Hosting' }}</span>
+        </div>
+    </div>
+</div>

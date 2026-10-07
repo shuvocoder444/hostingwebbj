@@ -133,10 +133,12 @@ class HostingPackage(models.Model):
 
 
 class BillingCycle(models.TextChoices):
-    MONTHLY = 'monthly', 'Monthly'
-    QUARTERLY = 'quarterly', 'Quarterly (3 months)'
-    SEMI_ANNUAL = 'semi_annual', 'Semi-Annual (6 months)'
-    ANNUAL = 'annual', 'Annual'
+    MONTHLY = 'monthly', 'Monthly (1 Month)'
+    QUARTERLY = 'quarterly', 'Quarterly (3 Months)'
+    SEMI_ANNUAL = 'semi_annual', 'Semi-Annual (6 Months)'
+    ANNUAL = 'annual', 'Annually (1 Year)'
+    BIENNIAL = 'biennial', 'Biennially (2 Years)'
+    TRIENNIAL = 'triennial', 'Triennially (3 Years)'
 
 
 class HostingAccount(models.Model):
@@ -208,6 +210,14 @@ class HostingAccount(models.Model):
         help_text='Last error message from provisioning/suspension for admin debugging.'
     )
 
+    # ── Password (Encrypted) ──────────────────────────────────────────────
+    password_encrypted = models.TextField(
+        blank=True,
+        default='',
+        db_column='password_encrypted',
+        help_text='Fernet-encrypted cPanel password. Use get_account_password().'
+    )
+
     class Meta:
         verbose_name = 'Hosting Account'
         verbose_name_plural = 'Hosting Accounts'
@@ -218,6 +228,22 @@ class HostingAccount(models.Model):
 
     def __str__(self) -> str:
         return f'{self.domain} [{self.status}]'
+
+    def set_account_password(self, plaintext_password: str) -> None:
+        """Encrypt and store cPanel password."""
+        if plaintext_password:
+            self.password_encrypted = encrypt(plaintext_password)
+        else:
+            self.password_encrypted = ''
+
+    def get_account_password(self) -> str:
+        """Decrypt and return cPanel password."""
+        if not self.password_encrypted:
+            return ''
+        try:
+            return decrypt(self.password_encrypted)
+        except Exception:
+            return ''
 
     def mark_active(self) -> None:
         """Called by provisioning task on success."""
@@ -230,3 +256,15 @@ class HostingAccount(models.Model):
     def mark_terminated(self) -> None:
         self.status = self.Status.TERMINATED
         self.terminated_at = timezone.now()
+
+    @property
+    def days_until_due(self) -> int:
+        if not self.next_due_date:
+            return 999
+        return (self.next_due_date - timezone.now().date()).days
+
+    @property
+    def is_expiring_soon(self) -> bool:
+        """Returns True if account expires within 50 days."""
+        return self.status == self.Status.ACTIVE and self.days_until_due <= 50
+

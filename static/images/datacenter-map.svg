@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 360" fill="none" class="w-full h-auto">
+  <defs>
+    <radialGradient id="meshGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#09090e" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="700" height="360" rx="24" fill="url(#meshGrad)" stroke="#2e2a56" stroke-width="1.5"/>
+
+  <!-- World Map Stylized Dots / Grid -->
+  <!-- Europe Area -->
+  <g opacity="0.3" fill="#6366f1">
+    <circle cx="280" cy="110" r="3"/><circle cx="295" cy="105" r="3"/><circle cx="310" cy="115" r="3"/>
+    <circle cx="285" cy="125" r="3"/><circle cx="300" cy="130" r="3"/><circle cx="320" cy="120" r="3"/>
+    <circle cx="270" cy="140" r="3"/><circle cx="290" cy="145" r="3"/><circle cx="315" cy="135" r="3"/>
+  </g>
+
+  <!-- Asia Area -->
+  <g opacity="0.3" fill="#38bdf8">
+    <circle cx="470" cy="140" r="3"/><circle cx="490" cy="145" r="3"/><circle cx="510" cy="135" r="3"/>
+    <circle cx="460" cy="160" r="3"/><circle cx="485" cy="170" r="3"/><circle cx="520" cy="165" r="3"/>
+    <circle cx="475" cy="190" r="3"/><circle cx="505" cy="195" r="3"/><circle cx="530" cy="180" r="3"/>
+  </g>
+
+  <!-- Optical Fiber Connection Lines -->
+  <!-- Germany to Singapore -->
+  <path d="M300 120 Q 390 130 520 230" stroke="#6366f1" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>
+  <!-- Singapore to Dhaka -->
+  <path d="M520 230 Q 490 200 480 175" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Germany to Dhaka -->
+  <path d="M300 120 Q 380 140 480 175" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>
+
+  <!-- Datacenter 1: Germany & Finland (Nuremberg/Helsinki) -->
+  <g transform="translate(300, 120)">
+    <circle cx="0" cy="0" r="14" fill="#4f46e5" fill-opacity="0.25" filter="url(#nodeGlow)"/>
+    <circle cx="0" cy="0" r="6" fill="#818cf8"/>
+    <rect x="14" y="-22" width="130" height="42" rx="8" fill="#181829" stroke="#6366f1" stroke-width="1"/>
+    <text x="24" y="-8" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">Germany / Finland</text>
+    <text x="24" y="8" fill="#a5b4fc" font-family="monospace" font-size="8">Tier III+ / GDPR Green</text>
+  </g>
+
+  <!-- Datacenter 2: Singapore (Equinix SG1) -->
+  <g transform="translate(520, 230)">
+    <circle cx="0" cy="0" r="16" fill="#3b82f6" fill-opacity="0.25" filter="url(#nodeGlow)"/>
+    <circle cx="0" cy="0" r="7" fill="#38bdf8"/>
+    <rect x="-140" y="-18" width="125" height="42" rx="8" fill="#181829" stroke="#38bdf8" stroke-width="1"/>
+    <text x="-130" y="-4" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">Singapore Equinix</text>
+    <text x="-130" y="12" fill="#38bdf8" font-family="monospace" font-size="8">30ms South Asia Hub</text>
+  </g>
+
+  <!-- Datacenter 3: Bangladesh BDIX (Dhaka POP) -->
+  <g transform="translate(480, 175)">
+    <circle cx="0" cy="0" r="20" fill="#10b981" fill-opacity="0.35" filter="url(#nodeGlow)"/>
+    <circle cx="0" cy="0" r="8" fill="#34d399"/>
+    <rect x="16" y="-20" width="135" height="44" rx="8" fill="#064e3b" stroke="#34d399" stroke-width="1.5" filter="url(#nodeGlow)"/>
+    <text x="26" y="-6" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">Dhaka BDIX Core</text>
+    <text x="26" y="10" fill="#6ee7b7" font-family="monospace" font-size="9" font-weight="bold">&lt; 5ms National Ping</text>
+  </g>
+</svg>

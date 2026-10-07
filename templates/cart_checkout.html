@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+
+{% block title %}View Cart & Checkout — {{ COMPANY_NAME|default:'VeloHoster' }} Cart{% endblock %}
+
+{% block content %}
+<div class="min-h-[85vh] bg-slate-50/50 py-5 sm:py-10 px-3 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+
+        <!-- ─── ORDER PROGRESS STEPPER ──────────────────────────────────────── -->
+        <div class="flex items-center justify-center gap-1.5 sm:gap-4 text-[11px] sm:text-xs font-bold flex-wrap">
+            <a href="{% url 'cart_domain' %}?package={{ package.id }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-check text-[9px] sm:text-[10px]"></i>
+                <span>Choose Domain</span>
+            </a>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
+            <a href="{% url 'cart_configure' %}?package={{ package.id }}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-check text-[9px] sm:text-[10px]"></i>
+                <span>Configure</span>
+            </a>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-brand-600 bg-brand-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-brand-200 shadow-2xs">
+                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-brand-600 text-white flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
+                <span>Checkout</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Review & Checkout</h1>
+                <p class="text-xs text-slate-500 mt-1">Review your order items, provide your account details, and choose a payment method.</p>
+            </div>
+            <a href="{% url 'cart_configure' %}?package={{ package.id }}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Configuration
+            </a>
+        </div>
+
+        <form method="POST" action="{% url 'cart_complete_order' %}" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            {% csrf_token %}
+            <input type="hidden" name="package_id" value="{{ package.id }}">
+            <input type="hidden" name="domain" value="{{ domain }}">
+            <input type="hidden" name="domain_option" value="{{ domain_option }}">
+            <input type="hidden" name="billing_cycle" value="{{ billing_cycle }}">
+            <input type="hidden" name="server_location" value="{{ server_location|default:'germany' }}">
+            <input type="hidden" name="tld" value="{{ tld }}">
+            <input type="hidden" name="epp" value="{{ epp }}">
+            <input type="hidden" name="auth_mode" id="auth_mode_input" value="register">
+
+            <!-- LEFT 2 COLUMNS: ORDER ITEMS + ACCOUNT CREATION + PAYMENT -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- 1. Order Items Summary Box -->
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-4">
+                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-brand-600"></i> Order Items
+                    </h3>
+
+                    <div class="divide-y divide-slate-100">
+                        <!-- Hosting Account Item -->
+                        <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <strong class="text-sm font-bold text-slate-900 block">Web Hosting - {{ package.name }}</strong>
+                                <span class="font-mono text-xs text-brand-600 font-semibold block mt-0.5">{{ domain }}</span>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[11px] text-slate-500 font-medium">{{ cycle_label }}</span>
+                                    <span class="text-slate-300">•</span>
+                                    <span class="text-[11px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                        <i class="fa-solid fa-server text-[9px] mr-1"></i>{{ location_label|default:'Germany (AMD EPYC)' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-left sm:text-right">
+                                <span class="text-base font-extrabold text-slate-900">৳{{ hosting_price|floatformat:0 }} BDT</span>
+                                <span class="block text-[10px] text-slate-400">Recurring</span>
+                            </div>
+                        </div>
+
+                        <!-- Domain Item if registered -->
+                        {% if domain_option == 'register' %}
+                        <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <strong class="text-sm font-bold text-slate-900 block">Domain Registration (1 Year)</strong>
+                                <span class="font-mono text-xs text-purple-600 font-semibold block mt-0.5">{{ domain }}</span>
+                                <span class="text-[11px] text-slate-400 font-medium">Auto-renew enabled with WHOIS Privacy</span>
+                            </div>
+                            <div class="text-left sm:text-right">
+                                <span class="text-base font-extrabold text-slate-900">৳{{ domain_price|floatformat:0 }} BDT</span>
+                                <span class="block text-[10px] text-slate-400">1 Year Term</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <strong class="text-sm font-bold text-slate-900 block">Domain DNS & Server Setup</strong>
+                                <span class="font-mono text-xs text-slate-600 font-semibold block mt-0.5">{{ domain }}</span>
+                                <span class="text-[11px] text-slate-400 font-medium">Using existing domain</span>
+                            </div>
+                            <div class="text-left sm:text-right">
+                                <span class="text-xs font-bold text-emerald-600 uppercase">Free</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 2. Account Information Section -->
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-user-shield text-brand-600"></i> Account Information
+                        </h3>
+                    </div>
+
+                    {% if request.user.is_authenticated %}
+                    <!-- Already Logged In -->
+                    <div class="p-4 rounded-2xl bg-brand-50/50 border border-brand-200 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-brand-600 text-white font-black text-sm flex items-center justify-center">
+                                {{ request.user.first_name|first|default:"U" }}
+                            </div>
+                            <div>
+                                <strong class="text-sm font-bold text-slate-900 block">{{ request.user.get_full_name|default:request.user.email }}</strong>
+                                <span class="text-xs text-slate-500 font-mono">{{ request.user.email }}</span>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Authenticated
+                        </span>
+                    </div>
+
+                    {% else %}
+                    <!-- Guest: Register / Login Tabs -->
+                    <div>
+                        <!-- Tab switcher -->
+                        <div class="flex rounded-xl bg-slate-100 p-1 mb-5">
+                            <button type="button" onclick="switchAuthTab('register')" id="btn-auth-register"
+                                class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition">
+                                <i class="fa-solid fa-user-plus mr-1"></i> New Customer (Sign Up)
+                            </button>
+                            <button type="button" onclick="switchAuthTab('login')" id="btn-auth-login"
+                                class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+                                <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Existing Customer (Login)
+                            </button>
+                        </div>
+
+                        <!-- Panel A: New Customer Registration -->
+                        <div id="pane-auth-register" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">First Name <span class="text-rose-500">*</span></label>
+                                    <input type="text" name="first_name" placeholder="Shuvo"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Last Name</label>
+                                    <input type="text" name="last_name" placeholder="Ahmed"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address <span class="text-rose-500">*</span></label>
+                                    <input type="email" name="email" placeholder="your.email@domain.com"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Phone Number</label>
+                                    <input type="tel" name="phone" placeholder="+880 1700-000000"
+                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Account Password <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <input type="password" id="reg_password" name="password" required minlength="8" placeholder="••••••••••••"
+                                            class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                                        <button type="button" onclick="togglePassword('reg_password', 'eye_reg_pass')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <i id="eye_reg_pass" class="fa-regular fa-eye text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Confirm Password <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <input type="password" id="reg_password_confirm" name="password_confirm" required minlength="8" placeholder="••••••••••••"
+                                            class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                                        <button type="button" onclick="togglePassword('reg_password_confirm', 'eye_reg_pass_conf')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <i id="eye_reg_pass_conf" class="fa-regular fa-eye text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company Name (Optional)</label>
+                                <input type="text" name="company_name" placeholder="e.g. Acme Agency Ltd."
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+
+                        <!-- Panel B: Existing Customer Login -->
+                        <div id="pane-auth-login" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address</label>
+                                <input type="email" name="login_email" placeholder="your.email@domain.com"
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="login_password" name="login_password" placeholder="••••••••••••"
+                                        class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
+                                    <button type="button" onclick="togglePassword('login_password', 'eye_log_pass')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                        <i id="eye_log_pass" class="fa-regular fa-eye text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 3. Payment Method & Direct TrxID Submission Section -->
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-credit-card text-brand-600"></i> Payment Submission / পেমেন্ট পদ্ধতি
+                        </h3>
+                        <span class="text-xs font-black text-brand-600 font-mono bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200">
+                            Total: ৳{{ total|floatformat:0 }} BDT
+                        </span>
+                    </div>
+
+                    <!-- Payment Method Selector -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Payment Channel (পদ্ধতি নির্বাচন করুন)</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <!-- bKash -->
+                            <label class="p-3 rounded-2xl border-2 border-brand-600 bg-brand-50/40 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-pink-500 has-checked:bg-pink-50/50">
+                                <input type="radio" name="payment_gateway" value="bkash" checked class="text-pink-600 focus:ring-0 sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">bKash</strong>
+                                    <span class="text-[9px] text-slate-400">বিকাশ পেমেন্ট</span>
+                                </div>
+                            </label>
+
+                            <!-- Nagad -->
+                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-orange-500 has-checked:bg-orange-50/50">
+                                <input type="radio" name="payment_gateway" value="nagad" class="text-orange-600 focus:ring-0 sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">Nagad</strong>
+                                    <span class="text-[9px] text-slate-400">নগদ পেমেন্ট</span>
+                                </div>
+                            </label>
+
+                            <!-- Rocket -->
+                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-purple-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-purple-500 has-checked:bg-purple-50/50">
+                                <input type="radio" name="payment_gateway" value="rocket" class="text-purple-600 focus:ring-0 sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">Rocket</strong>
+                                    <span class="text-[9px] text-slate-400">DBBL রকেট</span>
+                                </div>
+                            </label>
+
+                            <!-- Bank / Card -->
+                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-blue-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-blue-500 has-checked:bg-blue-50/50">
+                                <input type="radio" name="payment_gateway" value="manual" class="text-blue-600 focus:ring-0 sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-black shadow-xs"><i class="fa-solid fa-building-columns"></i></div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">Bank / Card</strong>
+                                    <span class="text-[9px] text-slate-400">ব্যাংক ট্রান্সফার</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Payment Guidelines Box -->
+                    <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-amber-950 leading-relaxed space-y-1.5">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-900">
+                            <i class="fa-solid fa-circle-info text-amber-600"></i> পেমেন্ট করার নির্দেশিকা:
+                        </div>
+                        <p class="text-[11px] text-amber-900">
+                            বিকাশ/নগদ/রকেটে ইনভয়েসের সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> টাকা পাঠানোর পর নিচের ফর্মে আপনার <strong>প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>Transaction ID (TrxID)</strong> দিয়ে অর্ডার কনফার্ম করুন।
+                        </p>
+                    </div>
+
+                    <!-- Direct Transaction Submission Inputs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Sender Phone / Account Number (প্রেরক নম্বর) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="sender_number" required placeholder="e.g. 01712345678 বা ব্যাংক একাউন্ট নম্বর"
+                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Transaction ID (TrxID) / Reference <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="trx_id" required placeholder="e.g. 9H7X8KL9 বা ব্যাংক ডিপোজিট রেফারেন্স"
+                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold uppercase">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Additional Notes / Reference (ঐচ্ছিক নোট)</label>
+                        <input type="text" name="notes" placeholder="e.g. Paid from personal bKash number"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-600 text-sm shrink-0"></i>
+                        <span>অর্ডার সম্পন্ন হলে আমাদের অ্যাডমিন প্যানেল আপনার TrxID যাচাই করে কয়েক মিনিটের মধ্যে ডোমেইন ও হোস্টিং অ্যাক্টিভ করে দেবে।</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT 1 COLUMN: ORDER SUMMARY & CHECKOUT BUTTON -->
+            <div class="lg:sticky lg:top-24 space-y-4">
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-6">
+                    <h3 class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3">
+                        Order Summary
+                    </h3>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between text-slate-600">
+                            <span>Hosting ({{ cycle_label }})</span>
+                            <span class="font-bold text-slate-900">৳{{ hosting_price|floatformat:0 }}</span>
+                        </div>
+
+                        {% if domain_option == 'register' %}
+                        <div class="flex justify-between text-slate-600">
+                            <span>Domain Registration (1 Yr)</span>
+                            <span class="font-bold text-slate-900">৳{{ domain_price|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="flex justify-between text-slate-600">
+                            <span>Setup Fee</span>
+                            <span class="font-bold text-emerald-600">৳0.00</span>
+                        </div>
+
+                        <div class="flex justify-between text-slate-600">
+                            <span>Tax / VAT (0%)</span>
+                            <span class="font-bold text-slate-900">৳0.00</span>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
+                            <strong class="text-sm font-black text-slate-900">Total Due Today</strong>
+                            <strong class="text-2xl font-black text-brand-600">৳{{ total|floatformat:0 }} BDT</strong>
+                        </div>
+                    </div>
+
+                    <!-- Terms agreement -->
+                    <label class="flex items-start gap-2 text-[11px] text-slate-500 cursor-pointer pt-2">
+                        <input type="checkbox" required checked class="mt-0.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                        <span>I agree to the Terms of Service & Cancellation Policy.</span>
+                    </label>
+
+                    <!-- Checkout Button -->
+                    <button type="submit"
+                        class="w-full py-4 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group cursor-pointer">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span>Confirm Order & Submit Payment (৳{{ total|floatformat:0 }})</span>
+                    </button>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
+                    <span class="text-xs font-bold text-slate-700 block"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Instant Provisioning</span>
+                    <p class="text-[11px] text-slate-500">Upon payment confirmation, your cPanel account & domain will be automatically activated in seconds.</p>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function switchAuthTab(mode) {
+    const btnReg = document.getElementById('btn-auth-register');
+    const btnLog = document.getElementById('btn-auth-login');
+    const paneReg = document.getElementById('pane-auth-register');
+    const paneLog = document.getElementById('pane-auth-login');
+    const authInput = document.getElementById('auth_mode_input');
+
+    authInput.value = mode;
+
+    if (mode === 'register') {
+        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition';
+        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        paneReg.classList.remove('hidden');
+        paneLog.classList.add('hidden');
+    } else {
+        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition';
+        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        paneLog.classList.remove('hidden');
+        paneReg.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}

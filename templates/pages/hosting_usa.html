@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section -->
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                <i class="fa-solid fa-server text-brand-600 mr-1.5"></i> USA Dallas & New Jersey Datacenter
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                USA Super Fast <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">NVMe SSD Web Hosting</span>
+            </h1>
+            <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                Reach global audiences across the Americas, Europe, and Asia with 10Gbps Tier-1 backbone connectivity, cPanel management, and enterprise DDoS protection.
+            </p>
+        </div>
+
+        <!-- Highlights Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-blue-600 block">Tier-1</span>
+                <span class="text-xs font-semibold text-slate-600">Global Bandwidth</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-brand-600 block">NVMe Gen4</span>
+                <span class="text-xs font-semibold text-slate-600">7,000 MB/s SSD</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-indigo-600 block">100Gbps</span>
+                <span class="text-xs font-semibold text-slate-600">Arbor DDoS Shield</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-emerald-600 block">99.9%</span>
+                <span class="text-xs font-semibold text-slate-600">Uptime SLA Guaranteed</span>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="space-y-6">
+            <div class="text-center max-w-xl mx-auto">
+                <h2 class="text-2xl font-black text-slate-900">USA Cloud Hosting Plans</h2>
+                <p class="text-xs text-slate-500 mt-1">Instant setup with cPanel, Softaculous, and free SSL.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% for pkg in packages %}
+                <div class="bg-white rounded-3xl border {% if pkg.is_featured %}border-blue-600 ring-2 ring-blue-600/20 shadow-xl{% else %}border-slate-200 shadow-xs{% endif %} p-8 flex flex-col justify-between relative">
+                    {% if pkg.is_featured %}
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 text-white shadow-sm">
+                        <i class="fa-solid fa-star text-amber-500 mr-1"></i> Popular Global Plan
+                    </span>
+                    {% endif %}
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-blue-100 font-mono text-xs font-bold text-blue-700 border border-blue-200">US</span>
+                                <h3 class="font-extrabold text-slate-900 text-lg">{{ pkg.name }}</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">USA Dallas High-Speed Node</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">৳{{ pkg.monthly_price }}</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                            {% if pkg.annual_price %}
+                            <p class="text-[11px] text-emerald-600 font-bold">৳{{ pkg.annual_price }} billed annually</p>
+                            {% endif %}
+                        </div>
+
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100">
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-hard-drive text-blue-500"></i>
+                                <span><strong>{{ pkg.disk_quota_display }}</strong> Enterprise NVMe SSD</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-globe text-indigo-500"></i>
+                                <span><strong>{{ pkg.bandwidth_display }}</strong> High-Speed Bandwidth</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-server text-emerald-500"></i>
+                                <span>cPanel + 400+ Softaculous Apps</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-shield-virus text-indigo-500"></i>
+                                <span>Free Imunify360 Malware Defense</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-8">
+                        <a href="{% url 'cart_domain' %}?package_id={{ pkg.id }}" class="w-full py-3 px-4 rounded-xl {% if pkg.is_featured %}bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/25{% else %}bg-slate-900 hover:bg-brand-600 text-white{% endif %} font-bold text-xs transition flex items-center justify-center gap-2">
+                            <span>Order USA Hosting</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

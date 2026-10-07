@@ -286,38 +286,145 @@ class CPanelDriver(BaseServerDriver):
             raise ServerDriverError(f"WHM killpkg failed: {err}")
         return {'success': True, 'message': status.get('statusmsg', f"Package '{name}' deleted from WHM.")}
 
-    def test_connection(self) -> dict:
-        """Ping WHM version API to verify host connectivity and API token."""
-        url = f"{self._base_url}/json-api/version"
+    def change_password(self, username: str, new_password: str) -> dict:
+        """
+        Change cPanel user password via WHM passwd API.
+        Docs: https://api.docs.cpanel.net/whm/account-functions/passwd/
+        """
+        logger.info("cPanel: Changing password for user=%s", username)
+        result = self._call('passwd', params={'user': username, 'password': new_password})
+        status = {}
+        if isinstance(result.get('passwd'), list) and result.get('passwd'):
+            status = result['passwd'][0]
+        elif isinstance(result.get('result'), list) and result.get('result'):
+            status = result['result'][0]
+        elif isinstance(result.get('metadata'), dict):
+            status = {'status': result['metadata'].get('result', 0), 'statusmsg': result['metadata'].get('reason', '')}
+
+        if status.get('status') != 1:
+            err = status.get('statusmsg', 'Failed to change password on WHM')
+            raise ServerDriverError(f"WHM passwd failed for {username}: {err}")
+        return {'success': True, 'message': status.get('statusmsg', f"Password updated for {username}.")}
+
+    def change_email(self, username: str, new_email: str) -> dict:
+        """
+        Change account contact email via WHM modifyacct API.
+        Docs: https://api.docs.cpanel.net/whm/account-functions/modifyacct/
+        """
+        logger.info("cPanel: Changing email for user=%s to %s", username, new_email)
+        result = self._call('modifyacct', params={'user': username, 'contactemail': new_email})
+        status = result.get('result', [{}])[0] if isinstance(result.get('result'), list) and result.get('result') else {}
+        if status.get('status') != 1:
+            err = status.get('statusmsg', result.get('metadata', {}).get('reason', 'Failed to change contact email on WHM'))
+            raise ServerDriverError(f"WHM modifyacct failed for {username}: {err}")
+        return {'success': True, 'message': status.get('statusmsg', f"Contact email updated for {username}.")}
+
+    def list_accounts(self) -> list[dict]:
+        """
+        Fetch all hosting accounts configured on WHM server via listaccts API.
+        Docs: https://api.docs.cpanel.net/whm/account-functions/listaccts/
+        """
+        result = self._call('listaccts')
+        raw_accts = []
+        if isinstance(result, dict):
+            if 'acct' in result:
+                raw_accts = result['acct']
+            elif 'data' in result and 'acct' in result['data']:
+                raw_accts = result['data']['acct']
+
+        accounts = []
+        for a in raw_accts:
+            accounts.append({
+                'username': a.get('user', ''),
+                'domain': a.get('domain', ''),
+                'email': a.get('email', ''),
+                'plan': a.get('plan', ''),
+                'ip': a.get('ip', ''),
+                'is_suspended': bool(int(a.get('suspended', 0) or 0)),
+                'suspend_reason': a.get('suspendreason', ''),
+                'disk_used': a.get('diskused', '0M'),
+                'disk_limit': a.get('disklimit', 'unlimited'),
+                'start_date': a.get('startdate', ''),
+            })
+        return accounts
+
+    def get_user_session_url(self, username: str, service: str = 'cpaneld', app: str | None = None) -> str:
+        """
+        Generate Single Sign-On (SSO) URL via WHM create_user_session API.
+        Services: 'cpaneld', 'webmaild', 'whostmgrd'
+        Apps: 'FileManager_Home', 'Email_Accounts', 'Database_MySQL', 'Database_phpMyAdmin', etc.
+        """
+        params = {'user': username, 'service': service}
+        if app:
+            params['app'] = app
+
+        res = self._call('create_user_session', params=params)
+        data = res.get('data', {})
+        url = data.get('url')
+        if not url:
+            # Fallback direct cPanel port
+            port = 2096 if service == 'webmaild' else 2083
+            return f"https://{self.host}:{port}/"
+        return url
+
+    def get_live_usage(self, username: str) -> dict:
+        """
+        Fetch live disk and bandwidth usage stats for a cPanel user.
+        """
         try:
-            response = self._session.get(
-                url,
-                params={'api.version': '1'},
-                timeout=12,
-                verify=False,
-            )
-            if response.status_code == 200:
-                data = response.json()
-                version = data.get('version', '')
+            res = self._call('accountsummary', params={'user': username})
+            accts = res.get('acct', [])
+            if accts:
+                acct = accts[0]
+                disk_used_str = str(acct.get('diskused', '0M')).replace('M', '').replace('G', '').strip()
+                disk_limit_str = str(acct.get('disklimit', 'unlimited')).replace('M', '').replace('G', '').strip()
+                
+                try:
+                    disk_used_mb = float(disk_used_str)
+                except (ValueError, TypeError):
+                    disk_used_mb = 0.0
+
+                try:
+                    disk_limit_mb = float(disk_limit_str) if disk_limit_str not in ('unlimited', '') else 0.0
+                except (ValueError, TypeError):
+                    disk_limit_mb = 0.0
+
+                bw_used_bytes = float(acct.get('totalbytes', 0) or 0)
+                bw_used_mb = round(bw_used_bytes / (1024 * 1024), 2)
+                bw_limit_str = str(acct.get('bwlimit', 'unlimited')).strip()
+                try:
+                    bw_limit_mb = float(bw_limit_str) if bw_limit_str not in ('unlimited', '') else 0.0
+                except (ValueError, TypeError):
+                    bw_limit_mb = 0.0
+
+                disk_pct = int((disk_used_mb / disk_limit_mb * 100)) if disk_limit_mb > 0 else 0
+                bw_pct = int((bw_used_mb / bw_limit_mb * 100)) if bw_limit_mb > 0 else 0
+
                 return {
-                    'success': True,
-                    'message': f"WHM connection SUCCESSFUL! Host {self.host} responded. cPanel/WHM Version: {version or 'OK'}"
+                    'disk_used_mb': disk_used_mb,
+                    'disk_limit_mb': disk_limit_mb,
+                    'disk_percent': min(disk_pct, 100),
+                    'bandwidth_used_mb': bw_used_mb,
+                    'bandwidth_limit_mb': bw_limit_mb,
+                    'bandwidth_percent': min(bw_pct, 100),
+                    'ip': acct.get('ip', self.host),
+                    'domain': acct.get('domain', ''),
+                    'plan': acct.get('plan', ''),
                 }
-            elif response.status_code in (401, 403):
-                return {
-                    'success': False,
-                    'message': f"WHM host {self.host} reached, but authentication failed (HTTP {response.status_code}). Please verify your WHM API Username & Token."
-                }
-            else:
-                return {
-                    'success': False,
-                    'message': f"WHM host {self.host} returned HTTP {response.status_code}: {response.text[:120]}"
-                }
-        except requests.exceptions.Timeout:
-            return {'success': False, 'message': f"Connection timed out reaching {self.host}:2087."}
-        except requests.exceptions.ConnectionError as exc:
-            return {'success': False, 'message': f"Could not reach {self.host}:2087 (DNS or network firewall error)."}
         except Exception as exc:
-            return {'success': False, 'message': f"WHM ping failed: {str(exc)}"}
+            logger.warning("Could not fetch account summary for %s: %s", username, exc)
+
+        return {
+            'disk_used_mb': 0.0,
+            'disk_limit_mb': 0.0,
+            'disk_percent': 0,
+            'bandwidth_used_mb': 0.0,
+            'bandwidth_limit_mb': 0.0,
+            'bandwidth_percent': 0,
+            'ip': self.host,
+            'domain': '',
+            'plan': '',
+        }
+
 
 

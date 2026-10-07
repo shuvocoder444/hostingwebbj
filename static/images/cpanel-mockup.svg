@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none" class="w-full h-auto">
+  <defs>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181826"/>
+      <stop offset="100%" stop-color="#0f0f18"/>
+    </linearGradient>
+    <linearGradient id="barBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Window Container -->
+  <rect width="560" height="360" rx="20" fill="url(#cardGrad)" stroke="#27273a" stroke-width="2"/>
+  
+  <!-- Window Header (Mac Style) -->
+  <rect width="560" height="42" rx="20" fill="#12121d"/>
+  <circle cx="24" cy="21" r="5" fill="#ef4444"/>
+  <circle cx="40" cy="21" r="5" fill="#f59e0b"/>
+  <circle cx="56" cy="21" r="5" fill="#10b981"/>
+  
+  <!-- URL address bar -->
+  <rect x="90" y="10" width="380" height="22" rx="6" fill="#1e1e2d"/>
+  <text x="105" y="25" fill="#94a3b8" font-family="monospace" font-size="10">https://cpanel.velohoster.com:2083 [SSL Secure]</text>
+
+  <!-- Left Sidebar inside Mockup -->
+  <rect x="18" y="58" width="130" height="284" rx="12" fill="#13131f"/>
+  <text x="32" y="85" fill="#64748b" font-family="system-ui, sans-serif" font-size="9" font-weight="700">GENERAL INFO</text>
+  <text x="32" y="108" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">Shared IP</text>
+  <text x="32" y="122" fill="#38bdf8" font-family="monospace" font-size="9">195.250.26.201</text>
+  
+  <text x="32" y="150" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">PHP Version</text>
+  <text x="32" y="164" fill="#34d399" font-family="monospace" font-size="9">PHP 8.3 (ea-php83)</text>
+
+  <text x="32" y="192" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">MySQL Version</text>
+  <text x="32" y="206" fill="#cbd5e1" font-family="monospace" font-size="9">MariaDB 10.11</text>
+
+  <text x="32" y="234" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">AutoSSL</text>
+  <text x="32" y="248" fill="#10b981" font-family="system-ui, sans-serif" font-size="9" font-weight="bold">Active &amp; Renewed</text>
+
+  <!-- Main cPanel App Icons Grid -->
+  <g transform="translate(164, 58)">
+    <!-- Section 1: Top Stats -->
+    <rect width="378" height="74" rx="12" fill="#161624" stroke="#262638" stroke-width="1"/>
+    <!-- Disk Usage Bar -->
+    <text x="18" y="25" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">NVMe Disk Usage</text>
+    <rect x="18" y="34" width="160" height="8" rx="4" fill="#252538"/>
+    <rect x="18" y="34" width="45" height="8" rx="4" fill="url(#barBlue)"/>
+    <text x="18" y="56" fill="#64748b" font-family="system-ui, sans-serif" font-size="9">2.1 GB / 20 GB (10%)</text>
+
+    <!-- Bandwidth Bar -->
+    <text x="200" y="25" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">Bandwidth</text>
+    <rect x="200" y="34" width="160" height="8" rx="4" fill="#252538"/>
+    <rect x="200" y="34" width="30" height="8" rx="4" fill="#10b981"/>
+    <text x="200" y="56" fill="#64748b" font-family="system-ui, sans-serif" font-size="9">Unlimited Bandwidth</text>
+
+    <!-- Section 2: 1-Click Installer Icons -->
+    <text x="4" y="105" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="12" font-weight="800">Softaculous 1-Click Apps</text>
+    
+    <!-- WordPress -->
+    <rect x="4" y="118" width="84" height="68" rx="10" fill="#1c1c2e" stroke="#2e2e46" stroke-width="1"/>
+    <circle cx="46" cy="144" r="14" fill="#0073aa"/>
+    <text x="40" y="150" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">W</text>
+    <text x="19" y="174" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="9" font-weight="bold">WordPress</text>
+
+    <!-- phpMyAdmin / MySQL -->
+    <rect x="98" y="118" width="84" height="68" rx="10" fill="#1c1c2e" stroke="#2e2e46" stroke-width="1"/>
+    <circle cx="140" cy="144" r="14" fill="#f59e0b"/>
+    <text x="135" y="149" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">SQL</text>
+    <text x="110" y="174" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="9" font-weight="bold">phpMyAdmin</text>
+
+    <!-- LiteSpeed Cache -->
+    <rect x="192" y="118" width="84" height="68" rx="10" fill="#1c1c2e" stroke="#4f46e5" stroke-width="1.5"/>
+    <circle cx="234" cy="144" r="14" fill="#4f46e5"/>
+    <text x="228" y="149" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">⚡</text>
+    <text x="207" y="174" fill="#818cf8" font-family="system-ui, sans-serif" font-size="9" font-weight="bold">LSCache</text>
+
+    <!-- Node.js / Python -->
+    <rect x="286" y="118" width="84" height="68" rx="10" fill="#1c1c2e" stroke="#2e2e46" stroke-width="1"/>
+    <circle cx="328" cy="144" r="14" fill="#10b981"/>
+    <text x="323" y="149" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="bold">JS</text>
+    <text x="303" y="174" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="9" font-weight="bold">Node / Py</text>
+
+    <!-- Section 3: File Manager & Emails -->
+    <rect x="4" y="198" width="178" height="60" rx="10" fill="#1a1a2a" stroke="#2e2e46" stroke-width="1"/>
+    <circle cx="30" cy="228" r="14" fill="#2563eb"/>
+    <text x="25" y="233" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12">📁</text>
+    <text x="54" y="222" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">File Manager</text>
+    <text x="54" y="238" fill="#64748b" font-family="system-ui, sans-serif" font-size="9">Direct Web FTP &amp; Git</text>
+
+    <rect x="192" y="198" width="178" height="60" rx="10" fill="#1a1a2a" stroke="#2e2e46" stroke-width="1"/>
+    <circle cx="218" cy="228" r="14" fill="#059669"/>
+    <text x="213" y="233" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12">✉️</text>
+    <text x="242" y="222" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">Email Accounts</text>
+    <text x="242" y="238" fill="#64748b" font-family="system-ui, sans-serif" font-size="9">Webmail + SpamAssassin</text>
+  </g>
+</svg>

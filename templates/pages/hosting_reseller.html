@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section with Reseller Graphic -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div class="lg:col-span-7 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+                    <i class="fa-solid fa-users mr-1"></i> 100% White-Label Reseller Hosting
+                </span>
+                <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                    Start Your Own Hosting Business with <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600">WHM Reseller Hosting</span>
+                </h1>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Create and sell customized cPanel packages to your clients under your own brand with private nameservers, LiteSpeed web server, and automated WHM provisioning.
+                </p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-teal-600 block">WHM Root</span>
+                        <span class="text-[11px] font-semibold text-slate-600">Client Management</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-indigo-600 block">Private NS</span>
+                        <span class="text-[11px] font-semibold text-slate-600">ns1.yourbrand.com</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-emerald-600 block">LiteSpeed</span>
+                        <span class="text-[11px] font-semibold text-slate-600">LSCache Included</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-blue-600 block">Free SSL</span>
+                        <span class="text-[11px] font-semibold text-slate-600">AutoSSL for Clients</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reseller Graphic -->
+            <div class="lg:col-span-5">
+                <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-2xl">
+                    <img src="{% static 'images/reseller-whm.svg' %}" alt="Reseller WHM Cloud Ecosystem" class="w-full h-auto rounded-2xl" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="space-y-6 pt-6">
+            <div class="text-center max-w-xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Affordable Reseller Hosting Plans</h2>
+                <p class="text-xs text-slate-500 mt-1">Upgrade or scale resources seamlessly as your client base grows.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Reseller Tier 1 -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-teal-50 font-bold text-xs text-teal-700">Starter Reseller</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Reseller Bronze</h3>
+                            <p class="text-xs text-slate-500">Perfect for freelance web designers</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳850</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-server text-teal-600"></i> <strong>20 cPanel Accounts</strong></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-teal-600"></i> <strong>30 GB</strong> NVMe SSD Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-teal-600"></i> <strong>Unlimited</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-crown text-teal-600"></i> Full WHM Control Panel</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-teal-600"></i> Free Private NameServers</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition">Order Plan</a>
+                    </div>
+                </div>
+
+                <!-- Reseller Tier 2 -->
+                <div class="bg-white rounded-3xl border-2 border-teal-600 p-8 shadow-xl flex flex-col justify-between relative scale-[1.02]">
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-600 text-white shadow-sm">Most Popular</span>
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-teal-100 font-bold text-xs text-teal-800">Pro Reseller</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Reseller Silver</h3>
+                            <p class="text-xs text-slate-500">Great for digital agencies & IT firms</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳1,450</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-server text-teal-600"></i> <strong>50 cPanel Accounts</strong></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-teal-600"></i> <strong>60 GB</strong> NVMe SSD Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-teal-600"></i> <strong>Unlimited</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-crown text-teal-600"></i> Full WHM Control Panel</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-teal-600"></i> Free Private NameServers</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-teal-600 hover:bg-teal-700 text-white transition shadow-lg shadow-teal-600/30">Order Plan</a>
+                    </div>
+                </div>
+
+                <!-- Reseller Tier 3 -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-teal-50 font-bold text-xs text-teal-700">Elite Reseller</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Reseller Gold</h3>
+                            <p class="text-xs text-slate-500">Unlimited scaling for hosting companies</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳2,400</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-server text-teal-600"></i> <strong>100 cPanel Accounts</strong></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-teal-600"></i> <strong>120 GB</strong> NVMe SSD Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-teal-600"></i> <strong>Unlimited</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-crown text-teal-600"></i> Full WHM Control Panel</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-teal-600"></i> Free Private NameServers</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition">Order Plan</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

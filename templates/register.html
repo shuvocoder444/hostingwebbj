@@ -1,16 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Account — HostPro Automation Portal{% endblock %}
+{% block title %}Create Account — {{ COMPANY_NAME|default:'VeloHoster' }} Client Portal{% endblock %}
 
 {% block content %}
 <div class="min-h-[85vh] flex items-center justify-center px-4 py-12 relative">
     <div class="max-w-lg w-full">
         <div class="text-center mb-8">
-            <div class="w-12 h-12 rounded-2xl gradient-brand mx-auto flex items-center justify-center text-white text-xl shadow-md shadow-brand-500/20 mb-3">
-                <i class="fa-solid fa-user-plus"></i>
+            <div class="flex justify-center mb-3">
+                <a href="{% url 'landing' %}">
+                    {% include 'partials/brand_logo.html' %}
+                </a>
             </div>
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Create Client Account</h2>
-            <p class="text-xs text-slate-500 mt-2">Get instant access to cloud hosting, wholesale domain registrations, and cPanel.</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Create Client Account</h2>
+            <p class="text-xs text-slate-500 mt-2">Get instant access to high-performance cloud hosting, domain registrations, and control panel.</p>
         </div>
 
         <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-card">
@@ -56,25 +58,35 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
-                        <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition">
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••"
+                                class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition">
+                            <button type="button" onclick="togglePassword('password', 'eye-pass')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <i id="eye-pass" class="fa-regular fa-eye text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label for="password_confirm" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Confirm Password</label>
-                        <input type="password" id="password_confirm" name="password_confirm" required minlength="8" placeholder="••••••••"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition">
+                        <div class="relative">
+                            <input type="password" id="password_confirm" name="password_confirm" required minlength="8" placeholder="••••••••"
+                                class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition">
+                            <button type="button" onclick="togglePassword('password_confirm', 'eye-pass-conf')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <i id="eye-pass-conf" class="fa-regular fa-eye text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Bonus Credit Notice -->
-                <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-brand-900 flex items-center gap-2.5">
-                    <i class="fa-solid fa-gift text-base text-brand-600"></i>
-                    <span>Receive <strong>৳100 BDT complimentary wallet credit</strong> upon registration!</span>
+                <!-- Security Notice -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2.5">
+                    <i class="fa-solid fa-shield-halved text-base text-emerald-600"></i>
+                    <span>Instant account setup with 24/7 client portal & secure automated billing.</span>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit"
-                    class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-500/25 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-2">
+                    class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-500/25 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mt-2 cursor-pointer">
                     <i class="fa-solid fa-user-check"></i> Register & Open Dashboard
                 </button>
             </form>
@@ -86,4 +98,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
 {% endblock %}

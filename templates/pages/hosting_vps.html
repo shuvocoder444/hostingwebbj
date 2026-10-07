@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section with VPS Illustration -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div class="lg:col-span-7 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <i class="fa-solid fa-terminal mr-1"></i> Dedicated KVM Hypervisor Virtualization
+                </span>
+                <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                    High-Performance <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Managed Cloud VPS</span>
+                </h1>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Deploy isolated KVM cloud instances with dedicated AMD EPYC vCPUs, pure DDR5 ECC RAM, 100% NVMe Gen4 SSD storage, and root SSH access.
+                </p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-indigo-600 block">KVM Slices</span>
+                        <span class="text-[11px] font-semibold text-slate-600">100% Isolated</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-purple-600 block">Full Root</span>
+                        <span class="text-[11px] font-semibold text-slate-600">SSH & Console</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-emerald-600 block">NVMe Gen4</span>
+                        <span class="text-[11px] font-semibold text-slate-600">7,000 MB/s Read</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-blue-600 block">100Gbps</span>
+                        <span class="text-[11px] font-semibold text-slate-600">DDoS Mitigation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VPS Architecture Graphic -->
+            <div class="lg:col-span-5">
+                <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-2xl">
+                    <img src="{% static 'images/vps-architecture.svg' %}" alt="Cloud VPS Architecture" class="w-full h-auto rounded-2xl" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing / Specs Grid -->
+        <div class="space-y-6 pt-6">
+            <div class="text-center max-w-xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Configured Cloud VPS Instances</h2>
+                <p class="text-xs text-slate-500 mt-1">Instant deployment with Ubuntu, Debian, AlmaLinux, or cPanel.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- VPS Tier 1 -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-indigo-50 font-bold text-xs text-indigo-700">Starter VPS</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Cloud VPS 2G</h3>
+                            <p class="text-xs text-slate-500">Perfect for web applications & staging</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳1,450</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-microchip text-indigo-500"></i> <strong>2 vCPU Cores</strong> (AMD EPYC)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-memory text-indigo-500"></i> <strong>4 GB</strong> DDR5 ECC RAM</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-indigo-500"></i> <strong>50 GB</strong> NVMe Gen4 Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-indigo-500"></i> <strong>2 TB</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-terminal text-indigo-500"></i> Full Root Access + Dedicated IPv4</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition">Deploy Instance</a>
+                    </div>
+                </div>
+
+                <!-- VPS Tier 2 -->
+                <div class="bg-white rounded-3xl border-2 border-indigo-600 p-8 shadow-xl flex flex-col justify-between relative scale-[1.02]">
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-600 text-white shadow-sm">Recommended</span>
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-indigo-100 font-bold text-xs text-indigo-700">Pro VPS</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Cloud VPS 4G</h3>
+                            <p class="text-xs text-slate-500">High-traffic stores & enterprise workloads</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳2,850</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-microchip text-indigo-500"></i> <strong>4 vCPU Cores</strong> (AMD EPYC)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-memory text-indigo-500"></i> <strong>8 GB</strong> DDR5 ECC RAM</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-indigo-500"></i> <strong>100 GB</strong> NVMe Gen4 Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-indigo-500"></i> <strong>5 TB</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-terminal text-indigo-500"></i> Full Root Access + Dedicated IPv4</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white transition shadow-lg shadow-indigo-600/30">Deploy Instance</a>
+                    </div>
+                </div>
+
+                <!-- VPS Tier 3 -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
+                    <div class="space-y-6">
+                        <div>
+                            <span class="px-2.5 py-1 rounded bg-indigo-50 font-bold text-xs text-indigo-700">Elite VPS</span>
+                            <h3 class="font-extrabold text-slate-900 text-xl mt-2">Cloud VPS 8G</h3>
+                            <p class="text-xs text-slate-500">SaaS platforms, microservices & databases</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-4xl font-black text-slate-900 font-mono">৳5,400</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-microchip text-indigo-500"></i> <strong>8 vCPU Cores</strong> (AMD EPYC)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-memory text-indigo-500"></i> <strong>16 GB</strong> DDR5 ECC RAM</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-hard-drive text-indigo-500"></i> <strong>200 GB</strong> NVMe Gen4 Storage</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-network-wired text-indigo-500"></i> <strong>10 TB</strong> Monthly Bandwidth</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-terminal text-indigo-500"></i> Full Root Access + Dedicated IPv4</li>
+                        </ul>
+                    </div>
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition">Deploy Instance</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster' }} Cart{% endblock %}
+
+{% block content %}
+<div class="min-h-[85vh] bg-slate-50/50 py-5 sm:py-10 px-3 sm:px-6 lg:px-8">
+ <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+
+ <!-- ─── ORDER PROGRESS STEPPER ──────────────────────────────────────── -->
+ <div class="flex items-center justify-center gap-1.5 sm:gap-4 text-[11px] sm:text-xs font-bold flex-wrap">
+ <a href="{% url 'cart_domain' %}?package={{ package.id }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
+ <i class="fa-solid fa-check text-[9px] sm:text-[10px]"></i>
+ <span>Choose Domain</span>
+ </a>
+ <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
+ <div class="flex items-center gap-1.5 sm:gap-2 text-brand-600 bg-brand-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-brand-200 shadow-2xs">
+ <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-brand-600 text-white flex items-center justify-center text-[9px] sm:text-[10px]">2</span>
+ <span>Configure</span>
+ </div>
+ <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
+ <div class="flex items-center gap-1.5 sm:gap-2 text-slate-400 bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-slate-200">
+ <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
+ <span>Checkout</span>
+ </div>
+ </div>
+
+ <div class="flex items-center justify-between">
+ <div>
+ <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Configure</h1>
+ <p class="text-xs text-slate-500 mt-1">Configure your cloud hosting package and select your billing term.</p>
+ </div>
+ <a href="{% url 'cart_domain' %}?package={{ package.id }}" class="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+ <i class="fa-solid fa-arrow-left"></i> Change Domain
+ </a>
+ </div>
+
+ <!-- ─── MAIN CONFIGURE GRID ──────────────────────────────────────────── -->
+ <form method="GET" action="{% url 'cart_checkout' %}" id="configure-form" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+ <input type="hidden" name="package_id" value="{{ package.id }}">
+ <input type="hidden" name="domain" value="{{ domain }}">
+ <input type="hidden" name="domain_option" value="{{ domain_option }}">
+ <input type="hidden" name="tld" value="{{ tld }}">
+ <input type="hidden" name="epp" value="{{ epp }}">
+
+ <!-- LEFT 2 COLUMNS: PRODUCT DETAILS & BILLING CYCLES -->
+ <div class="lg:col-span-2 space-y-6">
+
+ <!-- 1. Product Description Card -->
+ <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+ <div class="border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+ <div>
+ <h2 class="text-2xl font-black text-slate-900">{{ package.name }}</h2>
+ <div class="flex items-center gap-2 mt-1">
+ <span class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-lg border border-brand-200">
+ <i class="fa-solid fa-globe text-[10px] mr-1"></i>{{ domain }}
+ </span>
+ {% if domain_option == 'register' %}
+ <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">New Domain Registration</span>
+ {% else %}
+ <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Existing Domain</span>
+ {% endif %}
+ </div>
+ </div>
+ <div class="text-right">
+ <span class="text-2xl font-black text-slate-900">৳{{ monthly_price|floatformat:0 }}</span>
+ <span class="text-xs text-slate-500 font-medium">/ month</span>
+ </div>
+ </div>
+
+ <!-- Highlighted features -->
+ <div class="space-y-2 text-xs font-medium text-slate-700">
+ <div class="flex items-center gap-2 text-emerald-600 font-bold">
+ <i class="fa-solid fa-check"></i>
+ <span>High Performance Cloud Server & Free SSL Included!</span>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 pt-1">
+ <div class="flex items-center gap-2"><i class="fa-solid fa-minus text-slate-400 text-[10px]"></i> <span>{{ package.disk_quota_mb }} MB NVMe SSD Storage</span></div>
+ <div class="flex items-center gap-2"><i class="fa-solid fa-minus text-slate-400 text-[10px]"></i> <span>{% if package.bandwidth_mb == 0 %}Unlimited{% else %}{{ package.bandwidth_mb }} MB{% endif %} Bandwidth</span></div>
+ <div class="flex items-center gap-2"><i class="fa-solid fa-minus text-slate-400 text-[10px]"></i> <span>Lifetime Free Let's Encrypt SSL</span></div>
+ <div class="flex items-center gap-2"><i class="fa-solid fa-minus text-slate-400 text-[10px]"></i> <span>Control Panel Access Included</span></div>
+ <div class="flex items-center gap-2"><i class="fa-solid fa-minus text-slate-400 text-[10px]"></i> <span>LiteSpeed Web Server + Speed Optimization</span></div>
+ </div>
+ </div>
+
+ <!-- Server Allocations & Limits Box -->
+ <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+ <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Server Allocation & Limits</span>
+ <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+ <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+ <span class="text-slate-400 text-[10px] block">Databases</span>
+ <strong class="text-slate-800 font-bold">{{ package.max_databases }} MySQL</strong>
+ </div>
+ <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+ <span class="text-slate-400 text-[10px] block">Email Accounts</span>
+ <strong class="text-slate-800 font-bold">{{ package.max_email_accounts }} Accounts</strong>
+ </div>
+ <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+ <span class="text-slate-400 text-[10px] block">Subdomains</span>
+ <strong class="text-slate-800 font-bold">{{ package.max_subdomains }} Subdomains</strong>
+ </div>
+ <div class="p-2.5 bg-white rounded-xl border border-slate-200">
+ <span class="text-slate-400 text-[10px] block">FTP Accounts</span>
+ <strong class="text-slate-800 font-bold">{{ package.max_ftp_accounts }} Users</strong>
+ </div>
+ </div>
+ </div>
+
+ <!-- Value Added Highlights -->
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+ <div class="flex items-center gap-2 text-emerald-600"><i class="fa-solid fa-check"></i> <span class="text-slate-700">Automatic Regular Backup</span></div>
+ <div class="flex items-center gap-2 text-emerald-600"><i class="fa-solid fa-check"></i> <span class="text-slate-700">Free & Easy Site Migration</span></div>
+ <div class="flex items-center gap-2 text-emerald-600"><i class="fa-solid fa-check"></i> <span class="text-slate-700">1-Click WordPress & App Installer</span></div>
+ <div class="flex items-center gap-2 text-emerald-600"><i class="fa-solid fa-check"></i> <span class="text-slate-700">24/7 Priority Support Desk</span></div>
+ </div>
+ </div>
+
+ <!-- 2. Choose Billing Cycle Card -->
+ <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-4">
+ <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+ <i class="fa-solid fa-calendar-check text-brand-600"></i> Choose Billing Cycle
+ </h3>
+ <p class="text-xs text-slate-500">Save more by choosing longer billing cycles.</p>
+
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
+ 
+ <!-- Monthly -->
+ <label class="billing-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-300 cursor-pointer transition flex items-start gap-3 bg-white"
+ id="card-cycle-monthly">
+ <input type="radio" name="billing_cycle" value="monthly" onchange="updateSelectedCycle('monthly', {{ monthly_price }}, 'Monthly')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div>
+ <strong class="block text-sm font-extrabold text-slate-900">Monthly</strong>
+ <span class="text-xs font-bold text-slate-700 mt-0.5 block">৳{{ monthly_price|floatformat:0 }} BDT</span>
+ </div>
+ </label>
+
+ <!-- Annually (Default) -->
+ <label class="billing-card relative p-4 rounded-2xl border-2 border-brand-600 bg-brand-50/40 cursor-pointer transition flex items-start gap-3"
+ id="card-cycle-annual">
+ <input type="radio" name="billing_cycle" value="annual" checked onchange="updateSelectedCycle('annual', {{ annual_price }}, 'Annually (1 Year)')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div class="flex-1">
+ <div class="flex items-center justify-between">
+ <strong class="text-sm font-extrabold text-slate-900">Annually</strong>
+ <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">Best Value</span>
+ </div>
+ <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ annual_price|floatformat:0 }} BDT</span>
+ <span class="text-[10px] text-emerald-700 font-semibold mt-0.5 block">Save ~15% vs Monthly</span>
+ </div>
+ </label>
+
+ <!-- Biennially -->
+ <label class="billing-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-300 cursor-pointer transition flex items-start gap-3 bg-white"
+ id="card-cycle-biennial">
+ <input type="radio" name="billing_cycle" value="biennial" onchange="updateSelectedCycle('biennial', {{ biennial_price }}, 'Biennially (2 Years)')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div class="flex-1">
+ <div class="flex items-center justify-between">
+ <strong class="text-sm font-extrabold text-slate-900">Biennially</strong>
+ <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold">Save 25%</span>
+ </div>
+ <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ biennial_price|floatformat:0 }} BDT</span>
+ </div>
+ </label>
+
+ <!-- Triennially -->
+ <label class="billing-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-300 cursor-pointer transition flex items-start gap-3 bg-white"
+ id="card-cycle-triennial">
+ <input type="radio" name="billing_cycle" value="triennial" onchange="updateSelectedCycle('triennial', {{ triennial_price }}, 'Triennially (3 Years)')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div class="flex-1">
+ <div class="flex items-center justify-between">
+ <strong class="text-sm font-extrabold text-slate-900">Triennially</strong>
+ <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-extrabold">Save 35%</span>
+ </div>
+ <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ triennial_price|floatformat:0 }} BDT</span>
+ </div>
+ </label>
+
+ </div>
+ </div>
+
+ <!-- 3. Choose Server Datacenter Location Card -->
+ <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-4">
+ <div class="flex items-center justify-between">
+ <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+ <i class="fa-solid fa-earth-americas text-brand-600"></i> Choose Server Datacenter Location
+ </h3>
+ <span class="text-[10px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-0.5 rounded-full">Included Free</span>
+ </div>
+ <p class="text-xs text-slate-500">Select where your hosting files and database will be physically stored.</p>
+
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
+ <!-- Germany (Default) -->
+ <label class="location-card relative p-4 rounded-2xl border-2 border-brand-600 bg-brand-50/40 cursor-pointer transition flex flex-col justify-between"
+ id="card-loc-germany">
+ <div class="flex items-start gap-3">
+ <input type="radio" name="server_location" value="germany" checked onchange="updateSelectedLocation('germany', 'Germany (AMD EPYC)')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div>
+ <div class="flex items-center gap-1.5">
+ <span class="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 border border-slate-200">DE</span>
+ <strong class="text-sm font-extrabold text-slate-900">Germany</strong>
+ </div>
+ <span class="text-[11px] font-medium text-slate-600 mt-0.5 block">AMD EPYC NVMe</span>
+ </div>
+ </div>
+ <span class="mt-3 text-[10px] text-brand-700 font-bold bg-white/80 px-2 py-0.5 rounded border border-brand-200 block text-center">Global Fast Routing</span>
+ </label>
+
+ <!-- Finland -->
+ <label class="location-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-300 cursor-pointer transition flex flex-col justify-between bg-white"
+ id="card-loc-finland">
+ <div class="flex items-start gap-3">
+ <input type="radio" name="server_location" value="finland" onchange="updateSelectedLocation('finland', ' Finland (Helsinki)')"
+ class="mt-1 text-brand-600 focus:ring-brand-500">
+ <div>
+ <div class="flex items-center gap-1.5">
+ <span class="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 border border-slate-200">FI</span>
+ <strong class="text-sm font-extrabold text-slate-900">Finland</strong>
+ </div>
+ <span class="text-[11px] font-medium text-slate-600 mt-0.5 block">Helsinki Cloud</span>
+ </div>
+ </div>
+ <span class="mt-3 text-[10px] text-cyan-800 font-bold bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200 block text-center">100% Green Energy</span>
+ </label>
+
+ <!-- Bangladesh (BDIX) -->
+ <label class="location-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-emerald-300 cursor-pointer transition flex flex-col justify-between bg-white"
+ id="card-loc-bdix">
+ <div class="flex items-start gap-3">
+ <input type="radio" name="server_location" value="bdix" onchange="updateSelectedLocation('bdix', ' BDIX (Dhaka <5ms)')"
+ class="mt-1 text-emerald-600 focus:ring-emerald-500">
+ <div>
+ <div class="flex items-center gap-1.5">
+ <span class="px-2 py-0.5 rounded bg-emerald-100 font-mono text-xs font-bold text-emerald-800 border border-emerald-200">BD</span>
+ <strong class="text-sm font-extrabold text-slate-900">BDIX BD</strong>
+ </div>
+ <span class="text-[11px] font-medium text-slate-600 mt-0.5 block">Dhaka Exchange</span>
+ </div>
+ </div>
+ <span class="mt-3 text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 block text-center">&lt; 5ms Local Ping</span>
+ </label>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- RIGHT 1 COLUMN: STICKY CONFIGURATION SUMMARY -->
+ <div class="lg:sticky lg:top-24 space-y-4">
+ <div class="bg-gradient-to-br from-brand-700 via-indigo-800 to-brand-900 text-white rounded-3xl p-6 sm:p-7 shadow-floating border border-brand-500/30 space-y-6">
+ <div class="border-b border-white/15 pb-4">
+ <h3 class="text-lg font-black tracking-tight text-white flex items-center gap-2">
+ <i class="fa-solid fa-receipt text-brand-300"></i> Configuration Summary
+ </h3>
+ <p class="text-xs text-blue-200 mt-0.5">Review your order configuration</p>
+ </div>
+
+ <!-- Summary details -->
+ <div class="space-y-3 text-xs">
+ <div class="flex items-start justify-between gap-2">
+ <div>
+ <strong class="text-sm font-bold block text-white">{{ package.name }}</strong>
+ <span class="text-[11px] text-blue-200 font-mono" id="summary-domain-label">{{ domain }}</span>
+ <span class="block text-[10px] text-blue-300 font-medium" id="summary-cycle-label">Annually (1 Year)</span>
+ <span class="inline-flex items-center gap-1 text-[10px] text-emerald-300 font-semibold mt-1" id="summary-location-label">
+ <i class="fa-solid fa-server text-[9px]"></i> Germany (AMD EPYC)
+ </span>
+ </div>
+ <span class="font-bold text-white text-sm" id="summary-hosting-price">৳{{ annual_price|floatformat:0 }} BDT</span>
+ </div>
+
+ {% if domain_option == 'register' %}
+ <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs">
+ <div>
+ <span class="text-blue-100 font-semibold block">Domain Registration</span>
+ <span class="text-[10px] text-blue-300 font-mono">{{ domain }} (1 Yr)</span>
+ </div>
+ <span class="font-bold text-white">৳{{ domain_price|floatformat:0 }} BDT</span>
+ </div>
+ {% else %}
+ <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs">
+ <div>
+ <span class="text-blue-100 font-semibold block">Domain Setup</span>
+ <span class="text-[10px] text-blue-300">Existing Domain</span>
+ </div>
+ <span class="font-bold text-emerald-300 uppercase text-[11px]">Free</span>
+ </div>
+ {% endif %}
+
+ <div class="flex items-center justify-between gap-2 text-xs text-blue-200">
+ <span>Setup Fee</span>
+ <span class="text-emerald-300 font-bold uppercase text-[11px]">৳0.00 (Free)</span>
+ </div>
+ </div>
+
+ <!-- Total Due Today Strip -->
+ <div class="pt-4 border-t border-white/20 space-y-1">
+ <span class="text-[11px] font-bold text-blue-200 uppercase tracking-wider block">Configuration Total Due Today</span>
+ <div class="text-3xl sm:text-4xl font-black text-white" id="summary-total-due">
+ ৳{{ annual_price|add:domain_price|floatformat:0 }} BDT
+ </div>
+ </div>
+
+ <!-- Primary Action Button -->
+ <button type="submit"
+ class="w-full py-4 px-5 rounded-2xl bg-white text-brand-900 hover:bg-blue-50 font-extrabold text-sm transition shadow-lg flex items-center justify-center gap-2 group transform active:scale-95">
+ <span>+ Continue</span>
+ <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition"></i>
+ </button>
+ </div>
+
+ <!-- Guarantee pill -->
+ <div class="p-3.5 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-500 font-medium shadow-2xs flex items-center justify-center gap-2">
+ <i class="fa-solid fa-shield-check text-emerald-500 text-base"></i>
+ <span>30-Day Money-Back Guarantee & Instant Setup</span>
+ </div>
+ </div>
+
+ </form>
+
+ </div>
+</div>
+
+<script>
+let currentDomainPrice = parseFloat("{{ domain_price }}") || 0;
+
+function updateSelectedCycle(cycleKey, price, cycleLabel) {
+ // Reset border on all cycle cards
+ document.querySelectorAll('.billing-card').forEach(card => {
+ card.classList.remove('border-brand-600', 'bg-brand-50/40');
+ card.classList.add('border-slate-200', 'bg-white');
+ });
+
+ // Highlight selected card
+ const activeCard = document.getElementById('card-cycle-' + cycleKey);
+ if (activeCard) {
+ activeCard.classList.remove('border-slate-200', 'bg-white');
+ activeCard.classList.add('border-brand-600', 'bg-brand-50/40');
+ }
+
+ // Update summary text and total
+ document.getElementById('summary-cycle-label').textContent = cycleLabel;
+ document.getElementById('summary-hosting-price').textContent = '৳' + Math.round(price).toLocaleString() + ' BDT';
+
+ const totalDue = Math.round(price + currentDomainPrice);
+ document.getElementById('summary-total-due').textContent = '৳' + totalDue.toLocaleString() + ' BDT';
+}
+
+function updateSelectedLocation(locKey, locLabel) {
+ document.querySelectorAll('.location-card').forEach(card => {
+ card.classList.remove('border-brand-600', 'border-emerald-600', 'bg-brand-50/40', 'bg-emerald-50/40');
+ card.classList.add('border-slate-200', 'bg-white');
+ });
+
+ const activeCard = document.getElementById('card-loc-' + locKey);
+ if (activeCard) {
+ activeCard.classList.remove('border-slate-200', 'bg-white');
+ if (locKey === 'bdix') {
+ activeCard.classList.add('border-emerald-600', 'bg-emerald-50/40');
+ } else {
+ activeCard.classList.add('border-brand-600', 'bg-brand-50/40');
+ }
+ }
+
+ const locSummary = document.getElementById('summary-location-label');
+ if (locSummary) {
+ locSummary.innerHTML = `<i class="fa-solid fa-server text-[9px]"></i> ${locLabel}`;
+ }
+}
+</script>
+{% endblock %}

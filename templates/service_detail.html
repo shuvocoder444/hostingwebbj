@@ -1,0 +1,798 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ account.package.name }} ({{ account.domain }}) — Service Details — {{ COMPANY_NAME|default:'VeloHoster' }}{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex flex-col antialiased">
+
+    <!-- ─── Off-Canvas Mobile Backdrop ──────────────────────────────────────── -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()"
+        class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity duration-300 md:hidden"></div>
+
+    <div class="flex flex-1 min-h-screen relative overflow-x-hidden">
+
+        <!-- ─── COLLAPSIBLE SIDEBAR ───────────────────────────────────────────── -->
+        <aside id="main-sidebar"
+            class="fixed top-0 left-0 bottom-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out w-64 md:translate-x-0 -translate-x-full shadow-lg md:shadow-none">
+
+            <!-- Sidebar Top: Brand & Minimize Button -->
+            <div>
+                <div class="h-20 px-5 border-b border-slate-100 flex items-center justify-between">
+                    <!-- Brand (full & icon mode) -->
+                    <a href="{% url 'landing' %}" class="flex items-center gap-3 overflow-hidden group">
+                        <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white shrink-0 shadow-md shadow-brand-500/20">
+                            <i class="fa-solid fa-server text-base"></i>
+                        </div>
+                        <div class="sidebar-text-element transition-opacity duration-200 whitespace-nowrap">
+                            <span class="text-lg font-extrabold tracking-tight text-slate-900">
+                                Host<span class="text-brand-600">Pro</span>
+                            </span>
+                            <span class="block text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Client Portal</span>
+                        </div>
+                    </a>
+
+                    <!-- Sidebar Toggle (Collapse / Minimize) -->
+                    <button type="button" onclick="toggleSidebarCollapse()" title="Toggle Sidebar"
+                        class="hidden md:flex w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 items-center justify-center text-xs transition">
+                        <i id="sidebar-collapse-icon" class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <!-- Mobile Close Button -->
+                    <button type="button" onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-slate-700 text-base">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="px-3 py-6 space-y-1">
+                    <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                        Main Navigation
+                    </div>
+
+                    <!-- 1. Overview -->
+                    <a href="{% url 'dashboard' %}#overview"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-table-cells-large"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Dashboard</span>
+                    </a>
+
+                    <!-- 2. Hosting Services -->
+                    <div class="space-y-1">
+                        <a href="{% url 'dashboard' %}#services"
+                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-brand-700 bg-brand-50 transition group">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-6 text-center text-base shrink-0 text-brand-600"><i class="fa-solid fa-server"></i></div>
+                                <span class="sidebar-text-element whitespace-nowrap">Hosting Services</span>
+                            </div>
+                            <span class="sidebar-text-element text-xs font-bold px-2 py-0.5 rounded-full bg-brand-200/70 text-brand-800">
+                                {{ active_accounts_count }}
+                            </span>
+                        </a>
+
+                        <!-- Active Service Sub-Item Indicator -->
+                        <div class="sidebar-text-element ml-3 pl-3.5 border-l-2 border-brand-500 py-1.5 flex items-center justify-between text-xs font-bold text-slate-900 bg-surface-50 rounded-r-xl pr-3">
+                            <span class="truncate flex items-center gap-2">
+                                <i class="fa-solid fa-circle-dot text-[9px] text-emerald-500 animate-pulse"></i>
+                                <span class="truncate">{{ account.domain }}</span>
+                            </span>
+                            <span class="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Domain Portfolio -->
+                    <a href="{% url 'dashboard' %}#domains"
+                        class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-globe"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Domains Portfolio</span>
+                        </div>
+                        <span class="sidebar-text-element text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {{ active_domains_count }}
+                        </span>
+                    </a>
+
+                    <!-- 4. Invoices & Billing -->
+                    <a href="{% url 'dashboard' %}#invoices"
+                        class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Invoices & Billing</span>
+                        </div>
+                        {% if unpaid_invoices_count > 0 %}
+                        <span class="sidebar-text-element text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            {{ unpaid_invoices_count }} Unpaid
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- 5. Order New Services -->
+                    <a href="{% url 'cart_domain' %}"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-cart-plus"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Order Packages</span>
+                    </a>
+
+                    <!-- 6. Account Profile -->
+                    <a href="{% url 'dashboard' %}#profile"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-user-gear"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Profile & Security</span>
+                    </a>
+
+                    {% if user.is_staff or user.role == 'admin' %}
+                    <div class="pt-4 border-t border-slate-100 mt-4 space-y-1">
+                        <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-purple-600 sidebar-text-element">
+                            Management Control
+                        </div>
+                        <a href="{% url 'admin_dashboard' %}"
+                            class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
+                            <div class="w-6 text-center text-sm shrink-0"><i class="fa-solid fa-gauge-high"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Admin Operations Portal</span>
+                        </a>
+                        <a href="/admin/" target="_blank"
+                            class="flex items-center gap-3.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition">
+                            <div class="w-6 text-center text-sm shrink-0"><i class="fa-solid fa-wrench"></i></div>
+                            <span class="sidebar-text-element whitespace-nowrap">Django Fallback Admin</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar Bottom: User Card & Logout -->
+            <div class="p-3 border-t border-slate-100 bg-surface-50">
+                <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-lg bg-brand-100 text-brand-700 font-bold flex items-center justify-center shrink-0 text-sm">
+                            {{ user.first_name|default:user.email|slice:":1"|upper }}
+                        </div>
+                        <div class="sidebar-text-element min-w-0">
+                            <div class="text-xs font-bold text-slate-800 truncate">{{ user.get_full_name|default:user.email }}</div>
+                            <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-wallet text-[10px]"></i> ৳{{ profile.credit_balance|floatformat:0|default:"0" }}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" title="Logout"
+                        class="w-8 h-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs transition shrink-0">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ─── MAIN CONTENT WRAPPER ───────────────────────────────────────────── -->
+        <div id="main-content-area" class="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300 ease-in-out">
+
+            <!-- Top Header Bar -->
+            <header class="sticky top-0 z-30 bg-white border-b border-slate-200 h-20 px-4 sm:px-8 flex items-center justify-between shadow-2xs">
+                <div class="flex items-center gap-4">
+                    <!-- Hamburger / Sidebar Toggle Button -->
+                    <button type="button" onclick="handleHeaderToggle()"
+                        class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center text-sm"
+                        title="Toggle Navigation Menu">
+                        <i class="fa-solid fa-bars text-base"></i>
+                    </button>
+
+                    <!-- Breadcrumbs & Active Title -->
+                    <div>
+                        <div class="flex items-center text-[11px] font-semibold text-slate-400 gap-1.5">
+                            <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">Dashboard</a>
+                            <span>/</span>
+                            <a href="{% url 'dashboard' %}#services" class="hover:text-brand-600 transition">Hosting Services</a>
+                            <span>/</span>
+                            <span class="text-slate-700 font-bold">Product Details</span>
+                        </div>
+                        <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ account.package.name }} — {{ account.domain }}</h1>
+                    </div>
+                </div>
+
+                <!-- Right Quick Actions -->
+                <div class="flex items-center gap-3">
+                    <a href="http://{{ account.domain }}" target="_blank"
+                        class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Site
+                    </a>
+                    {% if account.status == 'active' %}
+                    <a href="{% url 'service_sso' account.id %}" target="_blank"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">
+                        <i class="fa-solid fa-fingerprint"></i> cPanel SSO
+                    </a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Main Page Content -->
+            <main class="p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6 flex-grow">
+
+                <!-- ─── NOTIFICATIONS & ALERTS ───────────────────────────────────── -->
+                {% if messages %}
+                <div class="space-y-2">
+                    {% for msg in messages %}
+                    <div class="p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% elif msg.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                        <div class="flex items-center gap-2.5">
+                            <i class="{% if msg.tags == 'success' %}fa-solid fa-circle-check text-emerald-600{% elif msg.tags == 'error' %}fa-solid fa-triangle-exclamation text-rose-600{% else %}fa-solid fa-circle-info text-blue-600{% endif %} text-base"></i>
+                            <span>{{ msg }}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- ─── TOP HERO PRODUCT BANNER ─────────────────────────────────── -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft relative overflow-hidden">
+                    <div class="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                                    {{ account.package.name }}
+                                </h2>
+                                {% if account.status == 'active' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                                </span>
+                                {% elif account.status == 'pending' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending
+                                </span>
+                                {% elif account.status == 'suspended' %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                    Suspended
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                                    {{ account.status|title }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-center gap-2 text-slate-600 text-sm font-medium">
+                                <i class="fa-solid fa-globe text-brand-600"></i>
+                                <a href="http://{{ account.domain }}" target="_blank" class="text-brand-600 hover:text-brand-700 hover:underline font-bold">
+                                    {{ account.domain }}
+                                </a>
+                                <span class="text-slate-300">•</span>
+                                <span class="text-slate-500 text-xs">{{ account.server.name }} ({{ account.server.hostname }})</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <a href="http://{{ account.domain }}" target="_blank"
+                                class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 shadow-2xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Website
+                            </a>
+                            {% if account.status == 'active' %}
+                            <a href="{% url 'service_sso' account.id %}" target="_blank"
+                                class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition flex items-center gap-2">
+                                <i class="fa-solid fa-fingerprint"></i> Log in to cPanel
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── 2-COLUMN GRID ───────────────────────────────────────────── -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                    <!-- ═════════════════════════════════════════════════════════════ -->
+                    <!-- LEFT COLUMN: Actions & Info (4 Cols)                         -->
+                    <!-- ═════════════════════════════════════════════════════════════ -->
+                    <div class="lg:col-span-4 space-y-6">
+
+                        <!-- Actions Card -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+                                <i class="fa-solid fa-bolt text-brand-600 mr-1.5"></i> Management Actions
+                            </h3>
+
+                            {% if account.status == 'active' %}
+                            <a href="{% url 'service_sso' account.id %}" target="_blank"
+                                class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-server"></i>
+                                    </div>
+                                    <span class="text-sm">Log in to cPanel</span>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition"></i>
+                            </a>
+
+                            <a href="{% url 'service_sso_shortcut' account.id 'webmail' %}" target="_blank"
+                                class="w-full py-3 px-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 shadow-2xs transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </div>
+                                    <span class="text-sm">Log in to Webmail</span>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition"></i>
+                            </a>
+
+                            <button type="button" onclick="openModal('modal-change-password')"
+                                class="w-full py-3 px-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 shadow-2xs transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-key"></i>
+                                    </div>
+                                    <span class="text-sm">Change cPanel Password</span>
+                                </div>
+                                <i class="fa-solid fa-pen-to-square text-xs text-slate-400 group-hover:text-slate-700 transition"></i>
+                            </button>
+                            {% endif %}
+
+                            <button type="button" onclick="openModal('modal-cancellation')"
+                                class="w-full py-2.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 shadow-2xs transition flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-rose-200/60 text-rose-700 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </div>
+                                    <span>Request Cancellation</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-[10px] text-rose-400 group-hover:translate-x-0.5 transition"></i>
+                            </button>
+                        </div>
+
+                        <!-- Hosting Overview Info -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft space-y-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <i class="fa-solid fa-file-invoice-dollar text-brand-600 mr-1.5"></i> Hosting Information
+                            </h3>
+
+                            <div class="divide-y divide-slate-100 text-xs">
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Registration Date</span>
+                                    <span class="font-bold text-slate-800">{{ account.created_at|date:"d/m/Y" }}</span>
+                                </div>
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Recurring Amount</span>
+                                    <span class="font-extrabold text-slate-900">৳{{ account.amount|floatformat:2 }}</span>
+                                </div>
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Billing Cycle</span>
+                                    <span class="font-semibold text-slate-800 capitalize">{{ account.get_billing_cycle_display }}</span>
+                                </div>
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Next Due Date</span>
+                                    <span class="font-bold text-slate-800">{{ account.next_due_date|date:"d/m/Y"|default:"N/A" }}</span>
+                                </div>
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Payment Method</span>
+                                    <span class="font-semibold text-slate-700">bKash / Nagad / SSLCommerz</span>
+                                </div>
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Status</span>
+                                    <span class="font-bold {% if account.status == 'active' %}text-emerald-600{% elif account.status == 'pending' %}text-amber-600{% else %}text-rose-600{% endif %}">
+                                        {{ account.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Server Configuration & Nameservers -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft space-y-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <i class="fa-solid fa-network-wired text-brand-600 mr-1.5"></i> Server & Nameservers
+                            </h3>
+
+                            <div class="space-y-3 text-xs">
+                                <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase">Server Hostname</div>
+                                    <div class="font-mono font-bold text-slate-800 flex items-center justify-between">
+                                        <span>{{ server.hostname|default:"cpanel.velohoster.com" }}</span>
+                                        <button onclick="copyText('{{ server.hostname|default:"cpanel.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase">Server IP Address</div>
+                                    <div class="font-mono font-bold text-slate-800 flex items-center justify-between">
+                                        <span>{{ server.ip_address|default:"195.250.26.201" }}</span>
+                                        <button onclick="copyText('{{ server.ip_address|default:"195.250.26.201" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-2">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase">Primary Nameservers</div>
+                                    <div class="font-mono font-semibold text-slate-700 flex items-center justify-between">
+                                        <span>{{ server.nameserver_1|default:"ns1.velohoster.com" }}</span>
+                                        <button onclick="copyText('{{ server.nameserver_1|default:"ns1.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                    <div class="font-mono font-semibold text-slate-700 flex items-center justify-between pt-1 border-t border-slate-200">
+                                        <span>{{ server.nameserver_2|default:"ns2.velohoster.com" }}</span>
+                                        <button onclick="copyText('{{ server.nameserver_2|default:"ns2.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ═════════════════════════════════════════════════════════════ -->
+                    <!-- RIGHT COLUMN: Gauges, Shortcuts, Credentials (8 Cols)        -->
+                    <!-- ═════════════════════════════════════════════════════════════ -->
+                    <div class="lg:col-span-8 space-y-6">
+
+                        <!-- 1. WHM Live Usage Gauges -->
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-chart-pie text-brand-600"></i> Live Resource Usage
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Real-time disk and network bandwidth statistics from server node.</p>
+                                </div>
+                                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> WHM Sync Active
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                                <!-- Disk Usage Gauge -->
+                                <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 border border-slate-200 flex items-center gap-6">
+                                    <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
+                                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                            <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none"
+                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            <path class="text-brand-600 transition-all duration-1000 ease-out" stroke-dasharray="{{ live_stats.disk_percent }}, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none"
+                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        </svg>
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span class="text-base font-extrabold text-slate-900">{{ live_stats.disk_percent }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Disk Usage</div>
+                                        <div class="text-base font-extrabold text-slate-900 mt-1">
+                                            {{ live_stats.disk_used_mb|floatformat:1 }} MB
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-0.5">
+                                            of {% if live_stats.disk_limit_mb > 0 %}{{ live_stats.disk_limit_mb|floatformat:0 }} MB{% else %}Unlimited{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bandwidth Usage Gauge -->
+                                <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-200 flex items-center gap-6">
+                                    <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
+                                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                            <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none"
+                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            <path class="text-indigo-600 transition-all duration-1000 ease-out" stroke-dasharray="{{ live_stats.bandwidth_percent }}, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none"
+                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        </svg>
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span class="text-base font-extrabold text-slate-900">{{ live_stats.bandwidth_percent }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Bandwidth Usage</div>
+                                        <div class="text-base font-extrabold text-slate-900 mt-1">
+                                            {{ live_stats.bandwidth_used_mb|floatformat:2 }} MB
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-0.5">
+                                            of {% if live_stats.bandwidth_limit_mb > 0 %}{{ live_stats.bandwidth_limit_mb|floatformat:0 }} MB{% else %}Unlimited{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- 2. Quick Shortcuts (10 Live cPanel Apps) -->
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-cubes text-brand-600"></i> Quick Shortcuts
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Click any shortcut to instantly log in to that specific cPanel application.</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                {% for item in shortcuts %}
+                                <a href="{% url 'service_sso_shortcut' account.id item.id %}" target="_blank"
+                                    class="flex flex-col items-center justify-center p-4 rounded-2xl bg-surface-50 hover:bg-white border border-slate-200 hover:border-brand-400 shadow-2xs hover:shadow-card transition duration-200 group text-center">
+                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr {{ item.color }} text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition duration-200">
+                                        <i class="{{ item.icon }}"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-800 mt-3 group-hover:text-brand-600 transition">{{ item.name }}</span>
+                                    <span class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{{ item.desc }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- 3. Account Access Credentials -->
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-shield-halved text-brand-600"></i> Login & Security Credentials
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Direct credentials for FTP, SSH, and manual cPanel login.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- cPanel Username -->
+                                <div class="p-4 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase">cPanel / FTP Username</div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-mono font-bold text-sm text-slate-900">{{ account.username }}</span>
+                                        <button onclick="copyText('{{ account.username }}')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 text-xs font-semibold shadow-2xs transition">
+                                            <i class="fa-regular fa-copy mr-1"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- cPanel Password -->
+                                <div class="p-4 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase">cPanel / FTP Password</div>
+                                    <div class="flex items-center justify-between">
+                                        <span id="password-display" class="font-mono font-bold text-sm text-slate-900">••••••••••••</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <button type="button" onclick="togglePasswordVisibility()" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs shadow-2xs transition" title="Show/Hide">
+                                                <i id="password-eye-icon" class="fa-regular fa-eye"></i>
+                                            </button>
+                                            <button onclick="copyPassword()" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 text-xs font-semibold shadow-2xs transition">
+                                                <i class="fa-regular fa-copy mr-1"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CHANGE CPANEL PASSWORD                                              -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-change-password" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        <button type="button" onclick="closeModal('modal-change-password')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Change cPanel Password</h3>
+                <p class="text-xs text-slate-500">Live WHM synchronization for {{ account.username }}</p>
+            </div>
+        </div>
+
+        <form action="{% url 'service_change_password' account.id %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">New Password</label>
+                <div class="relative">
+                    <input type="password" id="input_new_password" name="new_password" required minlength="8"
+                        placeholder="Enter secure password"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-mono pr-20">
+                    <button type="button" onclick="generateRandomPassword()"
+                        class="absolute right-2 top-2 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 transition">
+                        Generate
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Confirm Password</label>
+                <input type="password" id="input_confirm_password" name="confirm_password" required minlength="8"
+                    placeholder="Repeat new password"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm font-mono">
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <button type="button" onclick="closeModal('modal-change-password')"
+                    class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: REQUEST CANCELLATION                                                -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-cancellation" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        <button type="button" onclick="closeModal('modal-cancellation')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Request Cancellation</h3>
+                <p class="text-xs text-slate-500">{{ account.domain }} ({{ account.package.name }})</p>
+            </div>
+        </div>
+
+        <form action="{% url 'service_request_cancellation' account.id %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reason for Cancellation</label>
+                <textarea name="reason" rows="3" required placeholder="Please let us know why you are cancelling..."
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-xs"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Cancellation Type</label>
+                <select name="cancellation_type" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-xs font-semibold">
+                    <option value="end_of_billing_period">End of Billing Period</option>
+                    <option value="immediate">Immediate Cancellation</option>
+                </select>
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <button type="button" onclick="closeModal('modal-cancellation')"
+                    class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-ban"></i> Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const rawPassword = "{{ cpanel_password|escapejs }}";
+let isPasswordVisible = false;
+
+function togglePasswordVisibility() {
+    const display = document.getElementById('password-display');
+    const eye = document.getElementById('password-eye-icon');
+    isPasswordVisible = !isPasswordVisible;
+
+    if (isPasswordVisible) {
+        display.textContent = rawPassword || 'Not Set';
+        eye.className = 'fa-regular fa-eye-slash';
+    } else {
+        display.textContent = '••••••••••••';
+        eye.className = 'fa-regular fa-eye';
+    }
+}
+
+function copyPassword() {
+    if (rawPassword) {
+        copyText(rawPassword);
+    } else {
+        alert('No password stored. Please use "Change Password" to set a new password.');
+    }
+}
+
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!');
+    }).catch(() => {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('Copied to clipboard!');
+    });
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 2500);
+}
+
+function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+    }
+}
+
+function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+    }
+}
+
+function generateRandomPassword() {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let pwd = "";
+    for (let i = 0; i < 14; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const input1 = document.getElementById('input_new_password');
+    const input2 = document.getElementById('input_confirm_password');
+    if (input1 && input2) {
+        input1.type = 'text';
+        input1.value = pwd;
+        input2.type = 'text';
+        input2.value = pwd;
+    }
+}
+
+// Sidebar responsive toggle logic
+function handleHeaderToggle() {
+    if (window.innerWidth < 768) {
+        toggleMobileSidebar();
+    } else {
+        toggleSidebarCollapse();
+    }
+}
+
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('main-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar) return;
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        backdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        backdrop.classList.add('hidden');
+    }
+}
+
+let isSidebarCollapsed = false;
+function toggleSidebarCollapse() {
+    const sidebar = document.getElementById('main-sidebar');
+    const content = document.getElementById('main-content-area');
+    const icon = document.getElementById('sidebar-collapse-icon');
+    const textEls = document.querySelectorAll('.sidebar-text-element');
+
+    isSidebarCollapsed = !isSidebarCollapsed;
+
+    if (isSidebarCollapsed) {
+        sidebar.classList.remove('w-64');
+        sidebar.classList.add('w-20');
+        content.classList.remove('md:pl-64');
+        content.classList.add('md:pl-20');
+        textEls.forEach(el => el.classList.add('hidden'));
+        if (icon) icon.className = 'fa-solid fa-chevron-right';
+    } else {
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
+        content.classList.remove('md:pl-20');
+        content.classList.add('md:pl-64');
+        textEls.forEach(el => el.classList.remove('hidden'));
+        if (icon) icon.className = 'fa-solid fa-chevron-left';
+    }
+}
+</script>
+{% endblock %}

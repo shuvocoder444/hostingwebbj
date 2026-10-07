@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section -->
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-50 text-brand-700 border border-brand-200">
+                <i class="fa-solid fa-server mr-1"></i> Global Cloud Infrastructure
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Enterprise <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">Tier III+ Datacenters</span>
+            </h1>
+            <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                Our servers are hosted in high-security, ISO 27001 certified global datacenters with redundant power, enterprise cooling, and multi-terabit optical DDoS scrubbing.
+            </p>
+        </div>
+
+        <!-- Global Topology Graphic -->
+        <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-2xl">
+            <img src="{% static 'images/datacenter-map.svg' %}" alt="Global Datacenter Mesh Map" class="w-full h-auto rounded-2xl" />
+        </div>
+
+        <!-- Datacenter Locations Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Datacenter 1: Singapore -->
+            <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 font-bold text-sm flex items-center justify-center border border-red-200 font-mono">SG</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Singapore Equinix</h3>
+                                <span class="text-xs text-brand-600 font-semibold">Equinix SG1 Hub</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">Tier III+</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                        Direct subsea routes across Asia, India, and Bangladesh with ~30ms South Asia ping.
+                    </p>
+                    <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-600"></i> ~30ms South Asia Latency</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-600"></i> 10Gbps Redundant Uplinks</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-brand-600"></i> Enterprise AMD EPYC Nodes</li>
+                    </ul>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Equinix SG1</span>
+                    <span class="text-emerald-600 font-bold">100% Online</span>
+                </div>
+            </div>
+
+            <!-- Datacenter 2: Germany / Finland -->
+            <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 font-bold text-sm flex items-center justify-center border border-slate-300 font-mono">DE</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Germany & Finland</h3>
+                                <span class="text-xs text-brand-600 font-semibold">European Green Cloud</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-50 text-cyan-700">Green Cloud</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                        GDPR compliant European datacenter clusters with 100% renewable energy footprint.
+                    </p>
+                    <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> Enterprise NVMe Gen4 Storage</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> ISO 27001 Certified Security</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-600"></i> Terabit Anti-DDoS Scrubbing</li>
+                    </ul>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
+                    <span>Helsinki / Nuremberg</span>
+                    <span class="text-emerald-600 font-bold">100% Online</span>
+                </div>
+            </div>
+
+            <!-- Datacenter 3: Bangladesh BDIX -->
+            <div class="bg-gradient-to-b from-white to-emerald-50/40 rounded-3xl p-8 border-2 border-emerald-500/50 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm flex items-center justify-center border border-emerald-200 font-mono">BD</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Dhaka BDIX Core</h3>
+                                <span class="text-xs text-emerald-700 font-semibold">National Peering</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">&lt; 5ms Ping</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                        Direct connection to the National Internet Exchange (BDIX) for unbelievable local loading speeds.
+                    </p>
+                    <ul class="space-y-2 text-xs text-slate-700 font-medium">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Sub-5ms Ping Across Bangladesh</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> 10Gbps Optical Peering Hub</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Instant E-Commerce Performance</li>
+                    </ul>
+                </div>
+                <div class="mt-6 pt-4 border-t border-emerald-200 flex items-center justify-between text-xs text-emerald-700 font-mono">
+                    <span>Dhaka POP</span>
+                    <span class="text-emerald-600 font-bold">&lt; 5ms Latency</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

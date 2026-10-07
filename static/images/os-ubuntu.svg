@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-16 h-16">
+  <circle cx="60" cy="60" r="48" fill="#ea580c" fill-opacity="0.08"/>
+  <!-- Ubuntu Circle of Friends in vibrant Orange -->
+  <circle cx="60" cy="60" r="38" fill="#ea580c"/>
+  <circle cx="60" cy="60" r="23" fill="#ffffff"/>
+  <circle cx="60" cy="60" r="17" fill="#ea580c"/>
+  
+  <!-- 3 white heads and gaps -->
+  <circle cx="28" cy="60" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="76" cy="32" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="76" cy="88" r="6" fill="#ea580c" stroke="#ffffff" stroke-width="3"/>
+
+  <!-- Segment Cuts -->
+  <rect x="20" y="58" width="22" height="4" fill="#ffffff"/>
+  <line x1="60" y1="60" x2="78" y2="30" stroke="#ffffff" stroke-width="4"/>
+  <line x1="60" y1="60" x2="78" y2="90" stroke="#ffffff" stroke-width="4"/>
+</svg>

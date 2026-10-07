@@ -5,9 +5,10 @@ All secrets loaded from environment via python-decouple.
 Never hardcode credentials here.
 """
 
-from pathlib import Path
 from datetime import timedelta
-from decouple import config, Csv
+from pathlib import Path
+
+from decouple import Csv, config
 
 # ─── Base ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.global_brand_context',
             ],
         },
     },
@@ -229,8 +231,12 @@ USE_TZ = True
 # ─── Static & Media ───────────────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
+
+WHATSAPP_SUPPORT_NUMBER = config('WHATSAPP_SUPPORT_NUMBER', default='8801700000000')
+WHATSAPP_DISPLAY_NUMBER = config('WHATSAPP_DISPLAY_NUMBER', default='+880 1700-000000')
 
 # ─── Email ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -289,4 +295,4 @@ LOGGING = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ─── Celery Beat Schedule ────────────────────────────────────────────────────
-from hostpro.beat_schedule import CELERY_BEAT_SCHEDULE  # noqa: F401, E402
+from hostpro.beat_schedule import CELERY_BEAT_SCHEDULE  # noqa: F401

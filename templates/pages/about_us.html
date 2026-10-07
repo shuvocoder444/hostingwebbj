@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+ <!-- Hero Section -->
+ <div class="text-center max-w-3xl mx-auto space-y-4">
+ <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-50 text-brand-700 border border-brand-200">
+ About {{ COMPANY_NAME }}
+ </span>
+ <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+ Empowering Businesses With <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">Ultra-Fast Cloud Hosting</span>
+ </h1>
+ <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+ Founded with a mission to deliver enterprise-grade cloud server speeds, unyielding 99.9% uptime SLA, and automated domain provisioning with direct local payment support in Bangladesh and worldwide.
+ </p>
+ </div>
+
+ <!-- KPI Stats -->
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-center space-y-1">
+ <span class="text-3xl sm:text-4xl font-black text-brand-600">99.9%</span>
+ <p class="text-xs font-bold text-slate-700">Guaranteed Uptime SLA</p>
+ <p class="text-[11px] text-slate-400">Redundant power & network</p>
+ </div>
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-center space-y-1">
+ <span class="text-3xl sm:text-4xl font-black text-emerald-600">&lt; 5ms</span>
+ <p class="text-xs font-bold text-slate-700">BDIX BD Latency</p>
+ <p class="text-[11px] text-slate-400">Direct Dhaka peering</p>
+ </div>
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-center space-y-1">
+ <span class="text-3xl sm:text-4xl font-black text-indigo-600">24/7/365</span>
+ <p class="text-xs font-bold text-slate-700">Live Support Desk</p>
+ <p class="text-[11px] text-slate-400">WhatsApp, Ticket & Phone</p>
+ </div>
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-center space-y-1">
+ <span class="text-3xl sm:text-4xl font-black text-purple-600">100%</span>
+ <p class="text-xs font-bold text-slate-700">NVMe SSD Storage</p>
+ <p class="text-[11px] text-slate-400">PCIe Gen4 enterprise drives</p>
+ </div>
+ </div>
+
+ <!-- Mission & Story Grid -->
+ <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+ <div class="space-y-6">
+ <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-600 uppercase tracking-wider">
+ <i class="fa-solid fa-bullseye"></i> Our Core Mission
+ </div>
+ <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+ Built for Developers, Agencies, and Growing Enterprises
+ </h2>
+ <p class="text-slate-600 text-sm leading-relaxed">
+ At {{ COMPANY_NAME }}, we believe web hosting should be painless, blisteringly fast, and genuinely reliable. We run our own pure NVMe SSD cloud clusters across Tier-4 datacenters in Singapore, Germany, Finland, the United States, and local Dhaka BDIX infrastructure.
+ </p>
+ <div class="space-y-3">
+ <div class="flex items-start gap-3">
+ <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></div>
+ <p class="text-xs sm:text-sm text-slate-700"><strong>Instant Automated Provisioning:</strong> Accounts and wholesale domains are provisioned within seconds of payment.</p>
+ </div>
+ <div class="flex items-start gap-3">
+ <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></div>
+ <p class="text-xs sm:text-sm text-slate-700"><strong>Local Payment Gateways:</strong> Instant checkout with bKash, Nagad, Rocket, Upay, and credit/debit cards.</p>
+ </div>
+ <div class="flex items-start gap-3">
+ <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></div>
+ <p class="text-xs sm:text-sm text-slate-700"><strong>Daily Automated Backups:</strong> Independent off-site backup snapshots to protect your critical data.</p>
+ </div>
+ </div>
+ </div>
+ 
+ <div class="bg-gradient-to-br from-slate-900 to-brand-950 p-8 rounded-3xl text-white shadow-xl space-y-6 border border-slate-800">
+ <div class="flex items-center gap-3">
+ <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/40 text-brand-300 flex items-center justify-center text-lg">
+ <i class="fa-solid fa-shield-halved"></i>
+ </div>
+ <div>
+ <h3 class="font-bold text-base">The {{ COMPANY_NAME }} Guarantee</h3>
+ <p class="text-xs text-brand-300">Risk-free cloud web hosting</p>
+ </div>
+ </div>
+ <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+ We stand behind our services with a 30-Day Money Back Guarantee on all shared, turbo cloud, and reseller hosting plans. If you are not completely satisfied with our performance or support, we will refund your hosting fee unconditionally.
+ </p>
+ <div class="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+ <a href="{% url 'contact_us' %}" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition flex items-center gap-2">
+ <i class="fa-solid fa-headset"></i> Contact Support
+ </a>
+ <a href="{% url 'landing' %}#packages" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition">
+ Explore Hosting Plans →
+ </a>
+ </div>
+ </div>
+ </div>
+
+ </div>
+</div>
+{% endblock %}

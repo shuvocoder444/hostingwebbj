@@ -34,6 +34,8 @@ CYCLE_MONTHS: dict[str, int] = {
     BillingCycle.QUARTERLY: 3,
     BillingCycle.SEMI_ANNUAL: 6,
     BillingCycle.ANNUAL: 12,
+    BillingCycle.BIENNIAL: 24,
+    BillingCycle.TRIENNIAL: 36,
 }
 
 
@@ -97,27 +99,13 @@ def _get_username_unique(domain: str) -> str:
 def _select_server(package: HostingPackage) -> Server:
     """
     Select the best server for a new account.
-
-    Strategy: least-loaded active server that hosts the given package.
-    'Least loaded' = server with fewest ACTIVE accounts below max_accounts limit.
+    Falls back gracefully to any active server if package server is inactive.
     """
-    # Count active accounts per server hosting this package's server
-    server = package.server
-    if not server.is_active:
-        raise ProvisioningError(
-            f"Server '{server.name}' for package '{package.name}' is not active."
-        )
-
-    active_count = HostingAccount.objects.filter(
-        server=server,
-        status=HostingAccount.Status.ACTIVE,
-    ).count()
-
-    if active_count >= server.max_accounts:
-        raise ProvisioningError(
-            f"Server '{server.name}' is at capacity ({active_count}/{server.max_accounts} accounts)."
-        )
-
+    server = getattr(package, 'server', None)
+    if not server or not server.is_active:
+        server = Server.objects.filter(is_active=True).first()
+        if not server:
+            raise ProvisioningError("No active server is available for provisioning.")
     return server
 
 
@@ -125,6 +113,27 @@ class ProvisioningService:
     """
     Handles the full lifecycle of hosting account provisioning.
     """
+
+    @staticmethod
+    def generate_cpanel_username(domain: str) -> str:
+        """Generate a valid, collision-free cPanel username."""
+        return _get_username_unique(domain)
+
+    @staticmethod
+    def generate_secure_password(length: int = 14) -> str:
+        """Generate a cryptographically secure random password."""
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+        password = [
+            secrets.choice(string.ascii_lowercase),
+            secrets.choice(string.ascii_uppercase),
+            secrets.choice(string.digits),
+            secrets.choice("!@#$%^&*"),
+        ]
+        password += [secrets.choice(alphabet) for _ in range(max(0, length - 4))]
+        secrets.SystemRandom().shuffle(password)
+        return ''.join(password)
 
     @staticmethod
     @db_transaction.atomic
@@ -137,7 +146,7 @@ class ProvisioningService:
     ) -> HostingAccount:
         """
         Create a PENDING HostingAccount record in the DB.
-        Does NOT provision on the server — that happens after payment via Celery.
+        Does NOT provision on the server — that happens after payment via Celery or Admin Approval.
 
         Args:
             user:          Client User instance.
@@ -147,12 +156,12 @@ class ProvisioningService:
             password:      cPanel password (generated if not provided).
 
         Returns:
-            The newly created HostingAccount in PENDING status.
+            The newly created or updated HostingAccount in PENDING status.
         """
-        import secrets
+        clean_domain = domain.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0].strip().lower()
         server = _select_server(package)
-        username = _get_username_unique(domain)
-        password = password or secrets.token_urlsafe(16)
+        username = _get_username_unique(clean_domain)
+        password = password or ProvisioningService.generate_secure_password()
 
         # Determine price from cycle
         price_map = {
@@ -160,23 +169,53 @@ class ProvisioningService:
             BillingCycle.QUARTERLY: package.quarterly_price or package.monthly_price * 3,
             BillingCycle.SEMI_ANNUAL: package.semi_annual_price or package.monthly_price * 6,
             BillingCycle.ANNUAL: package.annual_price or package.monthly_price * 12,
+            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or package.monthly_price * 24,
+            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or package.monthly_price * 36,
         }
         amount = price_map.get(billing_cycle, package.monthly_price)
 
-        account = HostingAccount.objects.create(
-            user=user,
-            package=package,
-            server=server,
-            domain=domain,
-            username=username,
-            billing_cycle=billing_cycle,
-            amount=amount,
-            status=HostingAccount.Status.PENDING,
-        )
+        days_map = {
+            BillingCycle.MONTHLY: 30,
+            BillingCycle.QUARTERLY: 90,
+            BillingCycle.SEMI_ANNUAL: 180,
+            BillingCycle.ANNUAL: 365,
+            BillingCycle.BIENNIAL: 730,
+            BillingCycle.TRIENNIAL: 1095,
+        }
+        next_due = timezone.now().date() + timezone.timedelta(days=days_map.get(billing_cycle, 30))
+
+        # Re-use existing pending account or create new
+        account = HostingAccount.objects.filter(domain=clean_domain).first()
+        if account:
+            if account.status == HostingAccount.Status.ACTIVE:
+                raise ProvisioningError(f"A hosting account for domain '{clean_domain}' is already active.")
+            account.user = user
+            account.package = package
+            account.server = server
+            account.billing_cycle = billing_cycle
+            account.amount = amount
+            account.status = HostingAccount.Status.PENDING
+            account.next_due_date = next_due
+            account.set_account_password(password)
+            account.save()
+        else:
+            account = HostingAccount(
+                user=user,
+                package=package,
+                server=server,
+                domain=clean_domain,
+                username=username,
+                billing_cycle=billing_cycle,
+                amount=amount,
+                status=HostingAccount.Status.PENDING,
+                next_due_date=next_due,
+            )
+            account.set_account_password(password)
+            account.save()
 
         logger.info(
-            "Pending hosting account created: domain=%s username=%s package=%s",
-            domain, username, package.name
+            "Pending hosting account created/updated: domain=%s username=%s package=%s",
+            clean_domain, account.username, package.name
         )
         return account
 

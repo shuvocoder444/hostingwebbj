@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-16 h-16">
+  <circle cx="60" cy="60" r="48" fill="#ef4444" fill-opacity="0.08"/>
+  <circle cx="60" cy="60" r="40" fill="#e11d48"/>
+  <!-- Rocky mountain geometric cutout -->
+  <path d="M60 32 L84 68 L70 68 L60 52 L50 68 L36 68 Z" fill="#ffffff"/>
+  <path d="M60 62 L72 80 L48 80 Z" fill="#ffffff" fill-opacity="0.9"/>
+</svg>

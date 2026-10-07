@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-16 h-16">
+  <circle cx="60" cy="60" r="48" fill="#0284c7" fill-opacity="0.08"/>
+  <!-- Webuzo Multi-Color Ring & 'we' emblem -->
+  <circle cx="60" cy="60" r="38" fill="none" stroke="url(#webuzoGrad)" stroke-width="8"/>
+  <defs>
+    <linearGradient id="webuzoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="33%" stop-color="#f59e0b"/>
+      <stop offset="66%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <text x="32" y="68" fill="#0284c7" font-family="system-ui, sans-serif" font-size="22" font-weight="900">we</text>
+</svg>

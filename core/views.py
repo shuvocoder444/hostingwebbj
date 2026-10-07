@@ -7,23 +7,23 @@ Handles:
   - Client Dashboard (Services, Invoices, Orders, Profile)
   - Direct Service Ordering & Invoice Payment
 """
-import uuid
 import logging
+import uuid
 from decimal import Decimal
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from hosting.models import HostingPackage, HostingAccount, BillingCycle
-from hosting.services import ProvisioningService
-from billing.models import Invoice, Transaction, Gateway
-from billing.services import InvoiceService, PaymentService
 from accounts.models import ClientProfile
+from billing.models import Invoice, Transaction
+from billing.services import InvoiceService
+from hosting.models import BillingCycle, HostingAccount, HostingPackage
+from hosting.services import ProvisioningService
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -32,11 +32,14 @@ logger = logging.getLogger(__name__)
 def landing_page_view(request):
     """
     Public Landing Page.
-    Fetches active hosting packages from DB to show real pricing.
+    Fetches active hosting packages and full TLD pricing from DB.
     """
     packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
+    from domains.models import TLDPricing
+    tld_prices = TLDPricing.objects.filter(is_active=True).order_by('register_price')
     context = {
         'packages': packages,
+        'tld_prices': tld_prices,
         'user': request.user,
     }
     return render(request, 'index.html', context)
@@ -138,12 +141,12 @@ def register_view(request):
                 last_name=last_name,
                 role=User.Role.CLIENT,
             )
-            # Create client profile with default welcome credit
+            # Create client profile
             ClientProfile.objects.create(
                 user=user,
                 phone=phone,
                 company_name=company_name,
-                credit_balance=Decimal('100.00'),  # BDT 100 welcome bonus credit
+                credit_balance=Decimal('0.00'),
                 currency='BDT',
             )
 
@@ -154,7 +157,7 @@ def register_view(request):
 
         except Exception as exc:
             logger.error("Registration error: %s", exc)
-            messages.error(request, f'Registration failed: {str(exc)}')
+            messages.error(request, f'Registration failed: {exc!s}')
             return render(request, 'register.html', request.POST)
 
     return render(request, 'register.html')
@@ -210,6 +213,33 @@ def dashboard_view(request):
     unpaid_invoices_count = unpaid_invoices.count()
     total_unpaid_amount = sum(inv.total for inv in unpaid_invoices)
 
+    # Expiration notice (50 days window)
+    today = timezone.now().date()
+    expiring_accounts = []
+    for acc in hosting_accounts:
+        if acc.status == HostingAccount.Status.ACTIVE and acc.next_due_date:
+            days_left = (acc.next_due_date - today).days
+            if days_left <= 50:
+                expiring_accounts.append({
+                    'account': acc,
+                    'days_left': days_left,
+                    'is_expired': days_left <= 0,
+                    'is_critical': days_left <= 7,
+                })
+
+    expiring_domains = []
+    for dom in client_domains:
+        if dom.status == Domain.Status.ACTIVE and dom.expiry_date:
+            exp_date = dom.expiry_date
+            days_left = (exp_date - today).days
+            if days_left <= 50:
+                expiring_domains.append({
+                    'domain': dom,
+                    'days_left': days_left,
+                    'is_expired': days_left <= 0,
+                    'is_critical': days_left <= 7,
+                })
+
     context = {
         'user': user,
         'profile': profile,
@@ -223,6 +253,8 @@ def dashboard_view(request):
         'unpaid_invoices_count': unpaid_invoices_count,
         'total_unpaid_amount': total_unpaid_amount,
         'billing_cycles': BillingCycle.choices,
+        'expiring_accounts': expiring_accounts,
+        'expiring_domains': expiring_domains,
     }
     return render(request, 'dashboard.html', context)
 
@@ -256,8 +288,9 @@ def order_hosting_view(request):
         messages.error(request, 'Selected hosting package not found.')
         return redirect('dashboard')
 
-    if HostingAccount.objects.filter(domain=domain).exists():
-        messages.error(request, f"The domain '{domain}' is already hosted on our platform.")
+    existing = HostingAccount.objects.filter(domain=domain).first()
+    if existing and existing.status == HostingAccount.Status.ACTIVE:
+        messages.error(request, f"The domain '{domain}' is already hosted and active on our platform.")
         return redirect('dashboard')
 
     try:
@@ -270,10 +303,15 @@ def order_hosting_view(request):
         )
 
         # 2. Determine price based on cycle
-        if billing_cycle == BillingCycle.ANNUAL and package.annual_price:
-            amount = package.annual_price
-        else:
-            amount = package.monthly_price
+        price_map = {
+            BillingCycle.MONTHLY: package.monthly_price,
+            BillingCycle.QUARTERLY: package.quarterly_price or package.monthly_price * 3,
+            BillingCycle.SEMI_ANNUAL: package.semi_annual_price or package.monthly_price * 6,
+            BillingCycle.ANNUAL: package.annual_price or package.monthly_price * 12,
+            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or package.monthly_price * 24,
+            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or package.monthly_price * 36,
+        }
+        amount = price_map.get(billing_cycle, package.monthly_price)
 
         # 3. Create hosting invoice
         invoice = InvoiceService.create_hosting_invoice(
@@ -287,89 +325,307 @@ def order_hosting_view(request):
         messages.success(
             request,
             f"Order placed successfully! Hosting account for '{domain}' created. "
-            f"Invoice #{invoice.invoice_number} (BDT {invoice.total}) is ready for payment."
+            f"Invoice #{invoice.invoice_number} (৳{invoice.total} BDT) is ready for payment. "
+            f"Please submit your payment details (bKash/Nagad/Rocket/Bank) below to activate your service."
         )
+        return redirect(f"/dashboard/?tab=invoices&pay_invoice={invoice.id}")
 
     except Exception as exc:
         logger.error("Order error: %s", exc)
-        messages.error(request, f"Could not create order: {str(exc)}")
-
-    return redirect('dashboard')
+        messages.error(request, f"Could not create order: {exc!s}")
+        return redirect('dashboard')
 
 
 @login_required(login_url='login')
 @require_http_methods(['POST'])
 def pay_invoice_view(request, invoice_id):
     """
-    Process payment for an invoice.
-    In development mode, simulates immediate verification (bKash/Nagad/SSLCommerz/Account Credit).
-    Triggers post-payment automation (e.g. provisions hosting account).
+    Process manual payment submission for an invoice (bKash/Nagad/Rocket/Bank Transfer/Card).
+    Records a PENDING transaction with the customer's TrxID and Sender Phone/Account.
+    Does NOT automatically provision domain/hosting — requires Administrator verification and approval.
     """
     invoice = get_object_or_404(Invoice, id=invoice_id, user=request.user)
 
     if invoice.status == Invoice.Status.PAID:
-        messages.info(request, f"Invoice #{invoice.invoice_number} is already paid.")
+        messages.info(request, f"Invoice #{invoice.invoice_number} is already settled.")
         return redirect('dashboard')
 
     gateway = request.POST.get('gateway', 'bkash').lower()
-    trx_id = request.POST.get('trx_id') or f"TRX-{uuid.uuid4().hex[:10].upper()}"
+    sender_number = request.POST.get('sender_number', '').strip()
+    trx_id = request.POST.get('trx_id', '').strip()
+    notes = request.POST.get('notes', '').strip()
 
     profile = getattr(request.user, 'profile', None)
 
-    # If paying via account credit, check balance
+    # If paying via account wallet credit
     if gateway == 'credit':
         if not profile or profile.credit_balance < invoice.total:
-            messages.error(request, "Insufficient account credit balance. Please choose another payment method.")
-            return redirect('dashboard')
-        # Deduct credit
+            messages.error(request, "Insufficient wallet credit balance. Please submit payment via bKash, Nagad, Rocket or Bank.")
+            return redirect('/dashboard/?tab=invoices')
+        # Deduct wallet credit & submit for admin instant approval
         profile.credit_balance -= invoice.total
         profile.save(update_fields=['credit_balance'])
+        trx_id = f"WALLET-{uuid.uuid4().hex[:8].upper()}"
+        sender_number = request.user.email
+
+    if not trx_id and gateway != 'credit':
+        messages.error(request, "Transaction ID (TrxID) is required. Please provide your payment TrxID.")
+        return redirect('/dashboard/?tab=invoices')
+
+    if not sender_number and gateway != 'credit':
+        messages.error(request, "Sender Phone Number or Account Number is required.")
+        return redirect('/dashboard/?tab=invoices')
 
     try:
-        # 1. Create or get successful transaction record
-        txn, created = Transaction.objects.get_or_create(
-            gateway_transaction_id=trx_id,
+        # 1. Create or update PENDING Transaction record
+        txn, created = Transaction.objects.update_or_create(
+            invoice=invoice,
+            status=Transaction.Status.PENDING,
             defaults={
-                'invoice': invoice,
                 'user': request.user,
                 'gateway': gateway,
-                'status': Transaction.Status.SUCCESS,
+                'gateway_transaction_id': trx_id,
                 'amount': invoice.total,
-                'gateway_response': {'status': 'SUCCESS', 'gateway': gateway, 'channel': 'web_portal'},
+                'gateway_response': {
+                    'sender_number': sender_number,
+                    'notes': notes,
+                    'gateway': gateway,
+                    'channel': 'manual_client_submission',
+                    'submitted_by': request.user.email,
+                    'submitted_at': timezone.now().isoformat(),
+                },
             }
         )
 
-        # 2. Mark invoice as PAID
-        invoice.mark_paid()
-        invoice.save(update_fields=['status', 'paid_at', 'updated_at'])
-
-        # 3. Transition hosting account to ACTIVE
-        if invoice.hosting_account:
-            acct = invoice.hosting_account
-            if acct.status in (HostingAccount.Status.PENDING, HostingAccount.Status.SUSPENDED):
-                acct.status = HostingAccount.Status.ACTIVE
-                acct.provisioned_at = timezone.now()
-                if not acct.next_due_date:
-                    from hosting.services import _compute_next_due_date
-                    acct.next_due_date = _compute_next_due_date(acct.billing_cycle)
-                acct.save(update_fields=['status', 'provisioned_at', 'next_due_date'])
-
-        # 4. Automatically provision domain at registrar if invoice is for a domain
-        if invoice.domain:
-            from domains.services import DomainService
-            try:
-                DomainService.provision_domain(str(invoice.domain.id))
-            except Exception as e:
-                logger.error("Domain automatic provisioning error: %s", e)
+        # 2. Append note to invoice for admin reference
+        invoice.notes = f"Payment submitted via {gateway.upper()} | TrxID: {trx_id} | Sender: {sender_number}"
+        invoice.save(update_fields=['notes', 'updated_at'])
 
         messages.success(
             request,
-            f"Payment of BDT {invoice.total} confirmed via {gateway.upper()}! "
-            f"Invoice #{invoice.invoice_number} is now PAID and your services have been automatically activated."
+            f"Payment submitted successfully! Method: {gateway.upper()} | Sender: {sender_number} | TrxID: {trx_id}. "
+            f"Your order is now under Admin Verification. Once approved, your hosting & domain will be automatically activated."
         )
 
     except Exception as exc:
-        logger.error("Payment confirmation failed: %s", exc)
-        messages.error(request, f"Payment failed: {str(exc)}")
+        logger.error("Payment submission failed: %s", exc)
+        messages.error(request, f"Could not submit payment: {exc!s}")
 
-    return redirect('dashboard')
+    return redirect('/dashboard/?tab=invoices')
+
+
+@login_required(login_url='login')
+def service_detail_view(request, account_id):
+    """
+    WHMCS-style Service Details / Product Management Dashboard.
+    Provides:
+      - Real-time disk & bandwidth usage gauges via WHM API
+      - 1-Click cPanel SSO & Webmail SSO launch links
+      - Quick Shortcuts (Email Accounts, Forwarders, File Manager, Backup, Databases, phpMyAdmin, etc.)
+      - Server Information & encrypted cPanel credentials (with copy/reveal)
+      - Change Password Modal & Cancellation Request Modal
+    """
+    account = get_object_or_404(HostingAccount, id=account_id)
+
+    # Ownership & Staff permission check
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, "You do not have permission to access this service.")
+        return redirect('dashboard')
+
+    server = account.server
+
+    # Fetch live usage from WHM
+    live_stats = {
+        'disk_used_mb': 0.0,
+        'disk_limit_mb': float(account.package.disk_quota_mb) if account.package else 0.0,
+        'disk_percent': 0,
+        'bandwidth_used_mb': 0.0,
+        'bandwidth_limit_mb': float(account.package.bandwidth_mb) if account.package else 0.0,
+        'bandwidth_percent': 0,
+        'ip': server.ip_address if server else '195.250.26.201',
+        'domain': account.domain,
+        'plan': account.package.name if account.package else '',
+    }
+
+    if server and account.username and account.status == HostingAccount.Status.ACTIVE:
+        try:
+            from hosting.drivers import get_driver
+            driver = get_driver(server)
+            if hasattr(driver, 'get_live_usage'):
+                res_stats = driver.get_live_usage(account.username)
+                if res_stats:
+                    live_stats.update(res_stats)
+                    # If WHM reported disk_limit_mb is 0 (unlimited), use package quota for visual gauge
+                    if live_stats['disk_limit_mb'] == 0 and account.package and account.package.disk_quota_mb > 0:
+                        live_stats['disk_limit_mb'] = float(account.package.disk_quota_mb)
+                        live_stats['disk_percent'] = min(int((live_stats['disk_used_mb'] / live_stats['disk_limit_mb']) * 100), 100)
+                    if live_stats['bandwidth_limit_mb'] == 0 and account.package and account.package.bandwidth_mb > 0:
+                        live_stats['bandwidth_limit_mb'] = float(account.package.bandwidth_mb)
+                        live_stats['bandwidth_percent'] = min(int((live_stats['bandwidth_used_mb'] / live_stats['bandwidth_limit_mb']) * 100), 100)
+        except Exception as exc:
+            logger.warning("Could not fetch live usage for account %s: %s", account.username, exc)
+
+    # Shortcuts list
+    shortcuts = [
+        {'id': 'email', 'name': 'Email Accounts', 'icon': 'fa-solid fa-envelope', 'color': 'from-blue-500 to-indigo-600', 'desc': 'Create and manage email addresses'},
+        {'id': 'forwarders', 'name': 'Forwarders', 'icon': 'fa-solid fa-share', 'color': 'from-indigo-500 to-purple-600', 'desc': 'Forward incoming mail to other addresses'},
+        {'id': 'autoresponders', 'name': 'Autoresponders', 'icon': 'fa-solid fa-reply-all', 'color': 'from-purple-500 to-pink-600', 'desc': 'Send automated reply messages'},
+        {'id': 'filemanager', 'name': 'File Manager', 'icon': 'fa-solid fa-folder-open', 'color': 'from-amber-500 to-orange-600', 'desc': 'Upload, edit and organize website files'},
+        {'id': 'backup', 'name': 'Backup', 'icon': 'fa-solid fa-box-archive', 'color': 'from-teal-500 to-emerald-600', 'desc': 'Download and restore site backups'},
+        {'id': 'domains', 'name': 'Domains', 'icon': 'fa-solid fa-globe', 'color': 'from-sky-500 to-cyan-600', 'desc': 'Manage addon domains and subdomains'},
+        {'id': 'cron', 'name': 'Cron Jobs', 'icon': 'fa-solid fa-clock-rotate-left', 'color': 'from-slate-600 to-slate-800', 'desc': 'Automate scheduled background tasks'},
+        {'id': 'mysql', 'name': 'MySQL® Databases', 'icon': 'fa-solid fa-database', 'color': 'from-orange-500 to-red-600', 'desc': 'Create databases and manage database users'},
+        {'id': 'phpmyadmin', 'name': 'phpMyAdmin', 'icon': 'fa-solid fa-table-cells', 'color': 'from-yellow-500 to-amber-600', 'desc': 'Visual database administration tool'},
+        {'id': 'awstats', 'name': 'Awstats', 'icon': 'fa-solid fa-chart-line', 'color': 'from-emerald-500 to-teal-700', 'desc': 'Web traffic and visitor statistics'},
+    ]
+
+    # Decrypt stored cPanel password if available
+    cpanel_password = account.get_account_password()
+
+    # Check if a matching domain registration exists
+    from domains.models import Domain
+    domain_obj = Domain.objects.filter(domain_name=account.domain, user=account.user).first()
+
+    # Sidebar counters
+    active_accounts_count = HostingAccount.objects.filter(user=request.user, status=HostingAccount.Status.ACTIVE).count()
+    active_domains_count = Domain.objects.filter(user=request.user, status=Domain.Status.ACTIVE).count()
+    unpaid_invoices_count = request.user.invoices.filter(status=Invoice.Status.UNPAID).count()
+    profile = getattr(request.user, 'profile', None)
+
+    # Check latest invoice
+    latest_invoice = account.invoices.order_by('-issued_date').first()
+
+    context = {
+        'account': account,
+        'package': account.package,
+        'server': server,
+        'live_stats': live_stats,
+        'shortcuts': shortcuts,
+        'cpanel_password': cpanel_password,
+        'domain_obj': domain_obj,
+        'latest_invoice': latest_invoice,
+        'user': request.user,
+        'profile': profile,
+        'active_accounts_count': active_accounts_count,
+        'active_domains_count': active_domains_count,
+        'unpaid_invoices_count': unpaid_invoices_count,
+    }
+    return render(request, 'service_detail.html', context)
+
+
+@login_required(login_url='login')
+def service_sso_view(request, account_id, shortcut=None):
+    """
+    Generate dynamic Single Sign-On (SSO) session token via WHM create_user_session API
+    and redirect directly to cPanel or the selected shortcut application.
+    """
+    account = get_object_or_404(HostingAccount, id=account_id)
+
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if account.status != HostingAccount.Status.ACTIVE:
+        messages.error(request, "Control panel access is only available for active hosting services.")
+        return redirect('service_detail', account_id=account.id)
+
+    server = account.server
+    if not server:
+        messages.error(request, "Server configuration not found.")
+        return redirect('service_detail', account_id=account.id)
+
+    # App and service mapping
+    shortcut_map = {
+        'cpanel': ('cpaneld', None),
+        'webmail': ('webmaild', None),
+        'email': ('cpaneld', 'Email_Accounts'),
+        'forwarders': ('cpaneld', 'Email_Forwarders'),
+        'autoresponders': ('cpaneld', 'Email_AutoResponders'),
+        'filemanager': ('cpaneld', 'FileManager_Home'),
+        'backup': ('cpaneld', 'Backup_Home'),
+        'domains': ('cpaneld', 'Domains_Home'),
+        'cron': ('cpaneld', 'Cron_Home'),
+        'mysql': ('cpaneld', 'Database_MySQL'),
+        'phpmyadmin': ('cpaneld', 'Database_phpMyAdmin'),
+        'awstats': ('cpaneld', 'Stats_AWStats'),
+    }
+
+    service_name, app_name = shortcut_map.get(shortcut, ('cpaneld', None))
+
+    try:
+        from hosting.drivers import get_driver
+        driver = get_driver(server)
+        if hasattr(driver, 'get_user_session_url'):
+            sso_url = driver.get_user_session_url(account.username, service=service_name, app=app_name)
+            return redirect(sso_url)
+        else:
+            # Fallback direct cPanel port
+            port = 2096 if service_name == 'webmaild' else 2083
+            return redirect(f"https://{server.hostname}:{port}/")
+    except Exception as exc:
+        logger.error("SSO generation error for %s: %s", account.username, exc)
+        messages.error(request, f"Could not log in to control panel automatically: {exc!s}")
+        return redirect('service_detail', account_id=account.id)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def service_change_password_view(request, account_id):
+    """
+    Change cPanel account password via live WHM API (passwd) and update encrypted DB record.
+    """
+    account = get_object_or_404(HostingAccount, id=account_id)
+
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if account.status != HostingAccount.Status.ACTIVE:
+        messages.error(request, "Password can only be changed for active hosting services.")
+        return redirect('service_detail', account_id=account.id)
+
+    new_password = request.POST.get('new_password', '').strip()
+    confirm_password = request.POST.get('confirm_password', '').strip()
+
+    if not new_password or len(new_password) < 8:
+        messages.error(request, "Password must be at least 8 characters long.")
+        return redirect('service_detail', account_id=account.id)
+
+    if new_password != confirm_password:
+        messages.error(request, "Passwords do not match.")
+        return redirect('service_detail', account_id=account.id)
+
+    server = account.server
+    try:
+        from hosting.drivers import get_driver
+        driver = get_driver(server)
+        if hasattr(driver, 'change_password'):
+            driver.change_password(account.username, new_password)
+        account.set_account_password(new_password)
+        account.save(update_fields=['password_encrypted'])
+        messages.success(request, f"cPanel password for user '{account.username}' has been successfully updated.")
+    except Exception as exc:
+        logger.error("Failed to change cPanel password: %s", exc)
+        messages.error(request, f"Failed to update cPanel password on server: {exc!s}")
+
+    return redirect('service_detail', account_id=account.id)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def service_request_cancellation_view(request, account_id):
+    """
+    Submit a service cancellation request.
+    """
+    account = get_object_or_404(HostingAccount, id=account_id)
+
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    reason = request.POST.get('reason', '').strip()
+    cancellation_type = request.POST.get('cancellation_type', 'end_of_billing_period')
+
+    logger.info("Cancellation requested for %s: type=%s, reason=%s", account.domain, cancellation_type, reason)
+    messages.success(request, f"Cancellation request for '{account.domain}' has been submitted. Our team will process it accordingly.")
+    return redirect('service_detail', account_id=account.id)

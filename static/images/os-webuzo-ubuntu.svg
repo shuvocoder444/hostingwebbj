@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" class="w-16 h-16">
+  <circle cx="60" cy="60" r="48" fill="#ea580c" fill-opacity="0.08"/>
+  <!-- Crown on Webuzo/Ubuntu Circle -->
+  <path d="M42 34 L48 24 L60 30 L72 24 L78 34 Z" fill="#f59e0b" stroke="#d97706" stroke-width="1.5"/>
+  <circle cx="60" cy="65" r="32" fill="#0284c7"/>
+  <circle cx="60" cy="65" r="18" fill="#ffffff"/>
+  <!-- Ubuntu orange & webuzo elements inside -->
+  <circle cx="60" cy="65" r="12" fill="#ea580c"/>
+  <circle cx="44" cy="65" r="4" fill="#ffffff"/>
+  <circle cx="70" cy="50" r="4" fill="#ffffff"/>
+  <circle cx="70" cy="80" r="4" fill="#ffffff"/>
+</svg>

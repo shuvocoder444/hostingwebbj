@@ -263,26 +263,44 @@ class PaymentService:
         Trigger the appropriate Celery task based on invoice type and account status.
         Called internally after a payment is confirmed.
         """
-        if invoice.invoice_type == Invoice.InvoiceType.HOSTING:
-            if invoice.hosting_account:
-                account = invoice.hosting_account
-                if account.status == account.Status.PENDING:
-                    # First payment → provision the account
-                    from hosting.tasks import provision_hosting_account
-                    provision_hosting_account.apply_async(
-                        args=[str(account.id)],
-                        countdown=5,  # Small delay to let transaction commit
-                    )
-                    logger.info("Provisioning task queued for account %s", account.id)
+        if invoice.invoice_type == Invoice.InvoiceType.HOSTING and invoice.hosting_account:
+            account = invoice.hosting_account
+            if account.status == account.Status.PENDING:
+                # First payment → provision the account
+                from hosting.tasks import provision_hosting_account
+                provision_hosting_account.apply_async(
+                    args=[str(account.id)],
+                    countdown=5,  # Small delay to let transaction commit
+                )
+                logger.info("Provisioning task queued for account %s", account.id)
 
-                elif account.status == account.Status.SUSPENDED:
-                    # Renewal payment → unsuspend
+            else:
+                # Renewal payment → advance next_due_date based on billing cycle
+                cycle = getattr(account, 'billing_cycle', 'monthly')
+                days_map = {
+                    'monthly': 30,
+                    'quarterly': 90,
+                    'semi_annual': 180,
+                    'annual': 365,
+                    'biennial': 730,
+                    'triennial': 1095,
+                }
+                add_days = days_map.get(cycle, 30)
+                today = timezone.now().date()
+                base_date = account.next_due_date if (account.next_due_date and account.next_due_date >= today) else today
+                account.next_due_date = base_date + timezone.timedelta(days=add_days)
+
+                if account.status == account.Status.SUSPENDED:
+                    account.status = account.Status.ACTIVE
                     from hosting.tasks import unsuspend_hosting_account
                     unsuspend_hosting_account.apply_async(
                         args=[str(account.id)],
                         countdown=5,
                     )
                     logger.info("Unsuspend task queued for account %s", account.id)
+
+                account.save(update_fields=['next_due_date', 'status'])
+                logger.info("Account %s extended to %s (+%d days)", account.domain, account.next_due_date, add_days)
 
         # ── Domain Post-Payment Trigger ───────────────────────────────────
         if invoice.invoice_type == Invoice.InvoiceType.DOMAIN or invoice.domain:

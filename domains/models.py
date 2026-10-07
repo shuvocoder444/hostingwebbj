@@ -6,16 +6,18 @@ Supports ResellerClub, Namecheap, and wholesale registrars.
 """
 import uuid
 from decimal import Decimal
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.utils import timezone
 
-from core.encryption import encrypt, decrypt
+from django.contrib.auth import get_user_model
+from django.db import models
+
+from core.encryption import decrypt, encrypt
 
 User = get_user_model()
 
 
 class RegistrarType(models.TextChoices):
+    SPACESHIP = 'spaceship', 'Spaceship.com (Namecheap Cloud)'
+    BDWEBS = 'bdwebs', 'BDWebs / WHMCS Domain Reseller'
     RESELLERCLUB = 'resellerclub', 'ResellerClub'
     NAMECHEAP = 'namecheap', 'Namecheap'
     MOCK = 'mock', 'Mock / Sandbox Registrar'
@@ -52,6 +54,16 @@ class DomainRegistrar(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def api_endpoint(self) -> str:
+        return self.extra_config.get('api_endpoint', 'https://cp.bdwebs.com/modules/addons/DomainsReseller/api/index.php')
+
+    @api_endpoint.setter
+    def api_endpoint(self, value: str):
+        if not self.extra_config:
+            self.extra_config = {}
+        self.extra_config['api_endpoint'] = value
 
     class Meta:
         verbose_name = 'Domain Registrar'

@@ -36,6 +36,10 @@ class DomainSearchView(APIView):
             return Response({'error': 'Parameter "domain" is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         result = DomainService.check_availability(domain_query)
+        suggestions = []
+        if not result.is_available:
+            suggestions = DomainService.get_suggestions(domain_query, max_results=5)
+
         return Response({
             'domain': result.domain,
             'is_available': result.is_available,
@@ -43,7 +47,9 @@ class DomainSearchView(APIView):
             'price': str(result.price),
             'currency': result.currency,
             'message': result.message,
+            'suggestions': suggestions,
         })
+
 
 
 class TLDPricingListView(APIView):

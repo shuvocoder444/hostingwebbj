@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+
+ <!-- Header -->
+ <div class="text-center max-w-2xl mx-auto space-y-3">
+ <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+ Knowledge & Tutorials
+ </span>
+ <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+ {{ COMPANY_NAME }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-brand-600">Tech Blog</span>
+ </h1>
+ <p class="text-slate-600 text-sm leading-relaxed">
+ Hosting guides, WordPress speed optimization tips, cPanel tutorials, and server architecture best practices.
+ </p>
+ </div>
+
+ <!-- Featured Articles Grid -->
+ <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+ <!-- Post 1: BDIX Hosting Speed -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-emerald-600 to-teal-800 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">Hosting Guide</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> </span>
+ <h3 class="font-bold text-lg leading-snug">Why BDIX Hosting is Crucial for Bangladeshi Websites</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 5 min read</span>
+ <span>•</span>
+ <span>Hosting Architecture</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ Discover how local BDIX routing reduces site load latency from 250ms down to 2ms, significantly boosting your Google PageSpeed and e-commerce conversion rates.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'hosting_bdix' %}" class="hover:underline flex items-center gap-1.5">Read Guide & Order <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ <!-- Post 2: Singapore vs USA Datacenter -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-indigo-600 to-brand-800 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">Performance Comparison</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> vs </span>
+ <h3 class="font-bold text-lg leading-snug">Singapore vs USA Server: Which Location Should You Choose?</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 7 min read</span>
+ <span>•</span>
+ <span>Server Hardware</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ A complete breakdown comparing fiber latency routes, international audience reach, and NVMe SSD bandwidth to help you make the right choice.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'hosting_singapore' %}" class="hover:underline flex items-center gap-1.5">Read Comparison <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ <!-- Post 3: LiteSpeed & Redis Caching -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-rose-600 to-amber-700 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">WordPress Optimization</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> </span>
+ <h3 class="font-bold text-lg leading-snug">Speed Up WooCommerce 10x with LiteSpeed Cache & Redis</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 6 min read</span>
+ <span>•</span>
+ <span>E-Commerce</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ Learn step-by-step how our Turbo Cloud hosting with server-level LiteSpeed Web Server and Redis in-memory object cache handles thousands of checkout requests without lag.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'hosting_turbo_cloud' %}" class="hover:underline flex items-center gap-1.5">View Turbo Cloud <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ <!-- Post 4: Domain Transfer Best Practices -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-blue-700 to-cyan-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">Domain Guide</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> </span>
+ <h3 class="font-bold text-lg leading-snug">How to Transfer Your Domain Without Downtime</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 4 min read</span>
+ <span>•</span>
+ <span>Domain Management</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ A foolproof checklist to obtain your EPP Auth Code, unlock domain registrar locks, and keep your email & DNS online during domain transfer.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'domain_transfer' %}" class="hover:underline flex items-center gap-1.5">Transfer Domain <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ <!-- Post 5: Starting a Reseller Business -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-purple-800 to-indigo-900 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">Business Guide</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> </span>
+ <h3 class="font-bold text-lg leading-snug">Start Your Own Web Hosting Company with Reseller WHM</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 8 min read</span>
+ <span>•</span>
+ <span>Reseller</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ How agencies and freelancers can generate recurring monthly revenue by bundling high-performance hosting packages with custom branding and private nameservers.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'hosting_reseller' %}" class="hover:underline flex items-center gap-1.5">View Reseller Plans <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ <!-- Post 6: NVMe vs SATA SSD -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition flex flex-col justify-between group">
+ <div>
+ <div class="h-48 bg-gradient-to-br from-slate-800 to-slate-950 p-6 flex flex-col justify-between text-white relative overflow-hidden">
+ <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md self-start">Hardware</span>
+ <div class="space-y-1">
+ <span class="text-3xl block"> </span>
+ <h3 class="font-bold text-lg leading-snug">NVMe PCIe Gen4 vs SATA SSD: Real World Benchmarks</h3>
+ </div>
+ </div>
+ <div class="p-6 space-y-3">
+ <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+ <span><i class="fa-regular fa-clock mr-1"></i> 5 min read</span>
+ <span>•</span>
+ <span>Cloud Technology</span>
+ </div>
+ <p class="text-xs text-slate-600 leading-relaxed">
+ Why pure enterprise NVMe storage delivers 7,000 MB/s read/write speeds, cutting database queries and dynamic PHP execution times in half.
+ </p>
+ </div>
+ </div>
+ <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-brand-600">
+ <a href="{% url 'landing' %}#packages" class="hover:underline flex items-center gap-1.5">Explore NVMe Hosting <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+ </div>
+ </div>
+
+ </div>
+
+ </div>
+</div>
+{% endblock %}

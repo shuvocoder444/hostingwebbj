@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 320" fill="none" class="w-full h-auto">
+  <rect width="540" height="320" rx="20" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- Master Reseller WHM Account -->
+  <g transform="translate(180, 30)">
+    <rect width="180" height="80" rx="16" fill="#1e1b4b" stroke="#818cf8" stroke-width="2"/>
+    <circle cx="35" cy="40" r="16" fill="#4f46e5"/>
+    <text x="28" y="45" fill="#ffffff" font-family="system-ui, sans-serif" font-size="12" font-weight="bold">👑</text>
+    <text x="65" y="35" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">WHM Control</text>
+    <text x="65" y="52" fill="#a5b4fc" font-family="system-ui, sans-serif" font-size="9">100% White Label</text>
+    <text x="65" y="66" fill="#34d399" font-family="system-ui, sans-serif" font-size="8">Custom DNS &amp; NS</text>
+  </g>
+
+  <!-- Connective Lines -->
+  <path d="M270 110 L100 170 M270 110 L270 170 M270 110 L440 170" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 3"/>
+
+  <!-- Child Client cPanel 1 -->
+  <g transform="translate(30, 170)">
+    <rect width="140" height="110" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <text x="18" y="30" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">Client Store</text>
+    <text x="18" y="50" fill="#94a3b8" font-family="monospace" font-size="9">client1.com</text>
+    <rect x="18" y="65" width="104" height="6" rx="3" fill="#334155"/>
+    <rect x="18" y="65" width="60" height="6" rx="3" fill="#3b82f6"/>
+    <text x="18" y="90" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="9">cPanel Package 1</text>
+  </g>
+
+  <!-- Child Client cPanel 2 -->
+  <g transform="translate(200, 170)">
+    <rect width="140" height="110" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <text x="18" y="30" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">Agency Client</text>
+    <text x="18" y="50" fill="#94a3b8" font-family="monospace" font-size="9">client2.net</text>
+    <rect x="18" y="65" width="104" height="6" rx="3" fill="#334155"/>
+    <rect x="18" y="65" width="85" height="6" rx="3" fill="#10b981"/>
+    <text x="18" y="90" fill="#34d399" font-family="system-ui, sans-serif" font-size="9">cPanel Package 2</text>
+  </g>
+
+  <!-- Child Client cPanel 3 -->
+  <g transform="translate(370, 170)">
+    <rect width="140" height="110" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <text x="18" y="30" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="11" font-weight="bold">Dev Portal</text>
+    <text x="18" y="50" fill="#94a3b8" font-family="monospace" font-size="9">client3.org</text>
+    <rect x="18" y="65" width="104" height="6" rx="3" fill="#334155"/>
+    <rect x="18" y="65" width="40" height="6" rx="3" fill="#f59e0b"/>
+    <text x="18" y="90" fill="#fbbf24" font-family="system-ui, sans-serif" font-size="9">cPanel Package 3</text>
+  </g>
+</svg>

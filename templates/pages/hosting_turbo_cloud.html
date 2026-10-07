@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+ <!-- Hero Section -->
+ <div class="text-center max-w-3xl mx-auto space-y-4">
+ <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+ <i class="fa-solid fa-bolt text-amber-600 mr-1.5"></i> Optimized for WooCommerce & Online Stores
+ </span>
+ <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+ Turbo Cloud Hosting <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-rose-600">For E-Commerce</span>
+ </h1>
+ <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+ Supercharge checkout speeds with LiteSpeed Enterprise Web Server, Redis in-memory object caching, and HTTP/3 QUIC protocol for maximum sales conversions.
+ </p>
+ </div>
+
+ <!-- E-commerce Boost Features -->
+ <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-2 text-center">
+ <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold mx-auto"><i class="fa-solid fa-bolt"></i></div>
+ <h3 class="font-bold text-slate-900 text-sm">LiteSpeed Web Server</h3>
+ <p class="text-xs text-slate-500">Up to 20x faster than traditional Apache web servers under peak flash-sale traffic.</p>
+ </div>
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-2 text-center">
+ <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold mx-auto"><i class="fa-solid fa-database"></i></div>
+ <h3 class="font-bold text-slate-900 text-sm">Redis Object Cache</h3>
+ <p class="text-xs text-slate-500">In-memory caching accelerates complex WooCommerce SQL queries and cart sessions.</p>
+ </div>
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-2 text-center">
+ <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold mx-auto"><i class="fa-solid fa-shield-halved"></i></div>
+ <h3 class="font-bold text-slate-900 text-sm">PCI-DSS Compliant</h3>
+ <p class="text-xs text-slate-500">Secure server environment to safely process credit cards and online payments.</p>
+ </div>
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-2 text-center">
+ <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold mx-auto"><i class="fa-solid fa-cart-shopping"></i></div>
+ <h3 class="font-bold text-slate-900 text-sm">1-Click Store Deploy</h3>
+ <p class="text-xs text-slate-500">Instant setup for WooCommerce, PrestaShop, OpenCart, and Magento stores.</p>
+ </div>
+ </div>
+
+ <!-- Pricing Cards -->
+ <div class="space-y-6">
+ <div class="text-center max-w-xl mx-auto">
+ <h2 class="text-2xl font-black text-slate-900">Turbo Cloud Plans</h2>
+ <p class="text-xs text-slate-500 mt-1">High-performance hosting built for heavy database workloads.</p>
+ </div>
+
+ <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+ {% for pkg in packages %}
+ <div class="bg-white rounded-3xl border {% if pkg.is_featured %}border-amber-500 ring-2 ring-amber-500/20 shadow-xl{% else %}border-slate-200 shadow-xs{% endif %} p-8 flex flex-col justify-between relative">
+ {% if pkg.is_featured %}
+ <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-600 text-white shadow-sm">
+ Recommended for E-Commerce
+ </span>
+ {% endif %}
+ 
+ <div class="space-y-6">
+ <div>
+ <h3 class="font-extrabold text-slate-900 text-lg">{{ pkg.name }}</h3>
+ <p class="text-xs text-slate-500 mt-1">LiteSpeed Turbo E-Commerce Stack</p>
+ </div>
+
+ <div class="space-y-1">
+ <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">৳{{ pkg.monthly_price }}</span>
+ <span class="text-xs font-medium text-slate-500">/ month</span>
+ {% if pkg.annual_price %}
+ <p class="text-[11px] text-emerald-600 font-bold">৳{{ pkg.annual_price }} billed annually</p>
+ {% endif %}
+ </div>
+
+ <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100">
+ <li class="flex items-center gap-2.5">
+ <i class="fa-solid fa-bolt text-amber-500"></i>
+ <span>LiteSpeed Enterprise Web Server</span>
+ </li>
+ <li class="flex items-center gap-2.5">
+ <i class="fa-solid fa-database text-rose-500"></i>
+ <span>OPcache & Redis Object Cache Included</span>
+ </li>
+ <li class="flex items-center gap-2.5">
+ <i class="fa-solid fa-hard-drive text-brand-500"></i>
+ <span><strong>{{ pkg.disk_quota_display }}</strong> Enterprise NVMe SSD</span>
+ </li>
+ <li class="flex items-center gap-2.5">
+ <i class="fa-solid fa-shield-virus text-indigo-500"></i>
+ <span>Immunify360 + Real-time Web Application Firewall</span>
+ </li>
+ </ul>
+ </div>
+
+ <div class="pt-8">
+ <a href="{% url 'cart_domain' %}?package_id={{ pkg.id }}" class="w-full py-3 px-4 rounded-xl {% if pkg.is_featured %}bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-600/25{% else %}bg-slate-900 hover:bg-amber-600 text-white{% endif %} font-bold text-xs transition flex items-center justify-center gap-2">
+ <span>Order Turbo Cloud Hosting</span>
+ <i class="fa-solid fa-arrow-right text-[10px]"></i>
+ </a>
+ </div>
+ </div>
+ {% endfor %}
+ </div>
+ </div>
+
+ </div>
+</div>
+{% endblock %}

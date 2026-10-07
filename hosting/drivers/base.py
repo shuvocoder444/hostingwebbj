@@ -97,6 +97,18 @@ class BaseServerDriver(ABC):
         """Delete a hosting package directly on the server panel."""
         return {'success': True, 'message': 'Not supported on this panel.'}
 
+    def change_password(self, username: str, new_password: str) -> dict:
+        """Change account password on server panel."""
+        return {'success': True, 'message': 'Password updated.'}
+
+    def change_email(self, username: str, new_email: str) -> dict:
+        """Change contact email for account on server panel."""
+        return {'success': True, 'message': 'Email updated.'}
+
+    def list_accounts(self) -> list[dict]:
+        """Fetch all hosting accounts from server panel."""
+        return []
+
     def test_connection(self) -> dict:
         """Ping server API to verify host connectivity and credentials."""
         return {'success': True, 'message': 'Connection verified.'}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section with Server Illustration -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <div class="lg:col-span-7 space-y-4">
+                <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                    <span class="font-mono font-bold mr-1">SG</span> Singapore Equinix NVMe Cloud
+                </span>
+                <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                    Ultra-Fast <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-indigo-600">Singapore Web Hosting</span>
+                </h1>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Ultra low 30ms latency for Bangladesh & Asia-Pacific visitors, pure NVMe Gen4 SSD arrays, LiteSpeed Enterprise Server, and official cPanel control.
+                </p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-rose-600 block">30 - 45ms</span>
+                        <span class="text-[11px] font-semibold text-slate-600">South Asia Ping</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-indigo-600 block">LiteSpeed</span>
+                        <span class="text-[11px] font-semibold text-slate-600">6X Turbo Engine</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-emerald-600 block">cPanel</span>
+                        <span class="text-[11px] font-semibold text-slate-600">+ Softaculous</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <span class="text-lg sm:text-xl font-black text-blue-600 block">AutoSSL</span>
+                        <span class="text-[11px] font-semibold text-slate-600">Free Lifetime</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Graphic -->
+            <div class="lg:col-span-5">
+                <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-2xl">
+                    <img src="{% static 'images/server-rack-hero.svg' %}" alt="Singapore Cloud Server Rack" class="w-full h-auto rounded-2xl" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="space-y-6 pt-6">
+            <div class="text-center max-w-xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Choose Your Singapore Cloud Plan</h2>
+                <p class="text-xs text-slate-500 mt-1">Instant cPanel activation upon payment via bKash / Nagad / Cards.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% for pkg in packages %}
+                <div class="bg-white rounded-3xl border {% if pkg.is_featured or forloop.counter == 2 %}border-rose-500 ring-2 ring-rose-500/20 shadow-xl{% else %}border-slate-200 shadow-sm{% endif %} p-8 flex flex-col justify-between relative">
+                    {% if pkg.is_featured or forloop.counter == 2 %}
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-600 text-white shadow-sm">
+                        Most Popular
+                    </span>
+                    {% endif %}
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-red-100 font-mono text-xs font-bold text-red-700 border border-red-200">SG</span>
+                                <h3 class="font-extrabold text-slate-900 text-lg">{{ pkg.name }}</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Equinix Singapore NVMe Node</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">৳{{ pkg.monthly_price|floatformat:0 }}</span>
+                            <span class="text-xs font-medium text-slate-500">/ month</span>
+                            {% if pkg.annual_price %}
+                            <p class="text-[11px] text-emerald-600 font-bold">৳{{ pkg.annual_price|floatformat:0 }} billed annually</p>
+                            {% endif %}
+                        </div>
+
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100">
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-hard-drive text-rose-500"></i>
+                                <span><strong>{{ pkg.disk_quota_mb }} MB</strong> Pure NVMe Gen4 Storage</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-gauge-high text-brand-600"></i>
+                                <span><strong>{% if pkg.bandwidth_mb == 0 %}Unlimited{% else %}{{ pkg.bandwidth_mb }} MB{% endif %}</strong> Bandwidth</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-bolt text-amber-500"></i>
+                                <span>LiteSpeed Web Server + LSCache</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                                <span>Free AutoSSL Certificate</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-envelope text-indigo-500"></i>
+                                <span><strong>{{ pkg.max_email_accounts }}</strong> Professional Email Accounts</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-6">
+                        <a href="{% url 'cart_domain' %}?package={{ pkg.id }}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl {% if pkg.is_featured or forloop.counter == 2 %}bg-rose-600 hover:bg-rose-700 text-white shadow-md{% else %}bg-slate-900 hover:bg-slate-800 text-white{% endif %} transition">
+                            Order Now <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-3 text-center py-12 text-slate-400">
+                    <p>No Singapore packages currently active.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- cPanel & Speed Graphic Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8">
+            <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-xl">
+                <img src="{% static 'images/cpanel-mockup.svg' %}" alt="cPanel Cloud Interface" class="w-full h-auto rounded-2xl" />
+            </div>
+            <div class="rounded-3xl p-3 bg-slate-900 border border-slate-800 shadow-xl">
+                <img src="{% static 'images/speed-benchmark.svg' %}" alt="Speed Benchmarks" class="w-full h-auto rounded-2xl" />
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -12,6 +12,8 @@ from .base import BaseRegistrarDriver
 from .resellerclub import ResellerClubDriver
 from .namecheap import NamecheapDriver
 from .mock import MockRegistrarDriver
+from .bdwebs import BDWebsDriver
+from .spaceship import SpaceshipDriver
 
 if TYPE_CHECKING:
     from domains.models import DomainRegistrar
@@ -19,9 +21,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger('domains')
 
 _REGISTRAR_REGISTRY: dict[str, Type[BaseRegistrarDriver]] = {
+    'spaceship': SpaceshipDriver,
     'resellerclub': ResellerClubDriver,
     'namecheap': NamecheapDriver,
     'mock': MockRegistrarDriver,
+    'bdwebs': BDWebsDriver,
+    'domainsreseller': BDWebsDriver,
+    'domainresellerlite': BDWebsDriver,
 }
 
 
