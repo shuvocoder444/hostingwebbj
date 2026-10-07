@@ -1,15 +1,21 @@
 {% extends 'base.html' %}
 
-{% block title %}Choose a Domain — {{ COMPANY_NAME|default:'VeloHoster' }} Shopping Cart{% endblock %}
+{% block title %}
+{% if package %}
+Choose a Domain for {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster' }}
+{% else %}
+Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="min-h-[85vh] bg-slate-50/50 py-5 sm:py-10 px-3 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+    <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8">
 
         <!-- ─── ORDER PROGRESS STEPPER ──────────────────────────────────────── -->
         <div class="flex items-center justify-center gap-1.5 sm:gap-4 text-[11px] sm:text-xs font-bold flex-wrap">
-            <div class="flex items-center gap-1.5 sm:gap-2 text-brand-600 bg-brand-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-brand-200 shadow-2xs">
-                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-brand-600 text-white flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-blue-700 bg-blue-50 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-blue-200 shadow-xs">
+                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
                 <span>Choose Domain</span>
             </div>
             <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
@@ -24,210 +30,508 @@
             </div>
         </div>
 
-        <!-- ─── HEADER ──────────────────────────────────────────────────────── -->
-        <div class="text-center space-y-2">
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Choose a Domain for your Hosting Plan
+        <!-- ─── SELECTED HOSTING PLAN HERO BANNER (When package selected) ─── -->
+        {% if package %}
+        <div class="bg-gradient-to-r from-[#040d1a] via-[#091e3a] to-[#040d1a] text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-blue-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+            <!-- Background ambient glow -->
+            <div class="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-60 h-60 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-4 z-10">
+                <div class="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-400/30 text-cyan-400 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-extrabold uppercase border border-cyan-400/30">
+                            Selected Hosting Plan
+                        </span>
+                        <span class="text-xs text-blue-200 font-medium">Step 1 of 3: Connect Domain</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white mt-1">{{ package.name }}</h2>
+                    <div class="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-hard-drive text-cyan-400 text-[11px]"></i> <strong>{{ package.disk_quota_mb }} MB</strong> NVMe SSD</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-gauge-high text-cyan-400 text-[11px]"></i> {% if package.bandwidth_mb == 0 %}Unlimited{% else %}{{ package.bandwidth_mb }} MB{% endif %} Traffic</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-400 text-[11px]"></i> Free AutoSSL &amp; cPanel</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between w-full md:w-auto md:flex-col md:items-end gap-3 z-10 shrink-0 border-t md:border-t-0 border-white/10 pt-3 md:pt-0">
+                <div class="text-left md:text-right">
+                    <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.monthly_price|floatformat:0 }}</div>
+                    <span class="text-xs text-blue-200 font-medium">/ month</span>
+                </div>
+                <a href="{% url 'cart_domain' %}" class="text-[11px] text-cyan-300 hover:text-white underline font-semibold transition">
+                    Buy Domain Only instead
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Standalone Header for Domain Only Search -->
+        <div class="text-center space-y-2 max-w-2xl mx-auto">
+            <span class="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">
+                Authoritative WHOIS Lookup
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mt-2">
+                Search &amp; Register Your Domain
             </h1>
-            <p class="text-xs sm:text-sm text-slate-500 font-medium">
-                Selected Plan: <strong class="text-brand-600 font-bold">{{ package.name }}</strong> (৳{{ package.monthly_price|floatformat:0 }} BDT/mo)
+            <p class="text-xs sm:text-sm text-slate-600">
+                Find your perfect brand name with instant multi-TLD availability and free DNS management.
             </p>
         </div>
+        {% endif %}
 
-        <!-- ─── TOP TABS (REGISTER / EXISTING / TRANSFER) ───────────────────── -->
-        <div class="bg-white rounded-3xl p-3 shadow-soft border border-slate-200">
+        <!-- ─── TOP MAIN TABS (REGISTER / EXISTING / TRANSFER) ───────────────── -->
+        <div class="bg-white rounded-3xl p-2 sm:p-2.5 shadow-sm border border-slate-200">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <!-- Tab 1: Register New -->
                 <button type="button" onclick="switchDomainTab('register')" id="tab-btn-register"
-                    class="flex items-center gap-3 p-4 rounded-2xl border-2 border-brand-600 bg-brand-50/70 text-left transition relative cursor-pointer">
-                    <span class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center text-base shrink-0 shadow-2xs">
+                    class="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 text-left transition relative cursor-pointer">
+                    <span id="tab-icon-register" class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-base shrink-0 shadow-xs">
                         <i class="fa-solid fa-globe"></i>
                     </span>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="font-extrabold text-slate-900 text-sm">Register a new domain</span>
-                            <span class="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">WHOIS</span>
+                            <span class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">WHOIS</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Search & register new domain</p>
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Search &amp; register new brand name</p>
                     </div>
                 </button>
 
                 <!-- Tab 2: Existing Domain -->
                 <button type="button" onclick="switchDomainTab('existing')" id="tab-btn-existing"
-                    class="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-left transition relative cursor-pointer">
-                    <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">
+                    class="flex items-center gap-3 p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-left transition relative cursor-pointer">
+                    <span id="tab-icon-existing" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-link"></i>
                     </span>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="font-bold text-slate-700 text-sm">I will use my existing domain</span>
-                            <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[9px] font-bold">Free</span>
+                            <span class="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 text-[9px] font-bold">Free</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Update nameservers to {{ COMPANY_NAME|default:'VeloHoster' }}</p>
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Update nameservers to VeloHoster</p>
                     </div>
                 </button>
 
                 <!-- Tab 3: Transfer Domain -->
                 <button type="button" onclick="switchDomainTab('transfer')" id="tab-btn-transfer"
-                    class="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-left transition relative cursor-pointer">
-                    <span class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">
+                    class="flex items-center gap-3 p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-left transition relative cursor-pointer">
+                    <span id="tab-icon-transfer" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>
                     </span>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
                             <span class="font-bold text-slate-700 text-sm">Transfer your domain</span>
+                            <span class="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 text-[9px] font-extrabold uppercase">+1 Yr Renewal</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Transfer from another registrar</p>
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5">Move from another registrar with +1 yr extension</p>
                     </div>
                 </button>
             </div>
         </div>
 
-        <!-- ─── UNIFIED DYNAMIC SEARCH & INPUT PANEL ────────────────────────── -->
-        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-card border border-slate-200">
-            <form method="POST" action="{% url 'cart_domain' %}?package={{ package.id }}" id="domain-select-form">
-                {% csrf_token %}
-                <input type="hidden" name="domain_option" id="active-domain-option" value="{{ initial_option|default:'register' }}">
+        <!-- ─── UNIFIED DYNAMIC SEARCH CONTAINER ────────────────────────────── -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
 
-                <!-- ─── PANEL 1: REGISTER NEW DOMAIN ─────────────────────────── -->
-                <div id="panel-register" class="space-y-4">
-                    <div class="flex items-center justify-between">
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- PANEL 1: REGISTER NEW DOMAIN (HOMEPAGE DUAL-MODE ENGINE)       -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <div id="panel-register" class="space-y-6">
+                
+                <!-- Sub-mode switcher (Multi-TLD Search vs AI Generator) -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
                         <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-magnifying-glass text-brand-600"></i>
-                            Search & Verify Domain Name
+                            <i class="fa-solid fa-magnifying-glass text-blue-600"></i>
+                            <span>Search or Generate Domain</span>
                         </h3>
-                        <span class="text-xs text-slate-500">Live authoritative registry lookup</span>
+                        <p class="text-xs text-slate-500 mt-0.5">Search live across all extensions or use AI to brainstorm creative names.</p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-2.5">
-                        <div class="relative flex-1">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-globe text-sm"></i>
-                            </div>
-                            <input type="text" id="input-reg-domain" name="register_domain" value="{{ initial_sld }}" placeholder="e.g. mynewbrand"
-                                class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
-                        </div>
-                        <select id="select-reg-tld" name="register_tld"
-                            class="sm:w-48 py-3.5 px-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-800 text-xs font-bold focus:outline-none focus:border-brand-500 font-mono">
-                            {% for t in tld_prices %}
-                            <option value="{{ t.tld }}" {% if t.tld == initial_tld or not initial_tld and t.tld == '.com' %}selected{% endif %}>
-                                {{ t.tld }} (৳{{ t.register_price|floatformat:0 }})
-                            </option>
-                            {% empty %}
-                            <option value=".com">.com (৳1,350)</option>
-                            <option value=".net">.net (৳1,450)</option>
-                            <option value=".org">.org (৳1,450)</option>
-                            <option value=".xyz">.xyz (৳350)</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" onclick="checkLiveDomain()" id="btn-check-domain"
-                            class="px-7 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-1.5 shrink-0">
-                            <i class="fa-solid fa-magnifying-glass"></i> Check
+                    <!-- Pill Switcher -->
+                    <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 self-start sm:self-auto text-xs font-bold gap-1 flex-wrap">
+                        <button type="button" id="subtab-multi" onclick="switchRegisterSubMode('multi')" class="px-3.5 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-layer-group text-blue-600"></i> Multi-TLD Report
                         </button>
-                    </div>
-
-                    <!-- Live Result Banner -->
-                    <div id="check-result-box" class="hidden p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div id="check-result-msg" class="flex items-center gap-2"></div>
-                        <button type="submit" id="btn-continue-registered" class="hidden px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5">
-                            Continue to Configure <i class="fa-solid fa-arrow-right ml-1"></i>
+                        <button type="button" id="subtab-ai" onclick="switchRegisterSubMode('ai')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-wand-magic-sparkles text-cyan-600"></i> AI Generator
                         </button>
-                    </div>
-
-                    <!-- Suggested alternatives when domain is taken -->
-                    <div id="cart-domain-suggestions" class="hidden pt-4 border-t border-slate-200">
-                        <div class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
-                            <span class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Available Suggested Alternatives:
-                            </span>
-                            <span class="text-[11px] text-slate-400 font-normal">Click select to proceed</span>
-                        </div>
-                        <div id="cart-suggestions-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+                        <button type="button" id="subtab-transfer" onclick="switchDomainTab('transfer')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-purple-700 transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-arrow-right-arrow-left text-purple-600"></i> Transfer Domain
+                        </button>
                     </div>
                 </div>
 
-                <!-- ─── PANEL 2: USE EXISTING DOMAIN ──────────────────────────── -->
-                <div id="panel-existing" class="hidden space-y-4">
+                <!-- SUB-PANEL A: MULTI-TLD SEARCH -->
+                <div id="subpanel-multi" class="space-y-4">
+                    <form onsubmit="handleCartSearchSubmit(event)" class="relative bg-slate-50 border-2 border-slate-200 focus-within:border-blue-500 focus-within:bg-white rounded-2xl p-2 transition shadow-inner">
+                        <div class="flex flex-col sm:flex-row gap-2 items-center">
+                            <div class="relative flex-1 w-full">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-globe text-base text-blue-600"></i>
+                                </div>
+                                <input type="text" id="input-reg-domain" value="{{ initial_sld }}" placeholder="Type brand name (e.g. shuvotech, mybrand)..." autocomplete="off" required
+                                    class="w-full pl-11 pr-3 py-3.5 bg-transparent border-0 text-slate-900 placeholder-slate-400 font-mono text-sm sm:text-base font-bold focus:ring-0 focus:outline-none">
+                            </div>
+
+                            <select id="select-reg-tld"
+                                class="w-full sm:w-44 py-3.5 px-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-bold focus:outline-none focus:border-blue-500 font-mono shadow-xs">
+                                {% for t in tld_prices %}
+                                <option value="{{ t.tld }}" {% if t.tld == initial_tld or not initial_tld and t.tld == '.com' %}selected{% endif %}>
+                                    {{ t.tld }} (৳{{ t.register_price|floatformat:0 }})
+                                </option>
+                                {% empty %}
+                                <option value=".com">.com (৳1,350)</option>
+                                <option value=".net">.net (৳1,450)</option>
+                                <option value=".org">.org (৳1,450)</option>
+                                <option value=".xyz">.xyz (৳350)</option>
+                                {% endfor %}
+                            </select>
+
+                            <button type="submit" id="btn-check-domain"
+                                class="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-blue-600/20 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                                <span id="check-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                                <span id="check-text"><i class="fa-solid fa-magnifying-glass mr-1"></i> Check All TLDs</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Popular TLD Fast Badges -->
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Popular Extensions:</span>
+                        {% for t in tld_prices|slice:":6" %}
+                        <button type="button" onclick="quickSelectTLD('{{ t.tld }}')"
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>{{ t.tld }}</span>
+                            <span class="text-blue-600 font-bold">৳{{ t.register_price|floatformat:0 }}</span>
+                        </button>
+                        {% empty %}
+                        <button type="button" onclick="quickSelectTLD('.com')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.com ৳1,350</button>
+                        <button type="button" onclick="quickSelectTLD('.net')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.net ৳1,450</button>
+                        <button type="button" onclick="quickSelectTLD('.xyz')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.xyz ৳350</button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Transfer Quick Callout -->
+                    <div class="pt-2 flex items-center justify-between text-xs border-t border-slate-100 flex-wrap gap-2">
+                        <span class="text-slate-500">Already have a domain registered elsewhere?</span>
+                        <button type="button" onclick="switchDomainTab('transfer')" class="text-purple-700 hover:text-purple-900 font-bold flex items-center gap-1.5 transition cursor-pointer">
+                            <i class="fa-solid fa-arrow-right-arrow-left text-[11px]"></i> Transfer domain to VeloHoster (+1 Year Extension Included) →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SUB-PANEL B: AI DOMAIN GENERATOR (HOMEPAGE STYLE) -->
+                <div id="subpanel-ai" class="space-y-4 hidden">
+                    <form onsubmit="handleAICartGenerateSubmit(event)" class="relative bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border-2 border-cyan-200 focus-within:border-cyan-500 rounded-2xl p-2 transition shadow-inner">
+                        <div class="flex flex-col sm:flex-row gap-2 items-center">
+                            <div class="relative flex-1 w-full">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-cyan-600">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                                </div>
+                                <input type="text" id="ai-cart-prompt-input" placeholder="Describe your business or keywords (e.g. fashion store bd, organic farm)..." autocomplete="off" required
+                                    class="w-full pl-11 pr-3 py-3.5 bg-transparent border-0 text-slate-900 placeholder-slate-400 text-sm sm:text-base font-medium focus:ring-0 focus:outline-none">
+                            </div>
+
+                            <button type="submit" id="btn-ai-cart-gen"
+                                class="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:opacity-95 text-white font-bold rounded-xl transition shadow-md shadow-cyan-600/20 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                                <span id="ai-cart-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                                <span id="ai-cart-text"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate with AI</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- AI Prompt Pills -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="text-cyan-800 font-bold uppercase text-[10px] tracking-wider mr-1">Try Prompts:</span>
+                        <button type="button" onclick="quickFillCartAIPrompt('Fashion clothing brand BD')" class="px-3 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-900 text-[11px] shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-shirt text-cyan-600"></i> Fashion clothing brand BD
+                        </button>
+                        <button type="button" onclick="quickFillCartAIPrompt('Organic grocery food Dhaka')" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-[11px] shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-leaf text-emerald-600"></i> Organic grocery Dhaka
+                        </button>
+                        <button type="button" onclick="quickFillCartAIPrompt('SaaS tech startup')" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-[11px] shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-rocket text-blue-600"></i> SaaS tech startup
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary Single Match Result Banner -->
+                <div id="check-result-box" class="hidden p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div id="check-result-msg" class="flex items-center gap-2"></div>
+                    <a id="btn-continue-registered" href="#" class="hidden px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        Continue with this Domain <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+                <!-- Dynamic Results Area (Multi-TLD Grid & AI Ideas) -->
+                <div id="cart-domain-results-area" class="hidden pt-4 border-t border-slate-200">
+                    <!-- Injected via JavaScript -->
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- PANEL 2: USE EXISTING DOMAIN                               -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <div id="panel-existing" class="hidden space-y-4">
+                <form method="POST" action="{% url 'cart_domain' %}{% if package %}?package={{ package.id }}{% endif %}" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="domain_option" value="existing">
+
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-link text-brand-600"></i>
-                            Connect Your Existing Domain
+                            <i class="fa-solid fa-link text-blue-600"></i>
+                            <span>Connect Your Existing Domain</span>
                         </h3>
-                        <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Free Setup</span>
+                        <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Free Setup</span>
                     </div>
+
+                    {% if not package %}
+                    <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-amber-600"></i>
+                            <span>You haven't selected a hosting package yet. Using an existing domain is for connecting hosting.</span>
+                        </div>
+                        <a href="/#packages" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-[11px] shrink-0">
+                            View Hosting Plans
+                        </a>
+                    </div>
+                    {% endif %}
 
                     <div class="flex flex-col sm:flex-row gap-2.5">
                         <div class="relative flex-1">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-link text-sm"></i>
                             </div>
-                            <input type="text" id="input-exist-domain" name="existing_domain" placeholder="e.g. myexistingdomain.com"
-                                class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+                            <input type="text" name="existing_domain" placeholder="e.g. mycompany.com" required
+                                class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         </div>
                         <button type="submit"
-                            class="px-8 py-3.5 rounded-2xl bg-slate-900 hover:bg-brand-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 shrink-0">
+                            class="px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
                             Use Domain <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
 
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
-                        <i class="fa-solid fa-circle-info text-brand-600 text-base mt-0.5"></i>
+                        <i class="fa-solid fa-circle-info text-blue-600 text-base mt-0.5"></i>
                         <div>
                             <span class="font-bold text-slate-800">Nameserver Configuration Required:</span>
                             <p class="mt-0.5 text-slate-500">After completing this order, please update the nameservers at your current domain registrar to:</p>
                             <div class="mt-2 flex flex-wrap gap-2">
-                                <code class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 font-mono text-xs font-bold text-brand-700">ns1.velohoster.com</code>
-                                <code class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 font-mono text-xs font-bold text-brand-700">ns2.velohoster.com</code>
+                                <code class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 font-mono text-xs font-bold text-blue-700">ns1.velohoster.com</code>
+                                <code class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 font-mono text-xs font-bold text-blue-700">ns2.velohoster.com</code>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
+            </div>
 
-                <!-- ─── PANEL 3: TRANSFER DOMAIN ──────────────────────────────── -->
-                <div id="panel-transfer" class="hidden space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-arrow-right-arrow-left text-brand-600"></i>
-                            Transfer Domain to {{ COMPANY_NAME|default:'VeloHoster' }}
-                        </h3>
-                        <span class="text-xs text-purple-700 font-bold bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">+1 Year Renewal</span>
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- PANEL 3: TRANSFER DOMAIN                                   -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <div id="panel-transfer" class="hidden space-y-5">
+                <form method="POST" action="{% url 'cart_domain' %}{% if package %}?package={{ package.id }}{% endif %}" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="domain_option" value="transfer">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-right-arrow-left text-purple-600"></i>
+                                <span>Transfer Your Domain to VeloHoster</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Move your domain with zero downtime. Includes a 1-year registration extension.</p>
+                        </div>
+                        <span class="text-xs text-purple-700 font-bold bg-purple-50 px-3 py-1 rounded-full border border-purple-200 self-start sm:self-auto">
+                            <i class="fa-solid fa-arrows-rotate mr-1"></i> +1 Year Extension Included
+                        </span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Transfer 3-Step Guide Badges -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">1</div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Unlock Domain</span>
+                                <span class="text-[11px] text-slate-500">At your current registrar (GoDaddy, Namecheap, etc.)</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center shrink-0">2</div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Get EPP Code</span>
+                                <span class="text-[11px] text-slate-500">Request the Authorization / EPP key from old registrar</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0">3</div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Submit Transfer</span>
+                                <span class="text-[11px] text-slate-500">We transfer &amp; add +1 full year of validity</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Domain Name to Transfer</label>
-                            <input type="text" name="transfer_domain" placeholder="e.g. transferbrand.com"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-brand-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Domain Name to Transfer <span class="text-rose-500">*</span></label>
+                            <input type="text" id="input-transfer-domain" name="transfer_domain" placeholder="e.g. yourcompany.com" required
+                                class="w-full px-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">EPP / Authorization Code</label>
-                            <input type="text" name="epp_code" placeholder="Enter EPP authorization key"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-brand-500">
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">EPP / Authorization Code <span class="text-slate-400 font-normal">(Optional now, can provide later)</span></label>
+                            <input type="text" id="input-transfer-epp" name="epp_code" placeholder="Enter EPP transfer auth code"
+                                class="w-full px-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-check text-purple-600 text-sm mt-0.5 shrink-0"></i>
+                        <div>
+                            <span class="font-bold">No Time Lost Guarantee:</span>
+                            <span class="text-purple-800">Any remaining registration time on your domain is preserved and extended by an extra 12 months automatically.</span>
                         </div>
                     </div>
 
                     <div class="flex justify-end pt-2">
                         <button type="submit"
-                            class="px-8 py-3.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2">
-                            Transfer & Continue <i class="fa-solid fa-arrow-right"></i>
+                            class="px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-2 cursor-pointer">
+                            Transfer Domain &amp; Continue <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- ─── HOSTING PACKAGES SHOWCASE SECTION (Attach Hosting) ──────────── -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold uppercase border border-blue-200 flex items-center gap-1">
+                            <i class="fa-solid fa-server text-blue-600"></i> Recommended Hosting
+                        </span>
+                        {% if package %}
+                        <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> {{ package.name }} Attached
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-1.5">
+                        {% if package %}
+                        Switch or Upgrade Your Web Hosting Plan
+                        {% else %}
+                        Need Hosting for Your Domain? Choose a Package Below
+                        {% endif %}
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        High-speed NVMe SSD storage, cPanel control panel, LiteSpeed cache, and free automated SSL certificate.
+                    </p>
                 </div>
-            </form>
+
+                {% if package %}
+                <a href="{% url 'cart_domain' %}{% if initial_domain %}?domain={{ initial_domain }}{% endif %}" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition self-start sm:self-auto shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-xmark text-slate-400"></i> Buy Domain Only (Remove Hosting)
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Packages Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {% for pkg in packages %}
+                <div class="relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 bg-white
+                    {% if package and package.id == pkg.id %}
+                    border-2 border-emerald-500 bg-emerald-50/20 shadow-md ring-2 ring-emerald-500/20
+                    {% elif pkg.is_featured or forloop.counter == 2 %}
+                    border-2 border-blue-500 shadow-md hover:shadow-lg
+                    {% else %}
+                    border border-slate-200 hover:border-slate-300 hover:shadow-sm
+                    {% endif %}">
+
+                    {% if package and package.id == pkg.id %}
+                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1">
+                        <i class="fa-solid fa-check text-[9px]"></i> Attached to Cart
+                    </div>
+                    {% elif pkg.is_featured or forloop.counter == 2 %}
+                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1">
+                        <i class="fa-solid fa-crown text-[9px] text-yellow-300"></i> Most Popular
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <!-- Title and Price -->
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900">{{ pkg.name }}</h4>
+                                <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block mt-0.5">NVMe Cloud Hosting</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xl font-black text-slate-900">৳{{ pkg.monthly_price|floatformat:0 }}</div>
+                                <span class="text-[10px] text-slate-400 font-medium">/ month</span>
+                            </div>
+                        </div>
+
+                        <!-- Specs list -->
+                        <div class="space-y-2 py-3 border-y border-slate-100 text-xs text-slate-600">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-hard-drive text-blue-600 text-[11px] w-4 text-center"></i>
+                                <span><strong>{{ pkg.disk_quota_mb }} MB</strong> NVMe SSD Storage</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-gauge-high text-cyan-600 text-[11px] w-4 text-center"></i>
+                                <span>{% if pkg.bandwidth_mb == 0 %}<strong>Unlimited</strong> Traffic{% else %}<strong>{{ pkg.bandwidth_mb }} MB</strong> Bandwidth{% endif %}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved text-emerald-600 text-[11px] w-4 text-center"></i>
+                                <span>Free AutoSSL &amp; cPanel Panel</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-500 text-[11px] w-4 text-center"></i>
+                                <span>LiteSpeed Enterprise Cache</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="pt-4 mt-2">
+                        {% if package and package.id == pkg.id %}
+                        <div class="w-full py-2.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Plan Selected
+                        </div>
+                        {% else %}
+                        <a href="?package={{ pkg.id }}{% if initial_domain %}&domain={{ initial_domain }}{% endif %}{% if initial_option %}&domain_option={{ initial_option }}{% endif %}{% if initial_tld %}&tld={{ initial_tld }}{% endif %}"
+                            class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm hover:shadow flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>{% if package %}Switch to {{ pkg.name }}{% else %}Attach {{ pkg.name }}{% endif %}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-3 text-center py-6 text-slate-400 text-xs">
+                    No hosting packages available at this time.
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
     </div>
 </div>
 
 <script>
-function switchDomainTab(tabKey) {
-    document.getElementById('active-domain-option').value = tabKey;
+let currentPackageParam = "{% if package %}&package={{ package.id }}{% else %}&package=none{% endif %}";
+let globalMultiResults = [];
+let globalAiResults = [];
 
-    // Panels
+function switchDomainTab(tabKey) {
     ['register', 'existing', 'transfer'].forEach(key => {
         const panel = document.getElementById('panel-' + key);
         const btn = document.getElementById('tab-btn-' + key);
+        const icon = document.getElementById('tab-icon-' + key);
+
         if (panel) {
             if (key === tabKey) {
                 panel.classList.remove('hidden');
@@ -235,150 +539,442 @@ function switchDomainTab(tabKey) {
                 panel.classList.add('hidden');
             }
         }
-        if (btn) {
+        if (btn && icon) {
             if (key === tabKey) {
-                btn.className = "flex items-center gap-3 p-4 rounded-2xl border-2 border-brand-600 bg-brand-50/70 text-left transition relative cursor-pointer";
-                const iconSpan = btn.querySelector('span');
-                if (iconSpan) {
-                    iconSpan.className = "w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center text-base shrink-0 shadow-2xs";
+                if (key === 'transfer') {
+                    btn.className = "flex items-center gap-3 p-3.5 rounded-2xl bg-purple-50/90 border-2 border-purple-400 text-left transition relative cursor-pointer shadow-xs";
+                    icon.className = "w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shrink-0 shadow-xs";
+                } else {
+                    btn.className = "flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/90 border-2 border-blue-400 text-left transition relative cursor-pointer shadow-xs";
+                    icon.className = "w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-base shrink-0 shadow-xs";
                 }
             } else {
-                btn.className = "flex items-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-left transition relative cursor-pointer";
-                const iconSpan = btn.querySelector('span');
-                if (iconSpan) {
-                    iconSpan.className = "w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0";
-                }
+                btn.className = "flex items-center gap-3 p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-left transition relative cursor-pointer";
+                icon.className = "w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base shrink-0";
             }
         }
     });
 }
 
-async function checkLiveDomain() {
-    const domainInput = document.getElementById('input-reg-domain');
+function switchRegisterSubMode(mode) {
+    const multiPanel = document.getElementById('subpanel-multi');
+    const aiPanel = document.getElementById('subpanel-ai');
+    const multiTab = document.getElementById('subtab-multi');
+    const aiTab = document.getElementById('subtab-ai');
+    const resultsArea = document.getElementById('cart-domain-results-area');
+
+    if (mode === 'multi') {
+        multiPanel.classList.remove('hidden');
+        aiPanel.classList.add('hidden');
+        multiTab.className = "px-4 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition flex items-center gap-1.5 cursor-pointer";
+        aiTab.className = "px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
+        if (globalMultiResults.length > 0) {
+            resultsArea.classList.remove('hidden');
+            const sldInput = document.getElementById('input-reg-domain');
+            renderCartMultiResults(sldInput ? sldInput.value.trim() : 'Domain', globalMultiResults, false);
+        } else {
+            resultsArea.classList.add('hidden');
+        }
+    } else {
+        aiPanel.classList.remove('hidden');
+        multiPanel.classList.add('hidden');
+        aiTab.className = "px-4 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition flex items-center gap-1.5 cursor-pointer";
+        multiTab.className = "px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
+        if (globalAiResults.length > 0) {
+            resultsArea.classList.remove('hidden');
+            const promptInput = document.getElementById('ai-cart-prompt-input');
+            renderCartAiResults(promptInput ? promptInput.value.trim() : 'AI Suggestions', globalAiResults, false);
+        } else {
+            resultsArea.classList.add('hidden');
+        }
+    }
+}
+
+function quickSelectTLD(tldVal) {
     const tldSelect = document.getElementById('select-reg-tld');
+    if (tldSelect) {
+        for (let opt of tldSelect.options) {
+            if (opt.value.toLowerCase() === tldVal.toLowerCase()) {
+                opt.selected = true;
+                break;
+            }
+        }
+    }
+    const inputVal = document.getElementById('input-reg-domain').value.trim();
+    if (inputVal) {
+        checkLiveDomainMulti();
+    }
+}
+
+function quickFillCartAIPrompt(promptVal) {
+    const input = document.getElementById('ai-cart-prompt-input');
+    if (input) {
+        input.value = promptVal;
+        handleAICartGenerate();
+    }
+}
+
+function triggerTransfer(domainName) {
+    switchDomainTab('transfer');
+    const transferInput = document.getElementById('input-transfer-domain');
+    const transferPanel = document.getElementById('panel-transfer');
+    if (transferInput) {
+        transferInput.value = domainName;
+        const eppInput = document.getElementById('input-transfer-epp');
+        if (eppInput) {
+            setTimeout(() => eppInput.focus(), 100);
+        }
+    }
+    if (transferPanel) {
+        transferPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function handleCartSearchSubmit(e) {
+    if (e) e.preventDefault();
+    checkLiveDomainMulti();
+}
+
+function handleAICartGenerateSubmit(e) {
+    if (e) e.preventDefault();
+    handleAICartGenerate();
+}
+
+async function checkLiveDomainMulti() {
+    const sldInput = document.getElementById('input-reg-domain');
+    const tldSelect = document.getElementById('select-reg-tld');
+    const btnCheck = document.getElementById('btn-check-domain');
+    const spinner = document.getElementById('check-spinner');
+    const btnText = document.getElementById('check-text');
     const resultBox = document.getElementById('check-result-box');
     const resultMsg = document.getElementById('check-result-msg');
-    const continueBtn = document.getElementById('btn-continue-registered');
-    const checkBtn = document.getElementById('btn-check-domain');
-    const suggestionsBox = document.getElementById('cart-domain-suggestions');
-    const suggestionsList = document.getElementById('cart-suggestions-list');
+    const btnContinue = document.getElementById('btn-continue-registered');
+    const resultsArea = document.getElementById('cart-domain-results-area');
 
-    const domain = domainInput.value.trim();
-    const tld = tldSelect.value.trim();
+    let rawVal = sldInput ? sldInput.value.trim().toLowerCase() : '';
+    const tld = tldSelect ? tldSelect.value.trim().toLowerCase() : '.com';
 
-    if (!domain) {
-        domainInput.focus();
+    if (!rawVal) {
+        if (sldInput) sldInput.focus();
         return;
     }
 
-    checkBtn.disabled = true;
-    checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+    let cleanSld = rawVal.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
+    if (cleanSld.includes('.')) {
+        cleanSld = cleanSld.split('.')[0];
+    }
 
-    resultBox.className = 'p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-blue-50 border-blue-200 text-blue-800';
-    resultMsg.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-brand-600"></i> Checking availability for ' + domain + tld + '...';
+    const fullDomain = `${cleanSld}${tld}`;
+
+    btnCheck.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.innerHTML = 'Searching...';
     resultBox.classList.remove('hidden');
-    continueBtn.classList.add('hidden');
-    if (suggestionsBox) suggestionsBox.classList.add('hidden');
+    resultBox.className = "p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 border-slate-200";
+    resultMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-600 text-sm"></i> Querying authoritative registry WHOIS database...';
+    btnContinue.classList.add('hidden');
+    resultsArea.classList.remove('hidden');
+    resultsArea.innerHTML = `
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center animate-pulse">
+            <i class="fa-solid fa-circle-notch fa-spin text-blue-600 text-xl mb-2"></i>
+            <p class="text-xs font-bold text-slate-700">Checking availability across all 19 top extensions (.com, .net, .org, .com.bd, .xyz)...</p>
+        </div>
+    `;
 
+    // 1. Check Primary Single Domain Immediately
     try {
-        const res = await fetch(`/api/v1/domains/ajax-check/?domain=${encodeURIComponent(domain)}&tld=${encodeURIComponent(tld)}`);
-        const data = await res.json();
-
-        if (data.is_available) {
-            resultBox.className = 'p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border-emerald-300 text-emerald-900';
-            resultMsg.innerHTML = `
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
-                    <div>
-                        <strong class="font-mono text-sm text-slate-900">${data.domain}</strong> is available! 
-                        <span class="font-bold text-brand-700 ml-1.5 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">৳${parseFloat(data.price).toLocaleString()} ${data.currency}/yr</span>
-                    </div>
-                </div>
-            `;
-            continueBtn.classList.remove('hidden');
-            if (suggestionsBox) suggestionsBox.classList.add('hidden');
-        } else {
-            resultBox.className = 'p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-rose-50 border-rose-300 text-rose-900';
-            resultMsg.innerHTML = `
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-circle-xmark text-rose-600 text-xl"></i>
-                    <div>
-                        <strong class="font-mono text-slate-900">${data.domain}</strong> is unavailable or taken. Please choose another name or a suggestion below.
-                    </div>
-                </div>
-            `;
-            continueBtn.classList.add('hidden');
-
-            if (data.suggestions && data.suggestions.length > 0 && suggestionsBox && suggestionsList) {
-                suggestionsBox.classList.remove('hidden');
-                suggestionsList.innerHTML = data.suggestions.map(s => `
-                    <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:border-brand-500 hover:bg-white transition">
-                        <div class="flex items-center gap-2.5">
-                            <span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">${s.tld}</span>
-                            <div>
-                                <span class="font-bold font-mono text-slate-900 text-xs">${s.domain}</span>
-                                <span class="text-[10px] font-bold text-emerald-600 ml-1.5">৳${parseFloat(s.price).toLocaleString()}/yr</span>
-                            </div>
+        const singleRes = await fetch(`/cart/ajax/domain-check/?domain=${encodeURIComponent(fullDomain)}`).then(r => r.json());
+        if (singleRes && singleRes.success) {
+            if (singleRes.is_available) {
+                resultBox.className = "p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border-emerald-300 text-emerald-950";
+                resultMsg.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <strong class="font-mono font-bold text-sm text-emerald-900">${singleRes.domain}</strong> is available!
+                            <span class="block text-[11px] text-emerald-700 font-semibold">Price: ৳${parseFloat(singleRes.price).toLocaleString()} ${singleRes.currency}/year</span>
                         </div>
-                        <button type="button" onclick="selectSuggestedDomain('${s.domain}', '${s.tld}')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-2xs transition flex items-center gap-1">
-                            Select <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </div>
+                `;
+                btnContinue.href = `/cart/configure/?domain=${encodeURIComponent(singleRes.domain)}&domain_option=register&tld=${encodeURIComponent(tld)}${currentPackageParam}`;
+                btnContinue.classList.remove('hidden');
+            } else {
+                resultBox.className = "p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-rose-50 border-rose-200 text-rose-950";
+                resultMsg.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-xmark"></i></span>
+                        <div>
+                            <strong class="font-mono font-bold text-sm text-rose-900">${singleRes.domain}</strong> is already taken.
+                            <span class="block text-[11px] text-rose-700 font-normal">Already own this? Transfer it to VeloHoster or pick another extension below.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="triggerTransfer('${singleRes.domain}')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Domain
                         </button>
                     </div>
-                `).join('');
-            } else if (suggestionsBox) {
-                suggestionsBox.classList.add('hidden');
+                `;
             }
         }
-    } catch(err) {
-        resultBox.className = 'p-4 rounded-2xl border text-xs font-medium flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-50 border-amber-300 text-amber-900';
-        resultMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Lookup error: ${err.message}`;
-        continueBtn.classList.add('hidden');
-        if (suggestionsBox) suggestionsBox.classList.add('hidden');
-    } finally {
-        checkBtn.disabled = false;
-        checkBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Check';
+    } catch (err) {
+        console.warn("Single domain check failed:", err);
     }
-}
 
-function selectSuggestedDomain(fullDomain, tld) {
-    const domainInput = document.getElementById('input-reg-domain');
-    const tldSelect = document.getElementById('select-reg-tld');
-    
-    let base = fullDomain;
-    if (tld && fullDomain.endsWith(tld)) {
-        base = fullDomain.slice(0, -tld.length);
-    } else {
-        base = fullDomain.replace(/\.[a-z.]+$/, '');
-    }
-    
-    domainInput.value = base;
-    
-    let matched = false;
-    for (let i = 0; i < tldSelect.options.length; i++) {
-        if (tldSelect.options[i].value.toLowerCase() === tld.toLowerCase()) {
-            tldSelect.selectedIndex = i;
-            matched = true;
-            break;
+    // 2. Fetch Multi-TLD Bulk Extension Results in parallel
+    try {
+        const bulkRes = await fetch(`/api/v1/domains/bulk-search/?domain=${encodeURIComponent(cleanSld)}`).then(r => r.json());
+        if (bulkRes && bulkRes.success && bulkRes.results) {
+            globalMultiResults = bulkRes.results;
+            renderCartMultiResults(cleanSld, globalMultiResults, false);
+        } else {
+            resultsArea.innerHTML = '';
         }
+    } catch (bulkErr) {
+        console.warn("Bulk domain check error:", bulkErr);
+    } finally {
+        btnCheck.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-1"></i> Check All TLDs';
     }
-    if (!matched) {
-        const newOpt = new Option(tld, tld, true, true);
-        tldSelect.add(newOpt);
-    }
-    
-    checkLiveDomain();
 }
 
-// Auto-run check on page load if domain was passed from previous search
-document.addEventListener('DOMContentLoaded', () => {
-    const initOption = "{{ initial_option|default:'register' }}";
-    if (initOption !== 'register') {
-        switchDomainTab(initOption);
+function renderCartMultiResults(baseName, results, showAll) {
+    const resultsArea = document.getElementById('cart-domain-results-area');
+    const totalCount = results.length;
+    const visibleResults = showAll ? results : results.slice(0, 10);
+    const remainingCount = totalCount - 10;
+
+    let html = `
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-blue-600"></i>
+                        <span>Live Extensions for "<strong>${baseName}</strong>"</span>
+                    </h4>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Click "Select" to register an available domain or "Transfer" to move your existing domain.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
+                        ${totalCount} Extensions Checked
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${visibleResults.map(item => `
+                    <div class="p-3.5 rounded-2xl ${item.is_available ? 'bg-slate-50 hover:bg-blue-50/50 border border-slate-200 hover:border-blue-400' : 'bg-slate-50 border border-slate-200'} transition duration-200 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-xl ${item.is_available ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600'} flex items-center justify-center text-xs shrink-0">
+                                <i class="fa-solid ${item.is_available ? 'fa-check' : 'fa-lock'}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono font-bold text-xs text-slate-900 truncate">${item.domain}</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-extrabold uppercase ${item.is_available ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                        ${item.is_available ? 'Available' : 'Taken'}
+                                    </span>
+                                </div>
+                                <span class="text-[11px] ${item.is_available ? 'text-blue-600 font-bold' : 'text-slate-500'} font-mono block">
+                                    ${item.is_available ? '৳' + parseFloat(item.price).toLocaleString() + ' / yr' : 'Registered by someone'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            ${item.is_available ? `
+                                <a href="/cart/configure/?domain=${encodeURIComponent(item.domain)}&domain_option=register&tld=${encodeURIComponent(item.tld)}${currentPackageParam}"
+                                    class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer">
+                                    <span>Select</span> <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                </a>
+                            ` : `
+                                <button type="button" onclick="triggerTransfer('${item.domain}')" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs border border-purple-200 transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-arrow-right-arrow-left text-[9px]"></i> Transfer
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${!showAll && remainingCount > 0 ? `
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleCartMultiSeeMore(true)" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-xs border border-slate-200 hover:border-blue-300 transition cursor-pointer inline-flex items-center gap-1.5">
+                        <span>Show More Extensions (+${remainingCount})</span>
+                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>
+                </div>
+            ` : (showAll && totalCount > 10 ? `
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleCartMultiSeeMore(false)" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border border-slate-200 transition cursor-pointer inline-flex items-center gap-1.5">
+                        <span>Show Less</span>
+                        <i class="fa-solid fa-chevron-up text-[10px]"></i>
+                    </button>
+                </div>
+            ` : '')}
+        </div>
+    `;
+
+    resultsArea.innerHTML = html;
+}
+
+function toggleCartMultiSeeMore(expand) {
+    const sldInput = document.getElementById('input-reg-domain');
+    const baseName = sldInput ? sldInput.value.trim() : 'Domain';
+    renderCartMultiResults(baseName, globalMultiResults, expand);
+}
+
+// ─── AI DOMAIN GENERATION HANDLER ────────────────────────────────────────────
+async function handleAICartGenerate() {
+    const inputEl = document.getElementById('ai-cart-prompt-input');
+    const btn = document.getElementById('btn-ai-cart-gen');
+    const spinner = document.getElementById('ai-cart-spinner');
+    const btnText = document.getElementById('ai-cart-text');
+    const resultsArea = document.getElementById('cart-domain-results-area');
+
+    if (!inputEl) return;
+    const promptVal = inputEl.value.trim();
+    if (!promptVal) {
+        inputEl.focus();
+        return;
     }
 
-    const regInput = document.getElementById('input-reg-domain');
-    if (regInput && regInput.value.trim().length > 0) {
-        checkLiveDomain();
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.innerHTML = 'Brainstorming...';
+    resultsArea.classList.remove('hidden');
+    resultsArea.innerHTML = `
+        <div class="p-8 rounded-2xl bg-white border-2 border-cyan-100 text-center animate-pulse shadow-sm">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 mx-auto flex items-center justify-center text-xl mb-3 border border-cyan-200">
+                <i class="fa-solid fa-wand-magic-sparkles fa-spin"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900">AI Generating Brand Ideas &amp; Checking Availability...</h4>
+            <p class="text-xs text-slate-500 mt-1">Analyzing keywords, branding phonetics, and real-time registrar status.</p>
+        </div>
+    `;
+
+    try {
+        const url = `/api/v1/domains/ai-generate/?prompt=${encodeURIComponent(promptVal)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.success || !data.results || data.results.length === 0) {
+            resultsArea.innerHTML = `
+                <div class="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center">
+                    <i class="fa-solid fa-circle-exclamation text-base text-rose-500 mb-1 block"></i>
+                    ${data.message || 'AI could not generate names for this prompt. Try simpler keywords.'}
+                </div>
+            `;
+            return;
+        }
+
+        globalAiResults = data.results;
+        renderCartAiResults(promptVal, globalAiResults, false);
+
+    } catch (err) {
+        resultsArea.innerHTML = `
+            <div class="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center">
+                <i class="fa-solid fa-triangle-exclamation text-base text-rose-500 mb-1 block"></i>
+                AI Generator service timed out. Please retry.
+            </div>
+        `;
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate with AI';
+    }
+}
+
+function renderCartAiResults(promptVal, results, showAll) {
+    const resultsArea = document.getElementById('cart-domain-results-area');
+    const totalCount = results.length;
+    const visibleResults = showAll ? results : results.slice(0, 10);
+    const remainingCount = totalCount - 10;
+
+    let html = `
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-cyan-600"></i>
+                        <span>AI Brand Suggestions for "<strong>${promptVal}</strong>"</span>
+                    </h4>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Showing smart generated domain names with verified live status.</p>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-800 text-[10px] font-bold border border-cyan-200">
+                    ${totalCount} Ideas
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${visibleResults.map(item => `
+                    <div class="p-3.5 rounded-2xl ${item.is_available ? 'bg-gradient-to-r from-cyan-50/40 via-white to-blue-50/30 hover:bg-cyan-50/70 border border-cyan-200 hover:border-cyan-400' : 'bg-slate-100/60 border border-slate-200 opacity-60'} transition duration-200 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-xl ${item.is_available ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-200 text-slate-400'} flex items-center justify-center text-xs shrink-0">
+                                <i class="fa-solid ${item.is_available ? 'fa-wand-magic-sparkles' : 'fa-xmark'}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono font-bold text-xs text-slate-900 truncate">${item.domain}</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-extrabold uppercase ${item.is_available ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-500'}">
+                                        ${item.is_available ? 'Avail' : 'Taken'}
+                                    </span>
+                                </div>
+                                <span class="text-[11px] text-blue-600 font-bold font-mono block">৳${parseFloat(item.price).toLocaleString()} / yr</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            ${item.is_available ? `
+                                <a href="/cart/configure/?domain=${encodeURIComponent(item.domain)}&domain_option=register&tld=.com${currentPackageParam}"
+                                    class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-xs transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer">
+                                    <span>Select</span> <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                </a>
+                            ` : `
+                                <button type="button" onclick="triggerTransfer('${item.domain}')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-600 font-semibold text-[10px] border border-slate-200 transition whitespace-nowrap cursor-pointer">
+                                    Transfer
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${!showAll && remainingCount > 0 ? `
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleCartAiSeeMore(true)" class="px-5 py-2 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-cyan-800 font-bold text-xs border border-cyan-200 transition cursor-pointer inline-flex items-center gap-1.5">
+                        <span>Show More AI Ideas (+${remainingCount})</span>
+                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>
+                </div>
+            ` : (showAll && totalCount > 10 ? `
+                <div class="text-center pt-2">
+                    <button type="button" onclick="toggleCartAiSeeMore(false)" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs border border-slate-200 transition cursor-pointer inline-flex items-center gap-1.5">
+                        <span>Show Less</span>
+                        <i class="fa-solid fa-chevron-up text-[10px]"></i>
+                    </button>
+                </div>
+            ` : '')}
+        </div>
+    `;
+
+    resultsArea.innerHTML = html;
+}
+
+function toggleCartAiSeeMore(expand) {
+    const promptInput = document.getElementById('ai-cart-prompt-input');
+    const promptVal = promptInput ? promptInput.value.trim() : 'AI Suggestions';
+    renderCartAiResults(promptVal, globalAiResults, expand);
+}
+
+// Auto-run search if initial domain is provided
+document.addEventListener('DOMContentLoaded', () => {
+    const initialOption = "{{ initial_option|default:'register' }}";
+    switchDomainTab(initialOption);
+
+    const sldVal = document.getElementById('input-reg-domain') ? document.getElementById('input-reg-domain').value.trim() : '';
+    if (sldVal && initialOption === 'register') {
+        checkLiveDomainMulti();
     }
 });
 </script>

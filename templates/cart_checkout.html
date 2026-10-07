@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}View Cart & Checkout — {{ COMPANY_NAME|default:'VeloHoster' }} Cart{% endblock %}
+{% block title %}View Cart &amp; Checkout — {{ COMPANY_NAME|default:'VeloHoster' }} Cart{% endblock %}
 
 {% block content %}
 <div class="min-h-[85vh] bg-slate-50/50 py-5 sm:py-10 px-3 sm:px-6 lg:px-8">
@@ -8,12 +8,12 @@
 
         <!-- ─── ORDER PROGRESS STEPPER ──────────────────────────────────────── -->
         <div class="flex items-center justify-center gap-1.5 sm:gap-4 text-[11px] sm:text-xs font-bold flex-wrap">
-            <a href="{% url 'cart_domain' %}?package={{ package.id }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
+            <a href="{% url 'cart_domain' %}{% if package %}?package={{ package.id }}{% endif %}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
                 <i class="fa-solid fa-check text-[9px] sm:text-[10px]"></i>
                 <span>Choose Domain</span>
             </a>
             <i class="fa-solid fa-chevron-right text-slate-300 text-[9px]"></i>
-            <a href="{% url 'cart_configure' %}?package={{ package.id }}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
+            <a href="{% url 'cart_configure' %}?package={% if package %}{{ package.id }}{% else %}none{% endif %}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="flex items-center gap-1.5 sm:gap-2 text-emerald-700 bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-emerald-200">
                 <i class="fa-solid fa-check text-[9px] sm:text-[10px]"></i>
                 <span>Configure</span>
             </a>
@@ -24,19 +24,20 @@
             </div>
         </div>
 
+        <!-- ─── TOP HEADER ──────────────────────────────────────────────────── -->
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Review & Checkout</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Review &amp; Checkout</h1>
                 <p class="text-xs text-slate-500 mt-1">Review your order items, provide your account details, and choose a payment method.</p>
             </div>
-            <a href="{% url 'cart_configure' %}?package={{ package.id }}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
+            <a href="{% url 'cart_configure' %}?package={% if package %}{{ package.id }}{% else %}none{% endif %}&domain={{ domain }}&domain_option={{ domain_option }}&tld={{ tld }}&epp={{ epp }}" class="text-xs text-brand-600 hover:text-brand-700 font-bold flex items-center gap-1">
                 <i class="fa-solid fa-pen-to-square"></i> Edit Configuration
             </a>
         </div>
 
         <form method="POST" action="{% url 'cart_complete_order' %}" class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             {% csrf_token %}
-            <input type="hidden" name="package_id" value="{{ package.id }}">
+            <input type="hidden" name="package_id" value="{% if package %}{{ package.id }}{% else %}none{% endif %}">
             <input type="hidden" name="domain" value="{{ domain }}">
             <input type="hidden" name="domain_option" value="{{ domain_option }}">
             <input type="hidden" name="billing_cycle" value="{{ billing_cycle }}">
@@ -50,12 +51,19 @@
 
                 <!-- 1. Order Items Summary Box -->
                 <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-4">
-                    <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-cart-shopping text-brand-600"></i> Order Items
-                    </h3>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-brand-600"></i> Order Items
+                        </h3>
+                        <span class="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">
+                            {% if is_domain_only %}Domain Only{% elif is_hosting_only %}Hosting Only{% else %}Domain + Hosting Bundle{% endif %}
+                        </span>
+                    </div>
 
                     <div class="divide-y divide-slate-100">
-                        <!-- Hosting Account Item -->
+                        
+                        <!-- Hosting Account Item (if package selected) -->
+                        {% if package %}
                         <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                                 <strong class="text-sm font-bold text-slate-900 block">Web Hosting - {{ package.name }}</strong>
@@ -70,29 +78,33 @@
                             </div>
                             <div class="text-left sm:text-right">
                                 <span class="text-base font-extrabold text-slate-900">৳{{ hosting_price|floatformat:0 }} BDT</span>
-                                <span class="block text-[10px] text-slate-400">Recurring</span>
+                                <span class="block text-[10px] text-slate-400">Recurring Term</span>
                             </div>
                         </div>
+                        {% endif %}
 
-                        <!-- Domain Item if registered -->
-                        {% if domain_option == 'register' %}
+                        <!-- Domain Item if registered or domain-only -->
+                        {% if is_domain_only or domain_option == 'register' or domain_option == 'transfer' %}
                         <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <strong class="text-sm font-bold text-slate-900 block">Domain Registration (1 Year)</strong>
+                                <strong class="text-sm font-bold text-slate-900 block">
+                                    {% if domain_option == 'transfer' %}Domain Transfer (1 Year Extension){% else %}Domain Registration (1 Year){% endif %}
+                                </strong>
                                 <span class="font-mono text-xs text-purple-600 font-semibold block mt-0.5">{{ domain }}</span>
-                                <span class="text-[11px] text-slate-400 font-medium">Auto-renew enabled with WHOIS Privacy</span>
+                                <span class="text-[11px] text-slate-400 font-medium">Free WHOIS Privacy &amp; DNS Zone Management</span>
                             </div>
                             <div class="text-left sm:text-right">
                                 <span class="text-base font-extrabold text-slate-900">৳{{ domain_price|floatformat:0 }} BDT</span>
                                 <span class="block text-[10px] text-slate-400">1 Year Term</span>
                             </div>
                         </div>
-                        {% else %}
+                        {% elif is_hosting_only %}
+                        <!-- Existing domain notice -->
                         <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <strong class="text-sm font-bold text-slate-900 block">Domain DNS & Server Setup</strong>
+                                <strong class="text-sm font-bold text-slate-900 block">Domain DNS &amp; Server Setup</strong>
                                 <span class="font-mono text-xs text-slate-600 font-semibold block mt-0.5">{{ domain }}</span>
-                                <span class="text-[11px] text-slate-400 font-medium">Using existing domain</span>
+                                <span class="text-[11px] text-slate-400 font-medium">Using existing domain (Free nameserver setup)</span>
                             </div>
                             <div class="text-left sm:text-right">
                                 <span class="text-xs font-bold text-emerald-600 uppercase">Free</span>
@@ -100,6 +112,20 @@
                         </div>
                         {% endif %}
                     </div>
+
+                    <!-- IF DOMAIN ONLY: Cross-Sell Prompt Banner -->
+                    {% if is_domain_only and suggested_packages %}
+                    <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-server text-brand-600 text-base"></i>
+                            <span class="text-slate-700">Want to connect cloud hosting to <strong>{{ domain }}</strong> right now?</span>
+                        </div>
+                        <a href="{% url 'cart_configure' %}?package={{ suggested_packages.0.id }}&domain={{ domain }}&domain_option=register&tld={{ tld }}"
+                            class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] shadow-xs whitespace-nowrap">
+                            + Add {{ suggested_packages.0.name }} (৳{{ suggested_packages.0.monthly_price|floatformat:0 }}/mo)
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- 2. Account Information Section -->
@@ -133,11 +159,11 @@
                         <!-- Tab switcher -->
                         <div class="flex rounded-xl bg-slate-100 p-1 mb-5">
                             <button type="button" onclick="switchAuthTab('register')" id="btn-auth-register"
-                                class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition">
+                                class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition cursor-pointer">
                                 <i class="fa-solid fa-user-plus mr-1"></i> New Customer (Sign Up)
                             </button>
                             <button type="button" onclick="switchAuthTab('login')" id="btn-auth-login"
-                                class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition">
+                                class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">
                                 <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Existing Customer (Login)
                             </button>
                         </div>
@@ -174,7 +200,7 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Account Password <span class="text-rose-500">*</span></label>
                                     <div class="relative">
-                                        <input type="password" id="reg_password" name="password" required minlength="8" placeholder="••••••••••••"
+                                        <input type="password" id="reg_password" name="password" minlength="8" placeholder="••••••••••••"
                                             class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
                                         <button type="button" onclick="togglePassword('reg_password', 'eye_reg_pass')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <i id="eye_reg_pass" class="fa-regular fa-eye text-xs"></i>
@@ -184,7 +210,7 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Confirm Password <span class="text-rose-500">*</span></label>
                                     <div class="relative">
-                                        <input type="password" id="reg_password_confirm" name="password_confirm" required minlength="8" placeholder="••••••••••••"
+                                        <input type="password" id="reg_password_confirm" name="password_confirm" minlength="8" placeholder="••••••••••••"
                                             class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
                                         <button type="button" onclick="togglePassword('reg_password_confirm', 'eye_reg_pass_conf')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <i id="eye_reg_pass_conf" class="fa-regular fa-eye text-xs"></i>
@@ -194,21 +220,21 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company Name (Optional)</label>
-                                <input type="text" name="company_name" placeholder="e.g. Acme Agency Ltd."
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company / Organization (Optional)</label>
+                                <input type="text" name="company_name" placeholder="e.g. My Business Ltd"
                                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
                             </div>
                         </div>
 
                         <!-- Panel B: Existing Customer Login -->
-                        <div id="pane-auth-login" class="hidden space-y-4">
+                        <div id="pane-auth-login" class="space-y-4 hidden">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address</label>
-                                <input type="email" name="login_email" placeholder="your.email@domain.com"
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Registered Email Address <span class="text-rose-500">*</span></label>
+                                <input type="email" name="login_email" placeholder="registered.email@domain.com"
                                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Account Password <span class="text-rose-500">*</span></label>
                                 <div class="relative">
                                     <input type="password" id="login_password" name="login_password" placeholder="••••••••••••"
                                         class="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
@@ -222,100 +248,116 @@
                     {% endif %}
                 </div>
 
-                <!-- 3. Payment Method & Direct TrxID Submission Section -->
+                <!-- 3. Payment Method Section -->
                 <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-credit-card text-brand-600"></i> Payment Submission / পেমেন্ট পদ্ধতি
+                            <i class="fa-solid fa-credit-card text-brand-600"></i> Payment Method
                         </h3>
-                        <span class="text-xs font-black text-brand-600 font-mono bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200">
-                            Total: ৳{{ total|floatformat:0 }} BDT
-                        </span>
+                        <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Step 3 of 3</span>
                     </div>
 
-                    <!-- Payment Method Selector -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Payment Channel (পদ্ধতি নির্বাচন করুন)</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <!-- Gateway selector tiles -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">পেমেন্ট মেথড নির্বাচন করুন:</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <!-- bKash -->
-                            <label class="p-3 rounded-2xl border-2 border-brand-600 bg-brand-50/40 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-pink-500 has-checked:bg-pink-50/50">
-                                <input type="radio" name="payment_gateway" value="bkash" checked class="text-pink-600 focus:ring-0 sr-only">
-                                <div class="w-8 h-8 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                            <div id="card-gateway-bkash" onclick="selectPaymentGateway('bkash')"
+                                class="relative p-3.5 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-pink-500/20">
+                                <input type="radio" id="radio-gateway-bkash" name="payment_gateway" value="bkash" checked class="sr-only">
+                                <div class="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">bKash</strong>
-                                    <span class="text-[9px] text-slate-400">বিকাশ পেমেন্ট</span>
+                                    <span class="text-[10px] text-pink-700 font-semibold">বিকাশ পেমেন্ট</span>
                                 </div>
-                            </label>
+                                <span id="check-gateway-bkash" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-pink-600 text-white flex items-center justify-center text-[9px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
 
                             <!-- Nagad -->
-                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-orange-500 has-checked:bg-orange-50/50">
-                                <input type="radio" name="payment_gateway" value="nagad" class="text-orange-600 focus:ring-0 sr-only">
-                                <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                            <div id="card-gateway-nagad" onclick="selectPaymentGateway('nagad')"
+                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-nagad" name="payment_gateway" value="nagad" class="sr-only">
+                                <div class="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">Nagad</strong>
-                                    <span class="text-[9px] text-slate-400">নগদ পেমেন্ট</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">নগদ পেমেন্ট</span>
                                 </div>
-                            </label>
+                                <span id="check-gateway-nagad" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-orange-500 text-white hidden items-center justify-center text-[9px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
 
                             <!-- Rocket -->
-                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-purple-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-purple-500 has-checked:bg-purple-50/50">
-                                <input type="radio" name="payment_gateway" value="rocket" class="text-purple-600 focus:ring-0 sr-only">
-                                <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs font-black shadow-xs">৳</div>
+                            <div id="card-gateway-rocket" onclick="selectPaymentGateway('rocket')"
+                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-rocket" name="payment_gateway" value="rocket" class="sr-only">
+                                <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">Rocket</strong>
-                                    <span class="text-[9px] text-slate-400">DBBL রকেট</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">DBBL রকেট</span>
                                 </div>
-                            </label>
+                                <span id="check-gateway-rocket" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-purple-600 text-white hidden items-center justify-center text-[9px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
 
                             <!-- Bank / Card -->
-                            <label class="p-3 rounded-2xl border-2 border-slate-200 hover:border-blue-300 cursor-pointer flex flex-col items-center text-center gap-1.5 transition has-checked:border-blue-500 has-checked:bg-blue-50/50">
-                                <input type="radio" name="payment_gateway" value="manual" class="text-blue-600 focus:ring-0 sr-only">
-                                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-black shadow-xs"><i class="fa-solid fa-building-columns"></i></div>
+                            <div id="card-gateway-manual" onclick="selectPaymentGateway('manual')"
+                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-manual" name="payment_gateway" value="manual" class="sr-only">
+                                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">
+                                    <i class="fa-solid fa-building-columns text-xs"></i>
+                                </div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">Bank / Card</strong>
-                                    <span class="text-[9px] text-slate-400">ব্যাংক ট্রান্সফার</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">ব্যাংক ট্রান্সফার</span>
                                 </div>
-                            </label>
+                                <span id="check-gateway-manual" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-blue-600 text-white hidden items-center justify-center text-[9px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Payment Guidelines Box -->
-                    <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl text-xs text-amber-950 leading-relaxed space-y-1.5">
-                        <div class="font-bold flex items-center gap-1.5 text-amber-900">
-                            <i class="fa-solid fa-circle-info text-amber-600"></i> পেমেন্ট করার নির্দেশিকা:
+                    <!-- Payment Guidelines Box (Dynamic) -->
+                    <div id="gateway-guide-box" class="p-4 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-1.5 transition-all">
+                        <div id="gateway-guide-title" class="font-bold flex items-center gap-2 text-pink-900">
+                            <i class="fa-solid fa-circle-info text-pink-600"></i> bKash পেমেন্ট নির্দেশিকা:
                         </div>
-                        <p class="text-[11px] text-amber-900">
-                            বিকাশ/নগদ/রকেটে ইনভয়েসের সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> টাকা পাঠানোর পর নিচের ফর্মে আপনার <strong>প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>Transaction ID (TrxID)</strong> দিয়ে অর্ডার কনফার্ম করুন।
+                        <p id="gateway-guide-desc" class="text-[11px] text-pink-950">
+                            বিকাশ অ্যাপ অথবা <strong>*247#</strong> থেকে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা পেমেন্ট সম্পন্ন করার পর আপনার <strong>বিকাশ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করে অর্ডার কনফার্ম করুন।
                         </p>
                     </div>
 
                     <!-- Direct Transaction Submission Inputs -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Sender Phone / Account Number (প্রেরক নম্বর) <span class="text-rose-500">*</span>
+                            <label id="label-sender-number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Sender bKash Number (বিকাশ প্রেরক নম্বর) <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" name="sender_number" required placeholder="e.g. 01712345678 বা ব্যাংক একাউন্ট নম্বর"
+                            <input type="text" id="input-sender-number" name="sender_number" required placeholder="e.g. 01712345678"
                                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Transaction ID (TrxID) / Reference <span class="text-rose-500">*</span>
+                            <label id="label-trx-id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Transaction ID (TrxID) <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" name="trx_id" required placeholder="e.g. 9H7X8KL9 বা ব্যাংক ডিপোজিট রেফারেন্স"
+                            <input type="text" id="input-trx-id" name="trx_id" required placeholder="e.g. 9H7X8KL9"
                                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold uppercase">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Additional Notes / Reference (ঐচ্ছিক নোট)</label>
-                        <input type="text" name="notes" placeholder="e.g. Paid from personal bKash number"
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Additional Notes / Reference (ঐচ্ছিক রেফারেন্স নোট)</label>
+                        <input type="text" id="input-payment-notes" name="notes" placeholder="e.g. Paid from personal bKash number"
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
                     </div>
 
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-emerald-600 text-sm shrink-0"></i>
-                        <span>অর্ডার সম্পন্ন হলে আমাদের অ্যাডমিন প্যানেল আপনার TrxID যাচাই করে কয়েক মিনিটের মধ্যে ডোমেইন ও হোস্টিং অ্যাক্টিভ করে দেবে।</span>
+                        <span>অর্ডার সাবমিট হলে আমাদের সিস্টেম ট্রানজেকশন যাচাই করে দ্রুত ডোমেইন ও হোস্টিং অ্যাক্টিভেশন সম্পন্ন করবে।</span>
                     </div>
                 </div>
 
@@ -329,12 +371,15 @@
                     </h3>
 
                     <div class="space-y-3 text-xs">
+                        
+                        {% if package %}
                         <div class="flex justify-between text-slate-600">
                             <span>Hosting ({{ cycle_label }})</span>
                             <span class="font-bold text-slate-900">৳{{ hosting_price|floatformat:0 }}</span>
                         </div>
+                        {% endif %}
 
-                        {% if domain_option == 'register' %}
+                        {% if is_domain_only or domain_option == 'register' or domain_option == 'transfer' %}
                         <div class="flex justify-between text-slate-600">
                             <span>Domain Registration (1 Yr)</span>
                             <span class="font-bold text-slate-900">৳{{ domain_price|floatformat:0 }}</span>
@@ -360,20 +405,20 @@
                     <!-- Terms agreement -->
                     <label class="flex items-start gap-2 text-[11px] text-slate-500 cursor-pointer pt-2">
                         <input type="checkbox" required checked class="mt-0.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
-                        <span>I agree to the Terms of Service & Cancellation Policy.</span>
+                        <span>I agree to the Terms of Service &amp; Cancellation Policy.</span>
                     </label>
 
                     <!-- Checkout Button -->
                     <button type="submit"
                         class="w-full py-4 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
-                        <span>Confirm Order & Submit Payment (৳{{ total|floatformat:0 }})</span>
+                        <span>Confirm Order &amp; Submit Payment (৳{{ total|floatformat:0 }})</span>
                     </button>
                 </div>
 
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
                     <span class="text-xs font-bold text-slate-700 block"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Instant Provisioning</span>
-                    <p class="text-[11px] text-slate-500">Upon payment confirmation, your cPanel account & domain will be automatically activated in seconds.</p>
+                    <p class="text-[11px] text-slate-500">Upon payment confirmation, your order will be automatically activated in seconds.</p>
                 </div>
             </div>
 
@@ -408,15 +453,119 @@ function switchAuthTab(mode) {
     authInput.value = mode;
 
     if (mode === 'register') {
-        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition';
-        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition cursor-pointer';
+        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
         paneReg.classList.remove('hidden');
         paneLog.classList.add('hidden');
     } else {
-        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition';
-        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        btnLog.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-2xs transition cursor-pointer';
+        btnReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
         paneLog.classList.remove('hidden');
         paneReg.classList.add('hidden');
+    }
+}
+
+const GATEWAY_CONFIG = {
+    bkash: {
+        cardClass: 'relative p-3.5 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-pink-500/20',
+        guideBoxClass: 'p-4 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-1.5 transition-all',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-pink-900',
+        guideTitle: '<i class="fa-solid fa-circle-info text-pink-600"></i> bKash পেমেন্ট নির্দেশিকা:',
+        guideDesc: 'বিকাশ অ্যাপ অথবা <strong>*247#</strong> থেকে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা পেমেন্ট সম্পন্ন করার পর আপনার <strong>বিকাশ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করে অর্ডার কনফার্ম করুন।',
+        senderLabel: 'Sender bKash Number (বিকাশ প্রেরক নম্বর) <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'e.g. 01712345678',
+        trxLabel: 'bKash Transaction ID (TrxID) <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'e.g. 9H7X8KL9',
+        notesPlaceholder: 'e.g. Paid from personal bKash number'
+    },
+    nagad: {
+        cardClass: 'relative p-3.5 rounded-2xl border-2 border-orange-500 bg-orange-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-orange-500/20',
+        guideBoxClass: 'p-4 bg-orange-50/90 border border-orange-200 rounded-2xl text-xs text-orange-950 leading-relaxed space-y-1.5 transition-all',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-orange-900',
+        guideTitle: '<i class="fa-solid fa-circle-info text-orange-600"></i> Nagad পেমেন্ট নির্দেশিকা:',
+        guideDesc: 'নগদ অ্যাপ অথবা <strong>*167#</strong> ডায়াল করে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা ক্যাশ আউট সম্পন্ন করার পর আপনার <strong>নগদ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করুন।',
+        senderLabel: 'Sender Nagad Number (নগদ প্রেরক নম্বর) <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'e.g. 01912345678',
+        trxLabel: 'Nagad Transaction ID (TrxID) <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'e.g. 8K4P9LM2',
+        notesPlaceholder: 'e.g. Paid from personal Nagad account'
+    },
+    rocket: {
+        cardClass: 'relative p-3.5 rounded-2xl border-2 border-purple-500 bg-purple-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-purple-500/20',
+        guideBoxClass: 'p-4 bg-purple-50/90 border border-purple-200 rounded-2xl text-xs text-purple-950 leading-relaxed space-y-1.5 transition-all',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-purple-900',
+        guideTitle: '<i class="fa-solid fa-circle-info text-purple-600"></i> Rocket পেমেন্ট নির্দেশিকা:',
+        guideDesc: 'DBBL রকেট অ্যাপ অথবা <strong>*322#</strong> ডায়াল করে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি করার পর আপনার <strong>১২ ডিজিটের রকেট নম্বর</strong> এবং ফিরতি এসএমএসের <strong>TrxID</strong> নিচে পূরণ করুন।',
+        senderLabel: 'Sender Rocket Number (১২ ডিজিট রকেট নম্বর) <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'e.g. 018123456789',
+        trxLabel: 'Rocket Transaction ID (TrxID) <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'e.g. 7X3M9Q1A',
+        notesPlaceholder: 'e.g. Paid from personal Rocket number'
+    },
+    manual: {
+        cardClass: 'relative p-3.5 rounded-2xl border-2 border-blue-600 bg-blue-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-blue-500/20',
+        guideBoxClass: 'p-4 bg-blue-50/90 border border-blue-200 rounded-2xl text-xs text-blue-950 leading-relaxed space-y-1.5 transition-all',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-blue-900',
+        guideTitle: '<i class="fa-solid fa-circle-info text-blue-600"></i> Bank / Card Transfer নির্দেশিকা:',
+        guideDesc: 'আমাদের ব্যাংক একাউন্টে ডিপোজিট বা অনলাইন EFTN / NPSB ট্রান্সফার করে <strong>৳{{ total|floatformat:0 }} BDT</strong> পাঠান। এরপর আপনার প্রেরক ব্যাংক একাউন্ট নম্বর বা নাম এবং <strong>ডিপোজিট রেফারেন্স নম্বর</strong> নিচে পূরণ করুন।',
+        senderLabel: 'Sender Account Name / Number (ব্যাংক অ্যাকাউন্ট / কার্ড প্রেরকের নাম) <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'e.g. Brac Bank A/C / John Doe',
+        trxLabel: 'Deposit Slip / Reference Number <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'e.g. DEP-2026-987654',
+        notesPlaceholder: 'e.g. Transferred via CityTouch App / Bank Branch'
+    }
+};
+
+function selectPaymentGateway(gateway) {
+    const gateways = ['bkash', 'nagad', 'rocket', 'manual'];
+    if (!gateways.includes(gateway)) gateway = 'bkash';
+
+    const defaultCardClass = 'relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group';
+
+    gateways.forEach(g => {
+        const card = document.getElementById(`card-gateway-${g}`);
+        const radio = document.getElementById(`radio-gateway-${g}`);
+        const check = document.getElementById(`check-gateway-${g}`);
+
+        if (card) {
+            card.className = (g === gateway) ? GATEWAY_CONFIG[g].cardClass : defaultCardClass;
+        }
+        if (radio) {
+            radio.checked = (g === gateway);
+        }
+        if (check) {
+            if (g === gateway) {
+                check.classList.remove('hidden');
+                check.classList.add('flex');
+            } else {
+                check.classList.remove('flex');
+                check.classList.add('hidden');
+            }
+        }
+    });
+
+    const conf = GATEWAY_CONFIG[gateway];
+    if (conf) {
+        const guideBox = document.getElementById('gateway-guide-box');
+        const guideTitle = document.getElementById('gateway-guide-title');
+        const guideDesc = document.getElementById('gateway-guide-desc');
+        const labelSender = document.getElementById('label-sender-number');
+        const inputSender = document.getElementById('input-sender-number');
+        const labelTrx = document.getElementById('label-trx-id');
+        const inputTrx = document.getElementById('input-trx-id');
+        const inputNotes = document.getElementById('input-payment-notes');
+
+        if (guideBox) guideBox.className = conf.guideBoxClass;
+        if (guideTitle) {
+            guideTitle.className = conf.guideTitleClass;
+            guideTitle.innerHTML = conf.guideTitle;
+        }
+        if (guideDesc) guideDesc.innerHTML = conf.guideDesc;
+        if (labelSender) labelSender.innerHTML = conf.senderLabel;
+        if (inputSender) inputSender.placeholder = conf.senderPlaceholder;
+        if (labelTrx) labelTrx.innerHTML = conf.trxLabel;
+        if (inputTrx) inputTrx.placeholder = conf.trxPlaceholder;
+        if (inputNotes) inputNotes.placeholder = conf.notesPlaceholder;
     }
 }
 </script>

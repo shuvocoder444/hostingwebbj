@@ -62,10 +62,10 @@ def domain_register_view(request):
 
 
 def domain_transfer_view(request):
-    """Domain Transfer to VeloHoster with 1 Year Free Extension."""
+    """Domain Transfer to VeloHoster with 1 Year Extension."""
     tld_prices = TLDPricing.objects.filter(is_active=True).select_related('registrar').order_by('transfer_price')
     return render(request, 'pages/domain_transfer.html', {
-        'page_title': 'Transfer Your Domain — Zero Downtime & 1-Year Free Renewal',
+        'page_title': 'Transfer Your Domain — Zero Downtime & 1-Year Extension',
         'tld_prices': tld_prices,
     })
 

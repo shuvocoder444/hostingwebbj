@@ -149,7 +149,7 @@ def check_domain_live(domain_name: str) -> DomainLookupResult:
     if whois_server:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(3.5)
+            sock.settimeout(2.0)
             sock.connect((whois_server, 43))
 
             # Verisign exact match query flag
