@@ -65,6 +65,31 @@ def landing_page_view(request):
     return render(request, 'index.html', context)
 
 
+def set_currency_view(request):
+    """
+    Switch active display currency (BDT or USD).
+    Saves to user session and long-lived cookie, then redirects back to previous page.
+    """
+    currency = request.GET.get('currency') or request.POST.get('currency', 'BDT')
+    currency = currency.strip().upper()
+    if currency not in ('BDT', 'USD'):
+        currency = 'BDT'
+    
+    # Save to session
+    request.session['currency'] = currency
+    
+    # Redirect to previous page or home
+    next_url = request.GET.get('next') or request.POST.get('next') or request.META.get('HTTP_REFERER') or '/'
+    # Avoid infinite redirect if next_url is set-currency itself
+    if 'set-currency' in next_url:
+        next_url = '/'
+        
+    response = redirect(next_url)
+    response.set_cookie('currency', currency, max_age=365 * 24 * 3600, samesite='Lax')
+    return response
+
+
+
 @rate_limit(key_prefix='login', max_requests=15, window_seconds=60)
 def login_view(request):
     """

@@ -48,6 +48,7 @@ from core.cart_views import (
     ajax_domain_bulk_search_view,
     ajax_domain_ai_generate_view,
     cart_checkout_view,
+    cart_clear_view,
     cart_complete_order_view,
     cart_configure_view,
     cart_domain_view,
@@ -79,6 +80,7 @@ from core.views import (
     service_detail_view,
     service_request_cancellation_view,
     service_sso_view,
+    set_currency_view,
 )
 
 from django.contrib.sitemaps.views import sitemap
@@ -112,6 +114,7 @@ urlpatterns = [
 
     # ── Client Web UI Pages ───────────────────────────────────────────────────
     path('', landing_page_view, name='landing'),
+    path('set-currency/', set_currency_view, name='set_currency'),
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('logout/', logout_view, name='logout'),
@@ -128,10 +131,15 @@ urlpatterns = [
     # Domains
     path('domain/register/', domain_register_view, name='domain_register'),
     path('register-domain/', domain_register_view),
+    path('domains/pricing/', domain_register_view, name='domain_pricing'),
+    path('all-domains/', domain_register_view),
+    path('domains/', domain_register_view),
     path('domain/transfer/', domain_transfer_view, name='domain_transfer'),
     path('transfer-domain/', domain_transfer_view),
 
     # Hosting Locations & Product Specializations
+    path('hosting/', hosting_singapore_view, name='hosting_all'),
+    path('all-hosting/', hosting_singapore_view),
     path('hosting/singapore-nvme/', hosting_singapore_view, name='hosting_singapore'),
     path('hosting/singapore/', hosting_singapore_view),
     path('hosting/usa-nvme/', hosting_usa_view, name='hosting_usa'),
@@ -153,6 +161,7 @@ urlpatterns = [
 
     # ── Shopping Cart & Multi-Step Ordering Funnel ────────────────────────────
     path('cart/', cart_domain_view, name='cart_domain'),
+    path('cart/clear/', cart_clear_view, name='cart_clear'),
     path('cart/configure/', cart_configure_view, name='cart_configure'),
     path('cart/checkout/', cart_checkout_view, name='cart_checkout'),
     path('cart/complete/', cart_complete_order_view, name='cart_complete_order'),

@@ -70,6 +70,29 @@ def global_brand_context(request):
             host = h
     og_page_url = f"https://{host}{current_path}"
 
+    # ── Currency & Geolocation ──
+    from .currency import get_current_currency, get_client_country, get_exchange_rate
+    current_currency = get_current_currency(request)
+    client_country = get_client_country(request)
+    exchange_rate = get_exchange_rate()
+    is_usd = (current_currency == 'USD')
+    currency_symbol = '$' if is_usd else '৳'
+
+    # ── Shopping Cart State from Session ──
+    cart = {}
+    cart_count = 0
+    if hasattr(request, 'session'):
+        cart = request.session.get('cart', {})
+        has_pkg = bool(cart.get('package_id') and str(cart.get('package_id')).lower() not in ('none', 'null', '', 'clear'))
+        has_dom = bool(cart.get('domain'))
+        dom_opt = cart.get('domain_option', 'register')
+        if has_pkg:
+            cart_count += 1
+        if has_dom and dom_opt in ('register', 'transfer', None):
+            cart_count += 1
+        elif has_dom and dom_opt == 'existing' and not has_pkg:
+            cart_count += 1
+
     return {
         'site_settings': site,
         'SITE_SETTINGS': site,
@@ -95,4 +118,13 @@ def global_brand_context(request):
         'INSTAGRAM_URL': getattr(site, 'instagram_url', ''),
         'TWITTER_URL': getattr(site, 'twitter_url', ''),
         'TELEGRAM_URL': getattr(site, 'telegram_url', ''),
+        'CURRENT_CURRENCY': current_currency,
+        'CURRENCY_SYMBOL': currency_symbol,
+        'IS_USD': is_usd,
+        'IS_BDT': not is_usd,
+        'EXCHANGE_RATE': exchange_rate,
+        'CLIENT_COUNTRY': client_country,
+        'CART_COUNT': cart_count,
+        'CART_SESSION': cart,
     }
+

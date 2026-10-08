@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_tags %}
 
 {% block title %}{{ SITE_TITLE|default:'VeloHoster — World Class Web Hosting, Domains & Cloud Infrastructure' }}{% endblock %}
 
 {% block content %}
-<!-- ─── 1. HERO SECTION (Clean, Modern SaaS with Soft Ambient Auras) ────────── -->
+<!-- ─── 1. HERO SECTION (Clean Enterprise SaaS with Soft Ambient Auras) ────────── -->
 {% if SHOW_HERO_SECTION %}
-<section class="relative pt-12 sm:pt-20 pb-20 sm:pb-28 bg-gradient-to-b from-blue-50/80 via-white to-slate-50/70 border-b border-slate-200/80 overflow-hidden text-slate-900">
-    <!-- Soft Gradient Ambient Auras (Blue, Cyan, Emerald like OS section) -->
+<section class="relative pt-10 sm:pt-16 pb-16 sm:pb-24 bg-gradient-to-b from-blue-50/70 via-white to-slate-50/70 border-b border-slate-200/80 overflow-hidden text-slate-900">
+    <!-- Soft Gradient Ambient Auras -->
     <div class="absolute top-10 left-10 w-[500px] h-[500px] bg-blue-400/15 blur-[140px] rounded-full pointer-events-none"></div>
     <div class="absolute top-20 right-10 w-[500px] h-[500px] bg-cyan-400/15 blur-[140px] rounded-full pointer-events-none"></div>
     <div class="absolute -bottom-10 left-1/3 w-[450px] h-[450px] bg-emerald-400/10 blur-[130px] rounded-full pointer-events-none"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
             <!-- Left Column: Copy & Hero Actions -->
             <div class="lg:col-span-7 text-left space-y-6">
@@ -22,33 +23,33 @@
                     <span class="flex h-2 w-2 rounded-full bg-blue-600 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                     </span>
-                    <span class="tracking-widest uppercase text-[10px] font-bold text-slate-600">Next-Gen Cloud</span>
+                    <span class="tracking-widest uppercase text-[10px] font-bold text-slate-600">Enterprise Cloud</span>
                     <span class="text-slate-300">|</span>
-                    <span class="text-blue-700 font-semibold">NVMe Gen4 + LiteSpeed Enterprise</span>
+                    <span class="text-blue-700 font-semibold">Pure NVMe Gen4 + LiteSpeed Enterprise</span>
                 </div>
 
                 <!-- Main Headline -->
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.12]">
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15] sm:leading-[1.12]">
                     High Performance Web Hosting for <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-800 bg-clip-text text-transparent">Fast Growing Businesses.</span>
                 </h1>
 
                 <!-- Subheadline -->
-                <p class="text-base sm:text-lg text-slate-600 max-w-2xl font-normal leading-relaxed">
-                    Deploy your websites on lightning-fast NVMe cloud hardware. Official cPanel, LiteSpeed LSCache, automated daily backups, and instant bKash/Nagad auto-activation.
+                <p class="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl font-normal leading-relaxed">
+                    Deploy your websites on blazing-fast NVMe cloud servers. Powered by official cPanel, LiteSpeed LSCache, automated daily backups, and instant bKash/Nagad/Card auto-activation.
                 </p>
 
                 <!-- Hero Action Buttons -->
-                <div class="pt-2 flex flex-wrap items-center gap-4">
-                    <a href="#packages" class="px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition shadow-lg shadow-blue-600/25 flex items-center gap-2">
+                <div class="pt-1 flex flex-wrap items-center gap-3.5 sm:gap-4">
+                    <a href="#packages" class="px-6 sm:px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition shadow-lg shadow-blue-600/25 flex items-center gap-2">
                         <i class="fa-solid fa-server"></i> View Hosting Plans
                     </a>
-                    <a href="#domain-search" class="px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-300/80 transition shadow-sm flex items-center gap-2">
+                    <a href="#domain-search" class="px-6 sm:px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm border border-slate-300/80 transition shadow-sm flex items-center gap-2">
                         <i class="fa-solid fa-magnifying-glass text-blue-600"></i> Search Domain
                     </a>
                 </div>
 
                 <!-- Trust Badges -->
-                <div class="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-600 font-medium">
+                <div class="pt-3 flex flex-wrap items-center gap-5 sm:gap-6 text-xs text-slate-600 font-medium">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
                         <span>99.99% Uptime SLA</span>
@@ -64,11 +65,48 @@
                 </div>
             </div>
 
-            <!-- Right Column: Hero Banner GIF -->
+            <!-- Right Column: Hero Banner GIF / Illustration -->
             <div class="lg:col-span-5 flex items-center justify-center">
-                <img src="{% static 'images/banner-3.gif' %}" alt="VeloHoster Cloud Hosting Infrastructure" class="w-full max-w-xl h-auto object-contain select-none pointer-events-none" />
+                <div class="relative w-full max-w-lg">
+                    <img src="{% static 'images/banner-3.gif' %}" alt="VeloHoster Cloud Hosting Infrastructure" class="w-full h-auto object-contain select-none pointer-events-none drop-shadow-2xl" />
+                </div>
             </div>
 
+        </div>
+
+        <!-- ─── Trust Tech Stack Ribbon ─────────────────────────────── -->
+        <div class="mt-12 sm:mt-16 pt-8 border-t border-slate-200/80">
+            <p class="text-center text-[11px] uppercase tracking-widest font-bold text-slate-400 mb-6">
+                Powered by Industry-Leading Infrastructure &amp; Technologies
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6 items-center justify-center opacity-80 hover:opacity-100 transition duration-300">
+                <!-- PureStorage NVMe -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <img src="{% static 'images/images (5).png' %}" alt="PureStorage NVMe Gen4" class="h-6 sm:h-7 w-auto object-contain" />
+                </div>
+                <!-- LiteSpeed -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <img src="{% static 'images/litespeed-logo-square.svg' %}" alt="LiteSpeed Web Server" class="h-6 sm:h-7 w-auto object-contain" />
+                </div>
+                <!-- cPanel -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <span class="font-black text-orange-600 text-sm sm:text-base tracking-wider flex items-center gap-1.5">
+                        <i class="fa-brands fa-cpanel text-xl"></i> cPanel
+                    </span>
+                </div>
+                <!-- BDIX Peering -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <img src="{% static 'images/images (4).png' %}" alt="BDIX Peering" class="h-6 sm:h-7 w-auto object-contain" />
+                </div>
+                <!-- WordPress -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <img src="{% static 'images/wordpress.png' %}" alt="WordPress Ready" class="h-6 sm:h-7 w-auto object-contain" />
+                </div>
+                <!-- Node.js -->
+                <div class="flex items-center justify-center px-4 py-2.5 bg-white/80 rounded-2xl border border-slate-200 shadow-2xs">
+                    <img src="{% static 'images/images (2).png' %}" alt="Node.js Enabled" class="h-6 sm:h-7 w-auto object-contain" />
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -85,17 +123,14 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-8">
-            <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-50 text-cyan-800 border border-cyan-200 inline-flex items-center gap-2 shadow-xs">
-                <i class="fa-solid fa-bolt-lightning text-cyan-600"></i> Multi-TLD Live WHOIS &amp; AI Generator
-            </span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mt-3">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
                 Find, Report &amp; Generate <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-sky-700 bg-clip-text text-transparent">Your Dream Domain</span>
             </h2>
             <p class="mt-2.5 text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
                 Search any name to check availability across all extensions (.com, .net, .xyz, .com.bd, etc.) or let our AI generate catchy, available domain names for your brand.
             </p>
 
-            <!-- Mode Switcher Tabs (Perfect 471px Width, Centered & Clean Grid) -->
+            <!-- Mode Switcher Tabs -->
             <div class="mt-5 sm:mt-6 p-1 rounded-xl sm:rounded-2xl bg-slate-200/80 border border-slate-300/80 shadow-inner w-full max-w-[471px] mx-auto grid grid-cols-3 justify-center gap-1">
                 <button type="button" id="tab-btn-multi" onclick="switchDomainMode('multi')" class="px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-xs cursor-pointer">
                     <i class="fa-solid fa-layer-group text-xs"></i> <span class="truncate">Search TLDs</span>
@@ -109,52 +144,78 @@
             </div>
         </div>
 
-        <!-- MODE 1: MULTI-TLD SEARCH BOX (Sleek & Proportional) -->
-        <div id="domain-mode-multi" class="space-y-4 max-w-4xl mx-auto">
+        <!-- MODE 1: MULTI-TLD SEARCH BOX -->
+        <div id="domain-mode-multi" class="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
             <div class="relative bg-white border-2 border-slate-200/90 hover:border-blue-500/80 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
-                <form id="multi-search-form" onsubmit="handleMultiDomainSearch(event)" class="flex flex-col sm:flex-row gap-2 items-center">
-                    <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-globe text-base text-blue-600"></i>
+                <form id="multi-search-form" onsubmit="handleMultiDomainSearch(event)" class="flex flex-row gap-1.5 sm:gap-2 items-center">
+                    <div class="relative flex-1 min-w-0">
+                        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-globe text-sm sm:text-base text-blue-600"></i>
                         </div>
-                        <input type="text" id="multi-domain-input" placeholder="Type name or brand (e.g. shuvotech, mybrand)..." required autocomplete="off"
-                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
+                        <input type="text" id="multi-domain-input" placeholder="Type name or brand (e.g. shuvotech)..." required autocomplete="off"
+                            class="w-full pl-8 sm:pl-12 pr-2 sm:pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" id="multi-search-btn" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-blue-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                    <button type="submit" id="multi-search-btn" class="px-3.5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-blue-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:scale-95" title="Search All TLDs">
                         <span id="multi-btn-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                        <span id="multi-btn-text"><i class="fa-solid fa-magnifying-glass mr-1 text-xs"></i> Check All TLDs</span>
+                        <span id="multi-btn-text" class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                            <span class="hidden sm:inline font-bold">Check All TLDs</span>
+                        </span>
                     </button>
                 </form>
             </div>
 
-            <!-- Quick TLD Chips -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-xs">
+            <!-- Mobile Quick TLDs (2 Domains: .com, .net + See More Button) -->
+            <div class="flex sm:hidden items-center justify-center gap-2 text-xs pt-0.5">
+                {% for t in tld_prices %}
+                    {% if t.tld == '.com' or t.tld == '.net' %}
+                    <button type="button" onclick="quickFillName('{{ t.tld }}')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 shadow-2xs transition flex items-center gap-1.5 text-xs font-bold cursor-pointer active:scale-95">
+                        <span class="text-slate-900">{{ t.tld }}</span>
+                        <span class="text-blue-600 font-extrabold">{{ CURRENCY_SYMBOL }}{{ t.register_price|currency_val:CURRENT_CURRENCY }}</span>
+                    </button>
+                    {% endif %}
+                {% endfor %}
+                <a href="{% url 'domain_pricing' %}" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-2xs transition flex items-center gap-1 text-xs cursor-pointer active:scale-95 whitespace-nowrap">
+                    <span>See More</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </a>
+            </div>
+
+            <!-- Desktop Quick TLD Chips (Top 6 + See More All Domains) -->
+            <div class="hidden sm:flex flex-wrap items-center justify-start gap-1.5 sm:gap-2 text-xs">
                 <span class="text-slate-500 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mr-1">Popular Extensions:</span>
                 {% for t in tld_prices|slice:":6" %}
                 <button type="button" onclick="quickFillName('{{ t.tld }}')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50 border border-slate-200/90 text-slate-700 shadow-2xs transition flex items-center gap-1.5 text-[11px] cursor-pointer">
                     <span class="font-bold text-slate-900">{{ t.tld }}</span>
-                    <span class="text-blue-600 font-bold">৳{{ t.register_price|floatformat:0 }}</span>
+                    <span class="text-blue-600 font-bold">{{ CURRENCY_SYMBOL }}{{ t.register_price|currency_val:CURRENT_CURRENCY }}</span>
                 </button>
                 {% endfor %}
+                <a href="{% url 'domain_pricing' %}" class="px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-2xs transition flex items-center gap-1.5 text-[11px] cursor-pointer">
+                    <span>See More All Domains</span>
+                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                </a>
             </div>
         </div>
 
-        <!-- MODE 2: AI DOMAIN GENERATOR BOX (Sleek & Proportional) -->
-        <div id="domain-mode-ai" class="space-y-4 max-w-4xl mx-auto hidden">
+        <!-- MODE 2: AI DOMAIN GENERATOR BOX -->
+        <div id="domain-mode-ai" class="space-y-3 sm:space-y-4 max-w-4xl mx-auto hidden">
             <div class="relative bg-white border-2 border-cyan-200 hover:border-cyan-500 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
-                <form id="ai-search-form" onsubmit="handleAIDomainGenerate(event)" class="flex flex-col sm:flex-row gap-2 items-center">
-                    <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-cyan-600">
-                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <form id="ai-search-form" onsubmit="handleAIDomainGenerate(event)" class="flex flex-row gap-1.5 sm:gap-2 items-center">
+                    <div class="relative flex-1 min-w-0">
+                        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-cyan-600">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sm sm:text-base"></i>
                         </div>
-                        <input type="text" id="ai-prompt-input" placeholder="Describe your brand or keywords (e.g. coffee shop in dhaka, python dev agency)..." required autocomplete="off"
-                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
+                        <input type="text" id="ai-prompt-input" placeholder="Describe brand or keywords (e.g. coffee shop, tech agency)..." required autocomplete="off"
+                            class="w-full pl-8 sm:pl-12 pr-2 sm:pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" id="ai-gen-btn" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:opacity-95 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-cyan-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                    <button type="submit" id="ai-gen-btn" class="px-3.5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:opacity-95 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-cyan-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:scale-95" title="Generate with AI">
                         <span id="ai-btn-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                        <span id="ai-btn-text"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-xs"></i> Generate with AI</span>
+                        <span id="ai-btn-text" class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                            <span class="hidden sm:inline font-bold">Generate with AI</span>
+                        </span>
                     </button>
                 </form>
             </div>
@@ -163,46 +224,47 @@
             <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-xs">
                 <span class="text-cyan-800 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mr-1">Try Prompts:</span>
                 <button type="button" onclick="quickFillAIPrompt('Fashion clothing brand BD')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-cyan-50 hover:bg-cyan-100/80 border border-cyan-200 text-cyan-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-shirt text-cyan-600"></i> Fashion clothing brand BD
+                    <i class="fa-solid fa-shirt text-cyan-600"></i> Fashion brand
                 </button>
                 <button type="button" onclick="quickFillAIPrompt('Organic grocery food Dhaka')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-leaf text-emerald-600"></i> Organic grocery Dhaka
+                    <i class="fa-solid fa-leaf text-emerald-600"></i> Organic grocery
                 </button>
                 <button type="button" onclick="quickFillAIPrompt('SaaS tech startup')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-blue-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-rocket text-blue-600"></i> SaaS tech startup
+                    <i class="fa-solid fa-rocket text-blue-600"></i> Tech startup
                 </button>
             </div>
         </div>
 
-        <!-- MODE 3: DOMAIN TRANSFER BOX (Sleek & Proportional) -->
-        <div id="domain-mode-transfer" class="space-y-4 max-w-4xl mx-auto hidden">
+        <!-- MODE 3: DOMAIN TRANSFER BOX -->
+        <div id="domain-mode-transfer" class="space-y-3 sm:space-y-4 max-w-4xl mx-auto hidden">
             <div class="relative bg-white border-2 border-purple-200 hover:border-purple-500 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
-                <form action="{% url 'cart_domain' %}" method="GET" class="flex flex-col sm:flex-row gap-2 items-center">
+                <form action="{% url 'cart_domain' %}" method="GET" class="flex flex-row gap-1.5 sm:gap-2 items-center">
                     <input type="hidden" name="domain_option" value="transfer">
-                    <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-purple-600">
-                            <i class="fa-solid fa-arrow-right-arrow-left text-base"></i>
+                    <div class="relative flex-1 min-w-0">
+                        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-purple-600">
+                            <i class="fa-solid fa-arrow-right-arrow-left text-sm sm:text-base"></i>
                         </div>
-                        <input type="text" name="domain" id="transfer-domain-input" placeholder="Enter domain name to transfer (e.g. mycompany.com)..." required autocomplete="off"
-                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
+                        <input type="text" name="domain" id="transfer-domain-input" placeholder="Domain name to transfer (e.g. brand.com)..." required autocomplete="off"
+                            class="w-full pl-8 sm:pl-12 pr-2 sm:pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-purple-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
-                        <i class="fa-solid fa-arrow-right-arrow-left mr-1 text-xs"></i> Transfer Domain
+                    <button type="submit" class="px-3.5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-purple-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:scale-95" title="Transfer Domain">
+                        <i class="fa-solid fa-arrow-right-arrow-left text-sm"></i>
+                        <span class="hidden sm:inline font-bold">Transfer Domain</span>
                     </button>
                 </form>
             </div>
 
             <!-- Transfer Features Row -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
-                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-xs">
+                <div class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
                     <i class="fa-solid fa-arrows-rotate text-purple-600"></i> +1 Year Extension Included
                 </div>
-                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
-                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Zero Downtime Guarantee
+                <div class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
+                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Zero Downtime Migration
                 </div>
-                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
-                    <i class="fa-solid fa-shield-halved text-blue-600"></i> Free DNS &amp; Theft Protection
+                <div class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
+                    <i class="fa-solid fa-shield-halved text-blue-600"></i> Free DNS Management
                 </div>
             </div>
         </div>
@@ -211,7 +273,6 @@
         <div id="domain-results-area" class="mt-8 hidden">
             <!-- Injected via JavaScript -->
         </div>
-
 
     </div>
 </section>
@@ -222,20 +283,20 @@
 <section id="packages" class="py-20 sm:py-28 bg-[#f8fafc] border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-14">
-            <span class="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">Affordable & Scalable</span>
+            <span class="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200 shadow-2xs">Affordable &amp; Scalable</span>
             <h2 class="text-3xl sm:text-5xl font-black text-slate-900 mt-3 tracking-tight">
                 Choose Your Hosting Package
             </h2>
             <p class="mt-3 text-sm sm:text-base text-slate-600">
-                All plans include pure NVMe storage, cPanel control panel, free AutoSSL, LiteSpeed Enterprise caching, and 24/7 dedicated support.
+                All plans include pure NVMe storage, official cPanel control panel, free AutoSSL, LiteSpeed Enterprise caching, and 24/7 dedicated support.
             </p>
 
             <!-- Dynamic Billing Term Switcher -->
             <div class="mt-8 inline-flex items-center p-1.5 rounded-2xl bg-slate-200/70 border border-slate-300/80 text-xs font-bold shadow-inner">
-                <button type="button" onclick="setBillingCycle('monthly')" id="btn-cycle-monthly" class="px-5 py-2 rounded-xl bg-white text-slate-900 shadow-sm transition">
+                <button type="button" onclick="setBillingCycle('monthly')" id="btn-cycle-monthly" class="px-5 py-2 rounded-xl bg-white text-slate-900 shadow-sm transition cursor-pointer">
                     Monthly Billing
                 </button>
-                <button type="button" onclick="setBillingCycle('annual')" id="btn-cycle-annual" class="px-5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                <button type="button" onclick="setBillingCycle('annual')" id="btn-cycle-annual" class="px-5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer">
                     <span>Annual Billing</span>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Save 20%</span>
                 </button>
@@ -276,19 +337,19 @@
                     <!-- Price Box -->
                     <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                         <div class="flex items-baseline gap-1 price-monthly-display">
-                            <span class="text-lg font-bold text-blue-600">৳</span>
-                            <span class="text-4xl font-black text-slate-900">{{ pkg.monthly_price|floatformat:0 }}</span>
+                            <span class="text-lg font-bold text-blue-600">{{ CURRENCY_SYMBOL }}</span>
+                            <span class="text-4xl font-black text-slate-900">{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
                             <span class="text-xs text-slate-500 font-medium">/ month</span>
                         </div>
                         <div class="hidden items-baseline gap-1 price-annual-display">
-                            <span class="text-lg font-bold text-emerald-600">৳</span>
+                            <span class="text-lg font-bold text-emerald-600">{{ CURRENCY_SYMBOL }}</span>
                             <span class="text-4xl font-black text-slate-900">
-                                {% if pkg.annual_price %}{{ pkg.annual_price|floatformat:0 }}{% else %}{{ pkg.monthly_price|floatformat:0 }}{% endif %}
+                                {% if pkg.annual_price %}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}{% else %}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}{% endif %}
                             </span>
                             <span class="text-xs text-slate-500 font-medium">/ year</span>
                         </div>
                         <div class="text-[11px] text-slate-400 mt-1 font-medium">
-                            Instant automated setup with bKash, Nagad & Cards
+                            Instant automated setup with {% if IS_USD %}Crypto, Binance &amp; Cards{% else %}bKash, Nagad, Crypto &amp; Cards{% endif %}
                         </div>
                     </div>
 
@@ -296,7 +357,7 @@
                     <ul class="space-y-3 text-xs text-slate-700 mb-8 font-medium">
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            <span><strong>{{ pkg.disk_quota_mb }} MB</strong> NVMe SSD Storage</span>
+                            <span><strong>{{ pkg.disk_quota_mb }} MB</strong> Pure NVMe Storage</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
@@ -306,11 +367,11 @@
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            <span><strong>{{ pkg.max_databases }}</strong> MySQL Database(s)</span>
+                            <span><strong>{{ pkg.max_databases }}</strong> MySQL Database(s) + phpMyAdmin</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            <span><strong>{{ pkg.max_email_accounts }}</strong> Business Email Account(s)</span>
+                            <span><strong>{{ pkg.max_email_accounts }}</strong> Professional Email Account(s)</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
@@ -318,7 +379,7 @@
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            <span><strong>cPanel Control Panel</strong> + Softaculous 1-Click</span>
+                            <span><strong>Official cPanel</strong> + Softaculous 1-Click</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
@@ -326,14 +387,14 @@
                         </li>
                         <li class="flex items-center gap-2.5">
                             <i class="fa-solid fa-location-dot text-blue-600 text-sm"></i>
-                            <span>Location: <strong>Singapore / Germany / BDIX BD</strong></span>
+                            <span>Location: <strong>Singapore / USA / BDIX BD</strong></span>
                         </li>
                     </ul>
                 </div>
 
                 <!-- Action CTA Button -->
                 <div>
-                    <a href="{% url 'cart_domain' %}?package={{ pkg.id }}" class="w-full py-4 px-4 rounded-2xl font-bold text-sm text-center block transition shadow-md
+                    <a href="{% url 'cart_domain' %}?package={{ pkg.id }}" class="w-full py-4 px-4 rounded-2xl font-bold text-sm text-center block transition shadow-md cursor-pointer
                         {% if pkg.is_featured or forloop.counter == 2 %}
                         bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30
                         {% else %}
@@ -351,63 +412,225 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- See More All Hosting Plans CTA Button -->
+        <div class="mt-14 text-center">
+            <a href="{% url 'hosting_singapore' %}" class="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-extrabold text-sm sm:text-base transition shadow-xl shadow-blue-500/25 transform hover:-translate-y-0.5 cursor-pointer">
+                <i class="fa-solid fa-server text-xs"></i>
+                <span>See More All Hosting Plans</span>
+                <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+            </a>
+        </div>
     </div>
 </section>
 
-<!-- ─── 4. CPANEL & CONTROL PANEL PREVIEW (Enterprise Deep Navy) ──────────── -->
-<section class="py-20 bg-[#040d1a] text-white relative overflow-hidden border-b border-cyan-500/20">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(6,182,212,0.12),_transparent_50%)] pointer-events-none"></div>
+
+
+<!-- ─── 4. ENTERPRISE CORE FEATURES (Why Choose VeloHoster - Rich Visual Grid) ── -->
+<section class="py-20 sm:py-28 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-200 shadow-2xs">Engineered For Performance</span>
+            <h2 class="text-3xl sm:text-5xl font-black text-slate-900 mt-3 tracking-tight">
+                Why Thousands Choose VeloHoster
+            </h2>
+            <p class="mt-3 text-sm sm:text-base text-slate-600">
+                We combine industry-leading enterprise cloud hardware, ultra-fast caching technology, and direct localized optical network peering.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Feature 1: PureStorage NVMe Gen4 Storage -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-blue-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/images (5).png' %}" alt="PureStorage NVMe Gen4" class="max-h-12 sm:max-h-14 w-auto object-contain" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">PureStorage NVMe Gen4 SSD</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Industry-grade Enterprise NVMe Gen4 arrays delivering up to 7,000 MB/s read/write speeds. Database queries run up to 10x faster than standard SSD storage.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-600">
+                    <i class="fa-solid fa-bolt"></i> <span>10x Faster Read/Write Speeds</span>
+                </div>
+            </div>
+
+            <!-- Feature 2: LiteSpeed Enterprise + LSCache Turbo -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-emerald-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/litespeed-logo-square.svg' %}" alt="LiteSpeed Web Server" class="max-h-14 sm:max-h-16 w-auto object-contain" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">LiteSpeed + LSCache Turbo</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Full LiteSpeed Enterprise web server license with built-in LSCache caching plugin. Delivers instant static &amp; dynamic page caching for seamless traffic surges.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-600">
+                    <i class="fa-solid fa-rocket"></i> <span>Handles 10k+ Concurrent Visitors</span>
+                </div>
+            </div>
+
+            <!-- Feature 3: Singapore & Direct BDIX Peering -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-cyan-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/images (4).png' %}" alt="BDIX Bangladesh Peering" class="max-h-12 sm:max-h-14 w-auto object-contain" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">Singapore &amp; BDIX Direct Peering</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Direct optical connection to Bangladesh Internet Exchange (BDIX) with ultra-low &lt;5ms local latency and 30ms regional routing across South Asia.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-cyan-700">
+                    <i class="fa-solid fa-signal"></i> <span>Sub-5ms Bangladesh Optical Latency</span>
+                </div>
+            </div>
+
+            <!-- Feature 4: WordPress & Softaculous 1-Click Apps -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-amber-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/wordpress.png' %}" alt="WordPress Logo" class="max-h-14 sm:max-h-16 w-auto object-contain" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">1-Click WordPress &amp; 400+ Apps</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Install WordPress, WooCommerce, Laravel, Joomla, and 400+ applications in under 10 seconds via Softaculous. Includes automated updates and cloning.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-600">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span>10-Second Auto Installation</span>
+                </div>
+            </div>
+
+            <!-- Feature 5: Professional Business Email Accounts -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-purple-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/depositphotos_40946699-stock-photo-blue-e-mail.jpg' %}" alt="Business Email Icon" class="max-h-14 sm:max-h-16 w-auto rounded-xl object-contain shadow-2xs" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">Custom Business Email</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Build customer trust with custom domain email addresses (info@yourdomain.com). Includes advanced anti-spam filters, SPF/DKIM authentication, and Webmail.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-600">
+                    <i class="fa-solid fa-shield-halved"></i> <span>99.9% Spam Free &amp; Clean Inbox</span>
+                </div>
+            </div>
+
+            <!-- Feature 6: 24/7 Human Technical Support -->
+            <div class="p-8 rounded-3xl bg-slate-50/70 border border-slate-200 hover:bg-white hover:border-rose-400 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between text-center">
+                <div>
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center p-3.5 group-hover:scale-110 group-hover:shadow-md transition duration-300">
+                        <img src="{% static 'images/17373262.png' %}" alt="24/7 Customer Support Headset" class="max-h-14 sm:max-h-16 w-auto object-contain" />
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2.5">24/7 Dedicated Human Support</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Our expert systems engineers are available 24/7/365 via WhatsApp Live Chat and support tickets with average reply times under 15 minutes.
+                    </p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center gap-2 text-xs font-bold text-rose-600">
+                    <i class="fa-brands fa-whatsapp text-emerald-500 text-sm"></i> <span>WhatsApp &amp; Ticket Live Assistance</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ─── 5. CPANEL & CONTROL PANEL PREVIEW (Enterprise Deep Navy Showcase) ──── -->
+<section class="py-20 sm:py-28 bg-[#040d1a] text-white relative overflow-hidden border-b border-cyan-500/20">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(6,182,212,0.15),_transparent_55%)] pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] pointer-events-none"></div>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
+            <!-- Left Info Column -->
             <div class="lg:col-span-5 space-y-6">
                 <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-cyan-300 border border-cyan-500/30">
                     Industry Leading Control
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                    Full Control with Modern cPanel & 1-Click Automation
+                    Manage Everything with Official cPanel &amp; 1-Click Tools
                 </h2>
                 <p class="text-sm text-slate-300 leading-relaxed">
-                    Manage your websites, MySQL databases, professional business emails, DNS records, and SSL certificates with the world's most trusted hosting control panel.
+                    Enjoy total simplicity with the world's #1 web hosting control panel. Manage files, MySQL databases, custom domain emails, Node.js apps, and security certificates seamlessly.
                 </p>
 
-                <div class="space-y-3.5 pt-2">
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5 border border-blue-500/30">
-                            <i class="fa-solid fa-bolt text-sm"></i>
+                <!-- Detailed cPanel Capabilities List -->
+                <div class="space-y-4 pt-2">
+                    <!-- Softaculous 1-Click -->
+                    <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                        <div class="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/30">
+                            <i class="fa-solid fa-cubes text-base"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-white">Softaculous 1-Click Installer</h4>
-                            <p class="text-xs text-slate-400">Install WordPress, WooCommerce, Laravel, and 400+ scripts in 10 seconds.</p>
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>Softaculous 1-Click Installer</span>
+                                <img src="{% static 'images/wordpress.png' %}" alt="WordPress" class="h-3.5 w-auto" />
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Deploy WordPress, WooCommerce, Joomla, and 400+ scripts in one click.</p>
                         </div>
                     </div>
                     
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
-                            <i class="fa-solid fa-lock text-sm"></i>
+                    <!-- MySQL & phpMyAdmin -->
+                    <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
+                            <img src="{% static 'images/PhpMyAdmin_logo.svg' %}" alt="phpMyAdmin" class="h-4 w-auto" />
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-white">Free Lifetime AutoSSL</h4>
-                            <p class="text-xs text-slate-400">Automated SSL certificates for all your domains and subdomains.</p>
+                            <h4 class="text-sm font-bold text-white">MySQL &amp; phpMyAdmin Manager</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Easily create databases, import SQL dumps, and manage tables securely.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5 border border-cyan-500/30">
-                            <i class="fa-solid fa-terminal text-sm"></i>
+                    <!-- Node.js & Multi-PHP Selector -->
+                    <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                            <img src="{% static 'images/images (2).png' %}" alt="Node.js" class="h-4 w-auto" />
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-white">Multiple PHP Selectors (7.4 to 8.4)</h4>
-                            <p class="text-xs text-slate-400">Switch PHP versions, extensions, and memory limits anytime with one click.</p>
+                            <h4 class="text-sm font-bold text-white">Node.js, Python &amp; PHP Selector (7.4 to 8.4)</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Switch PHP versions, extensions, and deploy Node.js / Python apps with ease.</p>
+                        </div>
+                    </div>
+
+                    <!-- File Manager & AutoSSL -->
+                    <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/30">
+                            <i class="fa-solid fa-lock text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">Web File Manager &amp; Lifetime AutoSSL</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Instant browser file uploads, extraction, and automated SSL for all domains.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- cPanel Mockup Image -->
+            <!-- Right cPanel Mockup Image Showcase -->
             <div class="lg:col-span-7">
-                <div class="rounded-3xl p-3 bg-gradient-to-b from-white/10 to-white/5 border border-cyan-500/20 shadow-2xl backdrop-blur-md">
-                    <img src="{% static 'images/cpanel-mockup.svg' %}" alt="cPanel Control Panel Mockup" class="w-full h-auto rounded-2xl" />
+                <div class="rounded-3xl p-3 sm:p-4 bg-gradient-to-b from-white/10 to-white/5 border border-cyan-500/30 shadow-2xl backdrop-blur-md relative group">
+                    <!-- Real High-Res cPanel Image -->
+                    <img src="{% static 'images/cpanel.webp' %}" alt="Official cPanel Dashboard Preview" class="w-full h-auto rounded-2xl shadow-xl border border-white/10 group-hover:scale-[1.01] transition duration-500" />
+                    
+                    <!-- Floating Feature Pill 1 -->
+                    <div class="absolute -bottom-3 -left-3 sm:bottom-6 sm:left-6 px-4 py-2 rounded-xl bg-[#0b1b36]/90 border border-cyan-500/40 text-xs font-bold text-white shadow-xl flex items-center gap-2 backdrop-blur-md">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                        <span>100% Genuine cPanel License</span>
+                    </div>
+
+                    <!-- Floating Feature Pill 2 -->
+                    <div class="absolute -top-3 -right-3 sm:top-6 sm:right-6 px-4 py-2 rounded-xl bg-[#0b1b36]/90 border border-emerald-500/40 text-xs font-bold text-white shadow-xl flex items-center gap-2 backdrop-blur-md">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i>
+                        <span>LiteSpeed LSCache Plugin</span>
+                    </div>
                 </div>
             </div>
 
@@ -417,180 +640,18 @@
 
 
 
-<!-- ─── 6. OUR SERVER LOCATIONS (Curved 3D Globe with Pulsing Beacons) ── -->
-{% comment %} <section id="datacenters" class="py-20 sm:py-28 bg-white relative overflow-hidden">
-    <!-- Soft Gradient Auras -->
-    <div class="absolute top-0 left-0 w-96 h-96 bg-emerald-500/10 blur-[140px] rounded-full pointer-events-none"></div>
-    <div class="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 blur-[140px] rounded-full pointer-events-none"></div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <!-- Top Pill Badge -->
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 mb-4 shadow-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="tracking-wider uppercase text-[11px]">GLOBAL CLOUD &amp; BDIX NETWORK</span>
-        </div>
-
-        <!-- Headline: Our Server Locations -->
-        <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Our <span class="text-emerald-500">Server</span> <span class="text-rose-500">Locations</span>
-        </h2>
-        <p class="mt-3 text-sm sm:text-base text-slate-500 max-w-2xl mx-auto font-medium">
-            Deploy in high-speed cloud datacenters across Asia, Europe, Americas, and direct sub-5ms Bangladesh BDIX optical peering.
-        </p>
-
-        <!-- Interactive Map Container with Pulsing Location Pins -->
-        <div class="mt-12 relative max-w-6xl mx-auto rounded-3xl p-4 sm:p-8 bg-gradient-to-b from-white to-slate-50 border border-slate-200 shadow-xl overflow-hidden">
-            <div class="relative w-full overflow-hidden">
-                <img src="{% static 'images/curved-world-map.svg' %}" alt="Our Server Locations Map" class="w-full h-auto select-none" />
-
-                <!-- 1. USA (Dallas/NY) Pin -->
-                <div class="absolute top-[48%] left-[23%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-rose-400 opacity-40"></span>
-                        <div class="w-7 h-7 rounded-full bg-white border-2 border-rose-500 shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            US
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-[10px] sm:text-[11px] font-extrabold whitespace-nowrap shadow-md group-hover:bg-rose-600 transition">
-                        USA (Dallas/NY)
-                    </span>
-                </div>
-
-                <!-- 2. São Paulo (BR) Pin -->
-                <div class="absolute top-[75%] left-[28%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer hidden sm:flex">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-6 w-6 rounded-full bg-slate-400 opacity-30"></span>
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-amber-500 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            BR
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-800 text-white text-[9px] font-bold whitespace-nowrap shadow-md">
-                        São Paulo
-                    </span>
-                </div>
-
-                <!-- 3. UK (London) Pin -->
-                <div class="absolute top-[34%] left-[43%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-7 w-7 rounded-full bg-blue-400 opacity-40"></span>
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-blue-600 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            GB
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold whitespace-nowrap shadow-md group-hover:bg-blue-600 transition">
-                        UK (London)
-                    </span>
-                </div>
-
-                <!-- 4. Frankfurt (DE) Pin -->
-                <div class="absolute top-[40%] left-[49%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-7 w-7 rounded-full bg-indigo-400 opacity-40"></span>
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-indigo-600 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            DE
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold whitespace-nowrap shadow-md group-hover:bg-indigo-600 transition">
-                        Frankfurt
-                    </span>
-                </div>
-
-                <!-- 5. Johannesburg (ZA) Pin -->
-                <div class="absolute top-[72%] left-[49%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer hidden md:flex">
-                    <div class="relative flex items-center justify-center">
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-slate-500 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10">
-                            ZA
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-800 text-white text-[9px] font-bold whitespace-nowrap shadow-md">
-                        Johannesburg
-                    </span>
-                </div>
-
-                <!-- 6. Mumbai (IN) Pin -->
-                <div class="absolute top-[52%] left-[61%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer hidden sm:flex">
-                    <div class="relative flex items-center justify-center">
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-amber-500 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10">
-                            IN
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-800 text-white text-[9px] font-bold whitespace-nowrap shadow-md">
-                        Mumbai
-                    </span>
-                </div>
-
-                <!-- 7. DHAKA (BDIX) <5ms Pin (SPECIAL HIGHLIGHTED BEACON) -->
-                <div class="absolute top-[54%] left-[67%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer z-20">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-10 w-10 rounded-full bg-emerald-500 opacity-60"></span>
-                        <span class="animate-pulse absolute inline-flex h-7 w-7 rounded-full bg-emerald-400 opacity-40"></span>
-                        <div class="w-8 h-8 rounded-full bg-emerald-600 border-2 border-white shadow-xl flex items-center justify-center text-xs font-black text-white relative z-10 group-hover:scale-125 transition duration-300">
-                            BD
-                        </div>
-                    </div>
-                    <span class="mt-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] sm:text-xs font-black whitespace-nowrap shadow-lg flex items-center gap-1.5 border border-emerald-400">
-                        <i class="fa-solid fa-bolt text-yellow-300 text-[10px]"></i> Dhaka (BDIX) &lt;5ms
-                    </span>
-                </div>
-
-                <!-- 8. Singapore (APAC) Pin -->
-                <div class="absolute top-[68%] left-[71%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer z-20">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-rose-400 opacity-50"></span>
-                        <div class="w-7 h-7 rounded-full bg-white border-2 border-rose-500 shadow-md flex items-center justify-center text-[10px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            SG
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-[10px] sm:text-[11px] font-extrabold whitespace-nowrap shadow-md group-hover:bg-rose-600 transition">
-                        Singapore (APAC)
-                    </span>
-                </div>
-
-                <!-- 9. Tokyo (JP) Pin -->
-                <div class="absolute top-[48%] left-[78%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer hidden sm:flex">
-                    <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-7 w-7 rounded-full bg-rose-400 opacity-40"></span>
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-rose-500 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10 group-hover:scale-125 transition duration-300">
-                            JP
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold whitespace-nowrap shadow-md">
-                        Tokyo
-                    </span>
-                </div>
-
-                <!-- 10. Sydney (AU) Pin -->
-                <div class="absolute top-[80%] left-[80%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer hidden md:flex">
-                    <div class="relative flex items-center justify-center">
-                        <div class="w-6 h-6 rounded-full bg-white border-2 border-emerald-500 shadow-md flex items-center justify-center text-[9px] font-bold text-slate-800 relative z-10">
-                            AU
-                        </div>
-                    </div>
-                    <span class="mt-1 px-2 py-0.5 rounded-full bg-slate-800 text-white text-[9px] font-bold whitespace-nowrap shadow-md">
-                        Sydney
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section> {% endcomment %}
-
-<!-- ─── 7. SUPPORTED OPERATING SYSTEMS (VPS & Cloud System Support) ──────── -->
-<section id="operating-systems" class="py-20 sm:py-24 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/70 relative overflow-hidden border-t border-slate-200">
-    <!-- Ambient aura -->
-    <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-    <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 bg-rose-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-
+<!-- ─── 6. SUPPORTED OPERATING SYSTEMS (VPS & Cloud System Support) ──────── -->
+<section id="operating-systems" class="py-20 sm:py-24 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/70 relative overflow-hidden border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <!-- Top Pill Badge -->
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 mb-4 shadow-xs">
             <i class="fa-solid fa-leaf text-emerald-500 text-xs"></i>
-            <span class="tracking-wider uppercase text-[11px]">VPS SYSTEM SUPPORT</span>
+            <span class="tracking-wider uppercase text-[11px]">VPS &amp; CLOUD SYSTEM SUPPORT</span>
         </div>
 
         <!-- Headline: Supported Operating Systems -->
         <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Supported <span class="text-emerald-500">Operating</span> <span class="text-rose-500">Systems</span>
+            Supported <span class="text-emerald-600">Operating</span> <span class="text-rose-500">Systems</span>
         </h2>
         <p class="mt-3 text-sm sm:text-base text-slate-500 max-w-2xl mx-auto font-medium">
             Deploy your Cloud VPS with enterprise Linux distributions and modern web control panels in one click.
@@ -598,14 +659,13 @@
 
         <!-- OS 5-Card Grid -->
         <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            
             <!-- Card 1: AlmaLinux 9.7 -->
             <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group">
                 <div class="w-20 h-20 mb-5 flex items-center justify-center group-hover:scale-110 transition duration-300">
                     <img src="{% static 'images/os-almalinux.svg' %}" alt="AlmaLinux 9.7 Logo" class="w-16 h-16 object-contain" />
                 </div>
                 <h3 class="text-base font-bold text-slate-900 group-hover:text-emerald-600 transition">AlmaLinux 9.7</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Enterprise-focused Linux environment.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Enterprise-grade RHEL compatible Linux distribution.</p>
             </div>
 
             <!-- Card 2: Rocky Linux 9.6 -->
@@ -614,7 +674,7 @@
                     <img src="{% static 'images/os-rockylinux.svg' %}" alt="Rocky Linux 9.6 Logo" class="w-16 h-16 object-contain" />
                 </div>
                 <h3 class="text-base font-bold text-slate-900 group-hover:text-rose-600 transition">Rocky Linux 9.6</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Stable Linux platform for server workloads.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Rock-solid stability for mission-critical enterprise workloads.</p>
             </div>
 
             <!-- Card 3: Ubuntu 24.04 LTS -->
@@ -623,7 +683,7 @@
                     <img src="{% static 'images/os-ubuntu.svg' %}" alt="Ubuntu 24.04 LTS Logo" class="w-16 h-16 object-contain" />
                 </div>
                 <h3 class="text-base font-bold text-slate-900 group-hover:text-amber-600 transition">Ubuntu 24.04 LTS</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Long-term support for modern applications.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Long-Term Support for modern cloud &amp; container apps.</p>
             </div>
 
             <!-- Card 4: Webuzo AlmaLinux 9.8 -->
@@ -632,7 +692,7 @@
                     <img src="{% static 'images/os-webuzo-alma.svg' %}" alt="Webuzo AlmaLinux 9.8 Logo" class="w-16 h-16 object-contain" />
                 </div>
                 <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-600 transition">Webuzo AlmaLinux 9.8</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Webuzo control panel with an AlmaLinux base.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Turnkey Webuzo panel on high-security AlmaLinux base.</p>
             </div>
 
             <!-- Card 5: Webuzo Ubuntu 24.04 -->
@@ -641,49 +701,15 @@
                     <img src="{% static 'images/os-webuzo-ubuntu.svg' %}" alt="Webuzo Ubuntu 24.04 Logo" class="w-16 h-16 object-contain" />
                 </div>
                 <h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition">Webuzo Ubuntu 24.04</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Webuzo control panel on Ubuntu.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed">Modern web panel setup with popular Ubuntu ecosystem.</p>
             </div>
-
         </div>
     </div>
 </section>
 
-{% comment %} <!-- ─── 7. FREE WEBSITE MIGRATION (High Conversion) ──────────────────────── -->
-<section class="py-16 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl">
-            <div class="max-w-xl">
-                <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold uppercase tracking-wider border border-indigo-500/30">Hassle-Free Switch</span>
-                <h3 class="text-2xl sm:text-3xl font-black text-white mt-3">
-                    Switching from another host? We will migrate your website for FREE!
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
-                    Our technical migration engineers will transfer all your WordPress files, cPanel data, MySQL databases, and email inboxes with <strong>Zero Downtime Guaranteed</strong>.
-                </p>
-                <div class="mt-6 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-200">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-400"></i> 100% Free Service</span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-400"></i> Zero Downtime</span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-400"></i> Fast Turnaround</span>
-                </div>
-                <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="https://wa.me/{{ WHATSAPP_NUMBER }}?text=Hello%20Support,%20I%20want%20to%20request%20a%20free%20website%20migration." target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition shadow-md flex items-center gap-2">
-                        <i class="fa-brands fa-whatsapp text-base"></i> Request Free Migration
-                    </a>
-                    <a href="{% url 'contact_us' %}" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/15 transition flex items-center gap-2">
-                        <i class="fa-solid fa-headset text-indigo-400"></i> Contact Support
-                    </a>
-                </div>
-            </div>
-            
-            <div class="w-full lg:w-96 shrink-0">
-                <img src="{% static 'images/migration-transfer.svg' %}" alt="Zero Downtime Website Migration" class="w-full h-auto rounded-2xl" />
-            </div>
-        </div>
-    </div>
-</section> {% endcomment %}
 
 
-<!-- ─── 9. CALL TO ACTION BANNER ────────────────────────────────────────── -->
+<!-- ─── 7. CALL TO ACTION BANNER ────────────────────────────────────────── -->
 <section class="w-full bg-gradient-to-r from-[#06142a] via-[#092248] to-[#030a16] text-white relative overflow-hidden py-16 sm:py-20 border-t border-cyan-500/20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <span class="px-3.5 py-1.5 rounded-full bg-cyan-500/15 text-cyan-300 text-[11px] font-bold uppercase tracking-wider border border-cyan-500/30 inline-block">
@@ -693,7 +719,7 @@
             Launch Your Website on {{ COMPANY_NAME|default:'VeloHoster' }} Today
         </h2>
         <p class="mt-4 text-sm text-cyan-100 max-w-xl mx-auto leading-relaxed">
-            Join thousands of businesses powered by next-generation NVMe cloud servers, instant Bangladeshi payment automation, and 24/7 dedicated support.
+            Join thousands of businesses powered by next-generation NVMe cloud servers, instant payment automation, and 24/7 dedicated support.
         </p>
         <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-slate-950 font-black text-sm hover:bg-slate-50 transition shadow-lg flex items-center justify-center gap-2">
@@ -734,6 +760,23 @@
             annualDisplays.forEach(el => el.classList.add('hidden'));
             annualDisplays.forEach(el => el.classList.remove('flex'));
             monthlyDisplays.forEach(el => el.classList.remove('hidden'));
+        }
+    }
+
+    // ─── FAQ Accordion Toggle ────────────────────────────────────────────────
+    function toggleFaq(faqId, iconId) {
+        const faq = document.getElementById(faqId);
+        const icon = document.getElementById(iconId);
+        if (faq) {
+            const isHidden = faq.classList.contains('hidden');
+            faq.classList.toggle('hidden');
+            if (icon) {
+                if (isHidden) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
         }
     }
 
@@ -793,6 +836,21 @@
         if (input) {
             input.value = text;
             handleAIDomainGenerate();
+        }
+    }
+
+    // ─── DYNAMIC CLIENT CURRENCY CONFIGURATION ──────────────────────────────
+    const CURRENCY_SYMBOL = '{{ CURRENCY_SYMBOL }}';
+    const CURRENT_CURRENCY = '{{ CURRENT_CURRENCY }}';
+    const EXCHANGE_RATE = parseFloat('{{ EXCHANGE_RATE }}') || 120.0;
+
+    function formatMoney(amountBdt) {
+        const num = parseFloat(amountBdt) || 0;
+        if (CURRENT_CURRENCY === 'USD') {
+            const usd = (num / EXCHANGE_RATE).toFixed(2);
+            return `$${usd}`;
+        } else {
+            return `৳${Math.round(num).toLocaleString()}`;
         }
     }
 
@@ -896,7 +954,7 @@
                     <div class="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-200">
                         <div class="text-left sm:text-right">
                             <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">1st Year Price</span>
-                            <span class="text-2xl font-black ${primary.is_available ? 'text-emerald-600' : 'text-slate-700'} font-mono">৳${parseFloat(primary.price).toLocaleString()}</span>
+                            <span class="text-2xl font-black ${primary.is_available ? 'text-emerald-600' : 'text-slate-700'} font-mono">${formatMoney(primary.price)}</span>
                         </div>
                         ${primary.is_available ? `
                             <a href="{% url 'cart_domain' %}?domain=${encodeURIComponent(primary.domain)}" class="px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-lg shadow-emerald-600/30 flex items-center gap-2 whitespace-nowrap">
@@ -940,7 +998,7 @@
                                                 ${item.is_available ? 'Available' : 'Taken'}
                                             </span>
                                         </div>
-                                        <span class="text-[11px] text-blue-600 font-bold font-mono block mt-0.5">৳${parseFloat(item.price).toLocaleString()} / yr</span>
+                                        <span class="text-[11px] text-blue-600 font-bold font-mono block mt-0.5">${formatMoney(item.price)} / yr</span>
                                     </div>
                                 </div>
 
@@ -1026,24 +1084,24 @@
             const res = await fetch(url);
             const data = await res.json();
 
-            if (!data.success || !data.results || data.results.length === 0) {
+            if (!data.success || !data.suggestions || data.suggestions.length === 0) {
                 resultsArea.innerHTML = `
                     <div class="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center shadow-sm">
                         <i class="fa-solid fa-circle-exclamation text-lg text-rose-500 mb-2 block"></i>
-                        ${data.message || 'AI could not generate names for this prompt. Try simpler keywords.'}
+                        ${data.message || 'Could not generate domain suggestions. Please try another phrase.'}
                     </div>
                 `;
                 return;
             }
 
-            globalAiResults = data.results;
+            globalAiResults = data.suggestions;
             renderAiDomainResults(promptVal, globalAiResults, false);
 
         } catch (err) {
             resultsArea.innerHTML = `
                 <div class="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation text-lg text-rose-500 mb-2 block"></i>
-                    AI Generator service timed out. Please retry.
+                    AI generation request failed. Please try again.
                 </div>
             `;
         } finally {
@@ -1090,7 +1148,7 @@
                                             ${item.is_available ? 'Available' : 'Taken'}
                                         </span>
                                     </div>
-                                    <span class="text-[11px] text-blue-600 font-bold font-mono block mt-0.5">৳${parseFloat(item.price).toLocaleString()} / yr</span>
+                                    <span class="text-[11px] text-blue-600 font-bold font-mono block mt-0.5">${formatMoney(item.price)} / yr</span>
                                 </div>
                             </div>
 

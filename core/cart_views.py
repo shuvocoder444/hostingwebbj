@@ -254,9 +254,38 @@ def ajax_domain_ai_generate_view(request):
 
 
 
+def get_cart_session(request):
+    """Retrieve or initialize the cart dictionary from session."""
+    return request.session.get('cart', {})
+
+
+def update_cart_session(request, **kwargs):
+    """Update cart dictionary and mark session as modified."""
+    cart = request.session.get('cart', {})
+    for k, v in kwargs.items():
+        if v is not None:
+            cart[k] = v
+    request.session['cart'] = cart
+    request.session.modified = True
+    return cart
+
+
+def clear_cart_session(request):
+    """Clear cart from session."""
+    request.session['cart'] = {}
+    request.session.modified = True
+
+
+def cart_clear_view(request):
+    """Explicit endpoint to empty cart."""
+    clear_cart_session(request)
+    messages.info(request, "Your shopping cart has been cleared.")
+    return redirect('cart_domain')
+
+
 def safe_get_package(package_id):
     """Safely retrieves a HostingPackage by UUID or string without crashing on invalid UUIDs."""
-    if not package_id or str(package_id).strip().lower() in ('none', 'null', ''):
+    if not package_id or str(package_id).strip().lower() in ('none', 'null', '', 'clear'):
         return None
     try:
         return HostingPackage.objects.filter(id=str(package_id).strip(), is_active=True).first()
@@ -275,15 +304,32 @@ def cart_domain_view(request):
       3. Hosting with existing domain (Hosting Only)
       4. Domain Transfer
     """
+    cart = get_cart_session(request)
+
+    if request.GET.get('action') == 'clear':
+        clear_cart_session(request)
+        return redirect('cart_domain')
+
     package_id = request.GET.get('package') or request.GET.get('package_id')
-    package = safe_get_package(package_id)
+    if package_id:
+        if str(package_id).lower() in ('none', 'null', 'clear'):
+            package = None
+            cart['package_id'] = None
+        else:
+            package = safe_get_package(package_id)
+            if package:
+                cart['package_id'] = str(package.id)
+        update_cart_session(request, **cart)
+    else:
+        saved_pkg_id = cart.get('package_id')
+        package = safe_get_package(saved_pkg_id) if saved_pkg_id else None
 
     tld_prices = TLDPricing.objects.filter(is_active=True).order_by('tld')
 
     # Handle incoming query parameters from home search or direct buy links
-    initial_domain = request.GET.get('domain', '').strip().lower()
-    initial_option = request.GET.get('domain_option') or request.GET.get('domain_action') or request.GET.get('action') or 'register'
-    initial_tld = request.GET.get('tld', '').strip().lower()
+    initial_domain = request.GET.get('domain', '').strip().lower() or cart.get('domain', '')
+    initial_option = request.GET.get('domain_option') or request.GET.get('domain_action') or request.GET.get('action') or cart.get('domain_option') or 'register'
+    initial_tld = request.GET.get('tld', '').strip().lower() or cart.get('tld', '')
     direct = request.GET.get('direct', '').strip()
 
     initial_sld = ''
@@ -293,6 +339,8 @@ def cart_domain_view(request):
         initial_sld = sld
         if not initial_tld:
             initial_tld = ext
+
+        update_cart_session(request, domain=initial_domain, domain_option=initial_option, tld=initial_tld)
 
         # If user clicked Buy from landing page with direct=1, proceed straight to Configure!
         pkg_param = f"package={package.id}" if package else "package=none"
@@ -312,6 +360,7 @@ def cart_domain_view(request):
             if not reg_domain:
                 messages.error(request, "Please enter a domain name to register.")
                 return redirect(f"/cart/?{pkg_param}")
+            update_cart_session(request, package_id=str(package.id) if package else 'none', domain=clean, domain_option='register', tld=reg_tld)
             return redirect(f"/cart/configure/?{pkg_param}&domain={clean}&domain_option=register&tld={reg_tld}")
 
         elif domain_option == 'existing':
@@ -320,6 +369,7 @@ def cart_domain_view(request):
             if not existing_domain or '.' not in existing_domain:
                 messages.error(request, "Please enter a valid existing domain name (e.g. mycompany.com).")
                 return redirect(f"/cart/?{pkg_param}")
+            update_cart_session(request, package_id=str(package.id) if package else 'none', domain=existing_domain, domain_option='existing')
             return redirect(f"/cart/configure/?{pkg_param}&domain={existing_domain}&domain_option=existing")
 
         elif domain_option == 'transfer':
@@ -329,6 +379,7 @@ def cart_domain_view(request):
             if not transfer_domain or '.' not in transfer_domain:
                 messages.error(request, "Please enter a valid domain name to transfer.")
                 return redirect(f"/cart/?{pkg_param}")
+            update_cart_session(request, package_id=str(package.id) if package else 'none', domain=transfer_domain, domain_option='transfer', epp=epp_code)
             return redirect(f"/cart/configure/?{pkg_param}&domain={transfer_domain}&domain_option=transfer&epp={epp_code}")
 
     packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
@@ -342,6 +393,7 @@ def cart_domain_view(request):
         'initial_sld': initial_sld,
         'initial_tld': initial_tld,
         'initial_option': initial_option,
+        'cart_count': 1 if (package or initial_domain) else 0,
     }
     return render(request, 'cart_domain.html', context)
 
@@ -357,13 +409,20 @@ def cart_configure_view(request):
       2. Hosting Only with existing domain (Suggests registering new domain)
       3. Both Domain + Hosting Bundle
     """
-    package_id = request.GET.get('package') or request.GET.get('package_id')
-    domain = request.GET.get('domain', '').strip().lower()
-    domain_option = request.GET.get('domain_option', 'register')
-    tld = request.GET.get('tld', '.com').strip().lower()
-    epp = request.GET.get('epp', '').strip()
+    cart = get_cart_session(request)
 
-    if not domain and not (package_id and package_id.lower() != 'none'):
+    if request.GET.get('action') == 'remove_package':
+        cart['package_id'] = None
+        update_cart_session(request, **cart)
+        return redirect(f"/cart/configure/?package=none&domain={cart.get('domain','')}&domain_option={cart.get('domain_option','register')}&tld={cart.get('tld','.com')}")
+
+    package_id = request.GET.get('package') or request.GET.get('package_id') or cart.get('package_id')
+    domain = request.GET.get('domain', '').strip().lower() or cart.get('domain', '')
+    domain_option = request.GET.get('domain_option') or cart.get('domain_option', 'register')
+    tld = request.GET.get('tld') or cart.get('tld', '.com').strip().lower()
+    epp = request.GET.get('epp') or cart.get('epp', '').strip()
+
+    if not domain and not (package_id and str(package_id).lower() not in ('none', 'null', '')):
         messages.warning(request, "Please choose a domain or hosting package first.")
         return redirect('cart_domain')
 
@@ -372,6 +431,16 @@ def cart_configure_view(request):
     is_domain_only = package is None
     is_hosting_only = package is not None and domain_option == 'existing'
     is_bundle = package is not None and domain_option in ('register', 'transfer')
+
+    # Update session cart
+    update_cart_session(
+        request,
+        package_id=str(package.id) if package else 'none',
+        domain=domain,
+        domain_option=domain_option,
+        tld=tld,
+        epp=epp
+    )
 
     # Compute cycle pricing for hosting if package exists
     monthly_price = Decimal('0.00')
@@ -427,12 +496,29 @@ def cart_checkout_view(request):
     """
     Step 3: Review Cart Items (Domain Only, Hosting Only, or Both), User Auth, & Payment.
     """
-    package_id = request.GET.get('package') or request.GET.get('package_id')
-    domain = request.GET.get('domain', '').strip().lower()
-    domain_option = request.GET.get('domain_option', 'register')
-    billing_cycle = request.GET.get('billing_cycle', 'annual').lower()
-    tld = request.GET.get('tld', '.com').strip().lower()
-    epp = request.GET.get('epp', '').strip()
+    cart = get_cart_session(request)
+
+    if request.GET.get('action') == 'remove_package':
+        cart['package_id'] = None
+        update_cart_session(request, **cart)
+        if not cart.get('domain'):
+            return redirect('cart_domain')
+        return redirect(f"/cart/checkout/?package=none&domain={cart.get('domain','')}&domain_option={cart.get('domain_option','register')}")
+
+    if request.GET.get('action') == 'remove_domain':
+        cart['domain'] = ''
+        update_cart_session(request, **cart)
+        if not cart.get('package_id') or str(cart.get('package_id')).lower() in ('none', 'null', ''):
+            return redirect('cart_domain')
+        return redirect(f"/cart/domain/?package={cart.get('package_id')}")
+
+    package_id = request.GET.get('package') or request.GET.get('package_id') or cart.get('package_id')
+    domain = request.GET.get('domain', '').strip().lower() or cart.get('domain', '')
+    domain_option = request.GET.get('domain_option') or cart.get('domain_option', 'register')
+    billing_cycle = request.GET.get('billing_cycle') or cart.get('billing_cycle', 'annual').lower()
+    tld = request.GET.get('tld') or cart.get('tld', '.com').strip().lower()
+    epp = request.GET.get('epp') or cart.get('epp', '').strip()
+    server_location = request.GET.get('server_location') or cart.get('server_location', 'germany').lower()
 
     package = safe_get_package(package_id)
 
@@ -443,6 +529,18 @@ def cart_checkout_view(request):
     if not domain and not package:
         messages.warning(request, "Your cart is empty. Please select a domain or hosting package.")
         return redirect('cart_domain')
+
+    # Update session cart
+    update_cart_session(
+        request,
+        package_id=str(package.id) if package else 'none',
+        domain=domain,
+        domain_option=domain_option,
+        billing_cycle=billing_cycle,
+        server_location=server_location,
+        tld=tld,
+        epp=epp
+    )
 
     # Calculate hosting price according to chosen billing cycle
     hosting_price = Decimal('0.00')
@@ -481,7 +579,6 @@ def cart_checkout_view(request):
         else:
             domain_price = tld_obj.register_price if tld_obj else Decimal('1350.00')
 
-    server_location = request.GET.get('server_location', 'germany').lower()
     location_names = {
         'germany': 'Germany (AMD EPYC)',
         'finland': 'Finland (Helsinki)',
@@ -780,6 +877,9 @@ def cart_complete_order_view(request):
                 )
 
         # ── AUTO-REDIRECT TO CRYPTOMUS HOSTED CHECKOUT ──
+        # Clear cart from session upon order completion
+        clear_cart_session(request)
+
         if gateway_choice == 'cryptomus':
             try:
                 from billing.gateway_factory import get_payment_gateway

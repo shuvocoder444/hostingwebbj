@@ -29,6 +29,9 @@ FILES_TO_UPLOAD = [
     'templates/pages/hosting_vps.html',
     'hostpro/settings.py',
     'hostpro/urls.py',
+    'core/currency.py',
+    'core/templatetags/__init__.py',
+    'core/templatetags/currency_tags.py',
     'core/models.py',
     'core/page_views.py',
     'core/migrations/__init__.py',
@@ -36,6 +39,7 @@ FILES_TO_UPLOAD = [
     'core/migrations/0002_alter_sitesetting_company_name_and_more.py',
     'core/migrations/0003_sitesetting_show_hero_section.py',
     'core/migrations/0004_sitesetting_binance_pay_id_and_more.py',
+    'core/migrations/0005_sitesetting_bdt_per_usd.py',
     'billing/urls.py',
     'domains/migrations/0002_alter_domainregistrar_driver.py',
     'core/context_processors.py',
@@ -111,7 +115,7 @@ def deploy():
         print(f"\nDeploying to {base_dir}...", flush=True)
         
         # Ensure directories exist
-        for d in ['templates/partials', 'templates/pages', 'core/migrations', 'domains/migrations', 'hosting/migrations', 'static/images', 'staticfiles/images', 'static/img', 'staticfiles/img', 'mediafiles', 'tmp']:
+        for d in ['templates/partials', 'templates/pages', 'core/migrations', 'core/templatetags', 'domains/migrations', 'hosting/migrations', 'static/images', 'staticfiles/images', 'static/img', 'staticfiles/img', 'mediafiles', 'tmp']:
             run_cmd(ssh, f"mkdir -p {base_dir}/{d}")
         
         for rel_path in FILES_TO_UPLOAD:

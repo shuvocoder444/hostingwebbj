@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
 
@@ -65,10 +66,10 @@
                         </div>
 
                         <div class="space-y-1">
-                            <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">৳{{ pkg.monthly_price }}</span>
+                            <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
                             <span class="text-xs font-medium text-slate-500">/ month</span>
                             {% if pkg.annual_price %}
-                            <p class="text-[11px] text-emerald-600 font-bold">৳{{ pkg.annual_price }} billed annually</p>
+                            <p class="text-[11px] text-emerald-600 font-bold">{{ CURRENCY_SYMBOL }}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }} billed annually</p>
                             {% endif %}
                         </div>
 

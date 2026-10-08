@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}View Cart &amp; Checkout — {{ COMPANY_NAME|default:'VeloHoster' }} Cart{% endblock %}
 
@@ -66,7 +67,12 @@
                         {% if package %}
                         <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <strong class="text-sm font-bold text-slate-900 block">Web Hosting - {{ package.name }}</strong>
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-sm font-bold text-slate-900 block">Web Hosting - {{ package.name }}</strong>
+                                    <a href="{% url 'cart_checkout' %}?action=remove_package" class="text-[10px] text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200" title="Remove Hosting from Order">
+                                        <i class="fa-solid fa-trash text-[9px] mr-0.5"></i> Remove
+                                    </a>
+                                </div>
                                 <span class="font-mono text-xs text-brand-600 font-semibold block mt-0.5">{{ domain }}</span>
                                 <div class="flex items-center gap-2 mt-1">
                                     <span class="text-[11px] text-slate-500 font-medium">{{ cycle_label }}</span>
@@ -74,10 +80,13 @@
                                     <span class="text-[11px] text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                                         <i class="fa-solid fa-server text-[9px] mr-1"></i>{{ location_label|default:'Germany (AMD EPYC)' }}
                                     </span>
+                                    <a href="{% url 'cart_configure' %}" class="text-[11px] text-blue-600 hover:text-blue-800 font-bold ml-1">
+                                        <i class="fa-solid fa-pen text-[9px]"></i> Edit Cycle
+                                    </a>
                                 </div>
                             </div>
                             <div class="text-left sm:text-right">
-                                <span class="text-base font-extrabold text-slate-900">৳{{ hosting_price|floatformat:0 }} BDT</span>
+                                <span class="text-base font-extrabold text-slate-900">{{ CURRENCY_SYMBOL }}{{ hosting_price|currency_val:CURRENT_CURRENCY }}</span>
                                 <span class="block text-[10px] text-slate-400">Recurring Term</span>
                             </div>
                         </div>
@@ -87,14 +96,21 @@
                         {% if is_domain_only or domain_option == 'register' or domain_option == 'transfer' %}
                         <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <strong class="text-sm font-bold text-slate-900 block">
-                                    {% if domain_option == 'transfer' %}Domain Transfer (1 Year Extension){% else %}Domain Registration (1 Year){% endif %}
-                                </strong>
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-sm font-bold text-slate-900 block">
+                                        {% if domain_option == 'transfer' %}Domain Transfer (1 Year Extension){% else %}Domain Registration (1 Year){% endif %}
+                                    </strong>
+                                    {% if package %}
+                                    <a href="{% url 'cart_checkout' %}?action=remove_domain" class="text-[10px] text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200" title="Remove Domain from Order">
+                                        <i class="fa-solid fa-trash text-[9px] mr-0.5"></i> Remove
+                                    </a>
+                                    {% endif %}
+                                </div>
                                 <span class="font-mono text-xs text-purple-600 font-semibold block mt-0.5">{{ domain }}</span>
                                 <span class="text-[11px] text-slate-400 font-medium">Free WHOIS Privacy &amp; DNS Zone Management</span>
                             </div>
                             <div class="text-left sm:text-right">
-                                <span class="text-base font-extrabold text-slate-900">৳{{ domain_price|floatformat:0 }} BDT</span>
+                                <span class="text-base font-extrabold text-slate-900">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
                                 <span class="block text-[10px] text-slate-400">1 Year Term</span>
                             </div>
                         </div>
@@ -416,30 +432,30 @@
                         {% if package %}
                         <div class="flex justify-between text-slate-600">
                             <span>Hosting ({{ cycle_label }})</span>
-                            <span class="font-bold text-slate-900">৳{{ hosting_price|floatformat:0 }}</span>
+                            <span class="font-bold text-slate-900">{{ CURRENCY_SYMBOL }}{{ hosting_price|currency_val:CURRENT_CURRENCY }}</span>
                         </div>
                         {% endif %}
 
                         {% if is_domain_only or domain_option == 'register' or domain_option == 'transfer' %}
                         <div class="flex justify-between text-slate-600">
                             <span>Domain Registration (1 Yr)</span>
-                            <span class="font-bold text-slate-900">৳{{ domain_price|floatformat:0 }}</span>
+                            <span class="font-bold text-slate-900">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
                         </div>
                         {% endif %}
 
                         <div class="flex justify-between text-slate-600">
                             <span>Setup Fee</span>
-                            <span class="font-bold text-emerald-600">৳0.00</span>
+                            <span class="font-bold text-emerald-600">{{ CURRENCY_SYMBOL }}0.00</span>
                         </div>
 
                         <div class="flex justify-between text-slate-600">
                             <span>Tax / VAT (0%)</span>
-                            <span class="font-bold text-slate-900">৳0.00</span>
+                            <span class="font-bold text-slate-900">{{ CURRENCY_SYMBOL }}0.00</span>
                         </div>
 
                         <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
                             <strong class="text-sm font-black text-slate-900">Total Due Today</strong>
-                            <strong class="text-2xl font-black text-brand-600">৳{{ total|floatformat:0 }} BDT</strong>
+                            <strong class="text-2xl font-black text-brand-600">{{ CURRENCY_SYMBOL }}{{ total|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</strong>
                         </div>
                     </div>
 
@@ -453,7 +469,7 @@
                     <button type="submit"
                         class="w-full py-4 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
-                        <span>Confirm Order &amp; Submit Payment (৳{{ total|floatformat:0 }})</span>
+                        <span>Confirm Order &amp; Submit Payment ({{ CURRENCY_SYMBOL }}{{ total|currency_val:CURRENT_CURRENCY }})</span>
                     </button>
                 </div>
 

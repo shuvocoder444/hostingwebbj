@@ -62,7 +62,7 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                     <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.monthly_price|floatformat:0 }}</div>
                     <span class="text-xs text-blue-200 font-medium">/ month</span>
                 </div>
-                <a href="{% url 'cart_domain' %}" class="text-[11px] text-cyan-300 hover:text-white underline font-semibold transition">
+                <a href="{% url 'cart_domain' %}?package=none" class="text-[11px] text-cyan-300 hover:text-white underline font-semibold transition">
                     Buy Domain Only instead
                 </a>
             </div>

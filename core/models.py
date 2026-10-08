@@ -9,6 +9,7 @@ Provides persistent singleton configuration for:
   - Social Media Links (Facebook, YouTube, LinkedIn, Instagram, Twitter, Telegram)
 """
 import uuid
+
 from django.db import models
 
 
@@ -132,6 +133,14 @@ class SiteSetting(models.Model):
         help_text='Binance Pay ID / Binance Email / Pay QR'
     )
 
+    # ── Currency & Exchange Rate ──
+    bdt_per_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=120.00,
+        help_text='Conversion Rate: How many BDT per 1 USD (e.g. 120.00)'
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -181,6 +190,7 @@ class SiteSetting(models.Model):
                 instagram_url = ''
                 twitter_url = ''
                 telegram_url = ''
+                bdt_per_usd = 120.00
             return FallbackSetting()
 
     def save(self, *args, **kwargs):
