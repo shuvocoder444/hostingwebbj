@@ -8,23 +8,23 @@ Implements WHMCS-style unified ordering funnel:
   4. Complete Order (/cart/complete/): Atomic order creation (Pending accounts + Unpaid invoice)
 """
 import logging
-import uuid
 from decimal import Decimal
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth import authenticate, get_user_model, login
 from django.db import transaction as db_transaction
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import ClientProfile
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction
 from billing.services import InvoiceNumberGenerator
+from core.security import rate_limit
 from domains.models import Domain, DomainRegistrar, TLDPricing
 from domains.services import DomainService
-from hosting.models import BillingCycle, HostingAccount, HostingPackage
+from hosting.models import HostingAccount, HostingPackage
 from hosting.services import ProvisioningService
 
 User = get_user_model()
@@ -33,6 +33,7 @@ logger = logging.getLogger('cart')
 
 # ─── AJAX DOMAIN AVAILABILITY CHECK ───────────────────────────────────────────
 
+@rate_limit(key_prefix='ajax_domain_check', max_requests=60, window_seconds=60)
 def ajax_domain_check_view(request):
     """
     Fast live AJAX endpoint for domain search during checkout.
@@ -79,6 +80,7 @@ def ajax_domain_check_view(request):
         })
 
 
+@rate_limit(key_prefix='domain_bulk', max_requests=30, window_seconds=60)
 def ajax_domain_bulk_search_view(request):
     """
     Search multiple TLD extensions for a given name/keyword.
@@ -149,6 +151,7 @@ def ajax_domain_bulk_search_view(request):
     })
 
 
+@rate_limit(key_prefix='domain_ai', max_requests=20, window_seconds=60)
 def ajax_domain_ai_generate_view(request):
     """
     AI Domain Name Generator.
@@ -490,8 +493,10 @@ def cart_checkout_view(request):
     tax_amount = Decimal('0.00')
     total = subtotal + tax_amount
 
-    # Fetch alternative packages in case domain-only buyer wants to add hosting right here
-    suggested_packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')[:3] if is_domain_only else []
+    total_usd = max(1.0, round(float(total) / 125.0, 2))
+    from core.models import SiteSetting
+    site_setting = SiteSetting.get_settings()
+    suggested_packages = HostingPackage.objects.filter(is_active=True).order_by('-is_featured', 'monthly_price')[:3]
 
     context = {
         'package': package,
@@ -507,6 +512,8 @@ def cart_checkout_view(request):
         'subtotal': subtotal,
         'tax_amount': tax_amount,
         'total': total,
+        'total_usd': total_usd,
+        'site_setting': site_setting,
         'tld': tld,
         'epp': epp,
         'is_domain_only': is_domain_only,
@@ -771,6 +778,27 @@ def cart_complete_order_view(request):
                         'channel': 'cart_checkout_direct',
                     }
                 )
+
+        # ── AUTO-REDIRECT TO CRYPTOMUS HOSTED CHECKOUT ──
+        if gateway_choice == 'cryptomus':
+            try:
+                from billing.gateway_factory import get_payment_gateway
+                gateway_obj = get_payment_gateway('cryptomus')
+                ipn_callback_url = request.build_absolute_uri('/api/v1/billing/ipn/cryptomus/')
+                res = gateway_obj.initiate_payment(
+                    invoice=invoice,
+                    customer=current_user,
+                    callback_url=ipn_callback_url,
+                )
+                if res and res.get('payment_url'):
+                    return redirect(res['payment_url'])
+            except Exception as exc:
+                logger.warning("Cryptomus initiation notice: %s", exc)
+                messages.warning(
+                    request,
+                    f"Invoice #{invoice.invoice_number} created. Cryptomus gateway notice: {exc!s}. Please check your invoice in dashboard."
+                )
+                return redirect(f"/dashboard/?tab=invoices&pay_invoice={invoice.id}")
 
         if trx_id:
             messages.success(

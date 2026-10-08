@@ -1515,6 +1515,35 @@
  {% csrf_token %}
  <input type="hidden" name="active_tab" value="settings">
 
+ <!-- Section: Homepage Section Controls (Hero Section Visibility Toggle) -->
+ <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+ <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+ <div class="flex items-center gap-2.5">
+ <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
+ <i class="fa-solid fa-layer-group"></i>
+ </div>
+ <div>
+ <h3 class="text-sm font-bold text-slate-900">Homepage Layout &amp; Section Visibility</h3>
+ <p class="text-[11px] text-slate-500">Enable or disable specific homepage sections dynamically</p>
+ </div>
+ </div>
+ </div>
+ <div class="p-6">
+ <label class="flex items-start sm:items-center gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition cursor-pointer group">
+ <input type="checkbox" name="show_hero_section" value="1" {% if site_settings.show_hero_section %}checked{% endif %} class="w-5 h-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 mt-0.5 sm:mt-0 cursor-pointer">
+ <div class="flex-1">
+ <div class="flex items-center gap-2.5">
+ <span class="text-xs font-bold text-slate-900 group-hover:text-brand-600 transition">Show Hero Section on Homepage</span>
+ <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {% if site_settings.show_hero_section %}bg-emerald-100 text-emerald-700 border border-emerald-200{% else %}bg-slate-200 text-slate-600{% endif %}">
+ {% if site_settings.show_hero_section %}Active / Visible{% else %}Hidden{% endif %}
+ </span>
+ </div>
+ <p class="text-[11px] text-slate-500 mt-1">If checked, the top Hero Section (Title, Subtitle, Action Buttons, and Hero Banner GIF) is visible. If unchecked, the hero section is hidden on the homepage.</p>
+ </div>
+ </label>
+ </div>
+ </div>
+
  <!-- Section 1: Site Identity & Brand -->
  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
  <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
@@ -1841,6 +1870,90 @@
  </div>
 
  </div>
+
+            <!-- Section 6: International & Crypto Payment Gateways (Cryptomus, Direct USDT & Binance Pay) -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                            <i class="fa-brands fa-bitcoin"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">International &amp; Crypto Payment Gateways</h3>
+                            <p class="text-[11px] text-slate-500">Configure automated Cryptomus (Cards/Crypto IPN) and Direct USDT/Binance Pay addresses</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <i class="fa-solid fa-bolt"></i> Instant Provisioning
+                    </span>
+                </div>
+                <div class="p-6 space-y-6">
+                    
+                    <!-- Cryptomus Hosted Gateway -->
+                    <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-indigo-100/80">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved text-indigo-600"></i>
+                                <span class="text-xs font-bold text-slate-900">1. Cryptomus API (Automated Hosted Checkout &amp; Webhook IPN)</span>
+                            </div>
+                            <span class="text-[10px] text-indigo-600 font-mono font-bold">https://cryptomus.com</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Cryptomus Merchant ID (UUID)</label>
+                                <input type="text" name="cryptomus_merchant_id" value="{{ site_settings.cryptomus_merchant_id }}" placeholder="e.g. b8f7d98a-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Found in Cryptomus Dashboard &gt; Merchants &gt; Settings.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Cryptomus Payment API Key</label>
+                                <input type="password" name="cryptomus_payment_api_key" value="{{ site_settings.cryptomus_payment_api_key }}" placeholder="Paste your Cryptomus Payment API Key" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Used to sign payment requests and verify IPN Webhook callbacks.</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-indigo-100 text-[11px] text-slate-600 space-y-1">
+                            <div class="font-bold text-indigo-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-link"></i> Webhook IPN URL for Cryptomus Dashboard:
+                            </div>
+                            <code class="font-mono text-[11px] text-indigo-700 bg-slate-100 px-2 py-1 rounded select-all block">{{ request.scheme }}://{{ request.get_host }}/api/v1/billing/ipn/cryptomus/</code>
+                        </div>
+                    </div>
+
+                    <!-- Direct Crypto Wallets -->
+                    <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-emerald-100/80">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-wallet text-emerald-600"></i>
+                                <span class="text-xs font-bold text-slate-900">2. Direct Crypto &amp; Binance Pay (Manual TxHash / Pay ID Verification)</span>
+                            </div>
+                            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">0% Fee</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    <i class="fa-solid fa-coins text-emerald-600 mr-1"></i> USDT (TRC-20) Address
+                                </label>
+                                <input type="text" name="usdt_trc20_wallet" value="{{ site_settings.usdt_trc20_wallet }}" placeholder="Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Tron TRC-20 USDT deposit address.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    <i class="fa-solid fa-cube text-amber-600 mr-1"></i> USDT (BEP-20) Address
+                                </label>
+                                <input type="text" name="usdt_bep20_wallet" value="{{ site_settings.usdt_bep20_wallet }}" placeholder="0xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">BNB Smart Chain (BEP-20) deposit address.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    <i class="fa-solid fa-id-badge text-yellow-600 mr-1"></i> Binance Pay ID
+                                </label>
+                                <input type="text" name="binance_pay_id" value="{{ site_settings.binance_pay_id }}" placeholder="e.g. 123456789" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Direct Binance Pay ID for instant user-to-user transfers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
  </div>
 
  <!-- Sticky Bottom Save Bar -->

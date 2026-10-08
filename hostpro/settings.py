@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
 
     # Third-party
     'rest_framework',
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
 
 # ─── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',  # High-speed HTTP response compression
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -96,58 +98,43 @@ WSGI_APPLICATION = 'hostpro.wsgi.application'
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 
-# ekhon SQLite use করার জন্য:
+# ─── Database (SQLite High-Performance Tuned) ──────────────────────────────────
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 30,
+            'init_command': (
+                'PRAGMA journal_mode=WAL;'
+                'PRAGMA synchronous=NORMAL;'
+                'PRAGMA cache_size=-64000;'  # 64MB cache in RAM
+                'PRAGMA temp_store=MEMORY;'
+                'PRAGMA busy_timeout=30000;'
+            ),
+        },
     }
 }
 
-# ─── Future PostgreSQL Config (Pore use korar jonno comment kore rakha holo) ─
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': config('DB_NAME', default='hostpro_db'),
-#         'USER': config('DB_USER', default='hostpro_user'),
-#         'PASSWORD': config('DB_PASSWORD'),
-#         'HOST': config('DB_HOST', default='127.0.0.1'),
-#         'PORT': config('DB_PORT', default='5432'),
-#         'CONN_MAX_AGE': 60,
-#         'OPTIONS': {
-#             'connect_timeout': 10,
-#         },
-#     }
-# }
-# ─── Cache & Session Strategy ────────────────────────────────────────────────
+# ─── Cache Strategy (Redis with Seamless In-Memory Fallback) ─────────────────
 REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
-USE_REDIS = config('USE_REDIS', default=False, cast=_safe_bool)
+USE_REDIS = config('USE_REDIS', default=True, cast=_safe_bool)
 
-if USE_REDIS:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                'CONNECTION_POOL_KWARGS': {'max_connections': 50},
-                'SOCKET_CONNECT_TIMEOUT': 5,
-                'SOCKET_TIMEOUT': 5,
-                'IGNORE_EXCEPTIONS': True,
-            },
-            'KEY_PREFIX': 'hostpro',
-            'TIMEOUT': 300,
-        }
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache' if USE_REDIS else 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': REDIS_URL if USE_REDIS else 'velohoster-fast-cache',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {'max_connections': 100, 'retry_on_timeout': True},
+            'SOCKET_CONNECT_TIMEOUT': 3,
+            'SOCKET_TIMEOUT': 3,
+            'IGNORE_EXCEPTIONS': True,  # Fallback gracefully if Redis is momentarily unavailable
+        } if USE_REDIS else {},
+        'KEY_PREFIX': 'velohoster',
+        'TIMEOUT': 600,  # 10 minutes default TTL
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'hostpro-cache',
-            'KEY_PREFIX': 'hostpro',
-            'TIMEOUT': 300,
-        }
-    }
+}
 
 # Use DB sessions so user login and authentication always works reliably
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -254,15 +241,19 @@ FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='OGtjeXFEUZevmNXtD
 RENEWAL_INVOICE_DAYS_BEFORE = config('RENEWAL_INVOICE_DAYS_BEFORE', default=7, cast=int)
 AUTO_SUSPEND_GRACE_DAYS = config('AUTO_SUSPEND_GRACE_DAYS', default=3, cast=int)
 
-# ─── Security Headers (Production) ───────────────────────────────────────────
+# ─── Security Headers & Hardening ───────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=_safe_bool)
     SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=_safe_bool)
     CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=_safe_bool)
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 LOGGING = {

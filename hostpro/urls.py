@@ -81,7 +81,35 @@ from core.views import (
     service_sso_view,
 )
 
+from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponse
+from core.sitemaps import StaticViewSitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+}
+
+def robots_txt_view(request):
+    """Dynamic robots.txt generator for search engine crawlers."""
+    host = request.get_host() or 'velohoster.com'
+    content = f"""User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin-dashboard/
+Disallow: /billing/
+Disallow: /dashboard/
+Disallow: /services/
+Disallow: /api/
+
+Sitemap: https://{host}/sitemap.xml
+"""
+    return HttpResponse(content, content_type='text/plain')
+
 urlpatterns = [
+    # ── Search Engine Optimization (SEO) Sitemaps & Robots ────────────────────
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', robots_txt_view, name='robots_txt'),
+
     # ── Client Web UI Pages ───────────────────────────────────────────────────
     path('', landing_page_view, name='landing'),
     path('login/', login_view, name='login'),

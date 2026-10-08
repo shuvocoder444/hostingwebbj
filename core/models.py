@@ -44,6 +44,12 @@ class SiteSetting(models.Model):
         help_text='Comma-separated SEO keywords and tags.'
     )
 
+    # ── Homepage Layout Controls ──
+    show_hero_section = models.BooleanField(
+        default=True,
+        help_text='Toggle Hero Section on the Homepage.'
+    )
+
     # ── Media & Branding Assets ──
     logo_url = models.CharField(
         max_length=500,
@@ -94,6 +100,38 @@ class SiteSetting(models.Model):
     twitter_url = models.URLField(max_length=255, blank=True, default='')
     telegram_url = models.URLField(max_length=255, blank=True, default='')
 
+    # ── International & Crypto Payment Gateway Settings ──
+    cryptomus_merchant_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='Cryptomus Merchant UUID from Cryptomus Dashboard'
+    )
+    cryptomus_payment_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Cryptomus Payment API Key'
+    )
+    usdt_trc20_wallet = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='USDT TRC-20 Wallet Address (Binance / Trust Wallet)'
+    )
+    usdt_bep20_wallet = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='USDT BEP-20 (BNB Smart Chain) Wallet Address'
+    )
+    binance_pay_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='Binance Pay ID / Binance Email / Pay QR'
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -129,6 +167,7 @@ class SiteSetting(models.Model):
                 tagline = 'Next-Gen NVMe Cloud & BDIX Hosting Platform'
                 meta_description = 'Premium high-speed cloud web hosting, cPanel, BDIX, LiteSpeed, and domain registration with automated provisioning and instant Bangladeshi payment gateways.'
                 meta_keywords = 'web hosting, bdix hosting, cpanel hosting, spaceship domain, bdwebs, buy domain bangladesh'
+                show_hero_section = True
                 logo_url = ''
                 favicon_url = ''
                 thumbnail_url = ''

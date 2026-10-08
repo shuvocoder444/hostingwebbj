@@ -24,32 +24,51 @@ from billing.models import Invoice, Transaction
 from billing.services import InvoiceService
 from hosting.models import BillingCycle, HostingAccount, HostingPackage
 from hosting.services import ProvisioningService
+from core.security import rate_limit
+from django.core.cache import cache
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+def get_cached_packages():
+    """Fetch active hosting packages with Redis / in-memory cache-aside."""
+    cache_key = 'velohoster_active_packages_list'
+    packages = cache.get(cache_key)
+    if packages is None:
+        packages = list(HostingPackage.objects.filter(is_active=True).select_related('server').order_by('monthly_price'))
+        cache.set(cache_key, packages, 600)
+    return packages
+
+
+def get_cached_tld_prices():
+    """Fetch active TLD domain pricing with Redis / in-memory cache-aside."""
+    cache_key = 'velohoster_active_tld_pricing_list'
+    tld_prices = cache.get(cache_key)
+    if tld_prices is None:
+        from domains.models import TLDPricing
+        tld_prices = list(TLDPricing.objects.filter(is_active=True).select_related('registrar').order_by('register_price'))
+        cache.set(cache_key, tld_prices, 600)
+    return tld_prices
+
+
 def landing_page_view(request):
     """
     Public Landing Page.
-    Fetches active hosting packages and full TLD pricing from DB.
+    Ultra-fast cached queries for packages and TLD pricing.
     """
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
-    from domains.models import TLDPricing
-    tld_prices = TLDPricing.objects.filter(is_active=True).order_by('register_price')
     context = {
-        'packages': packages,
-        'tld_prices': tld_prices,
+        'packages': get_cached_packages(),
+        'tld_prices': get_cached_tld_prices(),
         'user': request.user,
     }
     return render(request, 'index.html', context)
 
 
+@rate_limit(key_prefix='login', max_requests=15, window_seconds=60)
 def login_view(request):
     """
-    User login view.
-    Authenticates against email + password.
-    Supports session auth and passes JWT tokens.
+    User login view with brute-force rate limit protection.
     """
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -100,6 +119,7 @@ def login_view(request):
     return render(request, 'login.html', {'next': next_url})
 
 
+@rate_limit(key_prefix='register', max_requests=10, window_seconds=60)
 def register_view(request):
     """
     User registration view.

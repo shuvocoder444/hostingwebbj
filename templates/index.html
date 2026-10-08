@@ -5,6 +5,7 @@
 
 {% block content %}
 <!-- ─── 1. HERO SECTION (Clean, Modern SaaS with Soft Ambient Auras) ────────── -->
+{% if SHOW_HERO_SECTION %}
 <section class="relative pt-12 sm:pt-20 pb-20 sm:pb-28 bg-gradient-to-b from-blue-50/80 via-white to-slate-50/70 border-b border-slate-200/80 overflow-hidden text-slate-900">
     <!-- Soft Gradient Ambient Auras (Blue, Cyan, Emerald like OS section) -->
     <div class="absolute top-10 left-10 w-[500px] h-[500px] bg-blue-400/15 blur-[140px] rounded-full pointer-events-none"></div>
@@ -71,67 +72,67 @@
         </div>
     </div>
 </section>
+{% endif %}
 
 
 
 <!-- ─── 2. SEPARATE DEDICATED DOMAIN SEARCH & AI GENERATOR SECTION ───────── -->
-<section id="domain-search" class="relative py-16 sm:py-24 bg-gradient-to-b from-white via-slate-50/90 to-blue-50/40 border-b border-slate-200/80 overflow-hidden text-slate-900">
+<section id="domain-search" class="relative py-14 sm:py-20 bg-gradient-to-b from-white via-slate-50/90 to-blue-50/40 border-b border-slate-200/80 overflow-hidden text-slate-900">
     <!-- Soft Gradient Ambient Auras -->
     <div class="absolute top-10 right-1/4 w-[500px] h-[400px] bg-cyan-400/15 blur-[140px] rounded-full pointer-events-none"></div>
     <div class="absolute bottom-10 left-1/4 w-[450px] h-[450px] bg-blue-600/10 blur-[140px] rounded-full pointer-events-none"></div>
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Section Header -->
-        <div class="text-center max-w-3xl mx-auto mb-10">
+        <div class="text-center max-w-3xl mx-auto mb-8">
             <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-50 text-cyan-800 border border-cyan-200 inline-flex items-center gap-2 shadow-xs">
                 <i class="fa-solid fa-bolt-lightning text-cyan-600"></i> Multi-TLD Live WHOIS &amp; AI Generator
             </span>
-            <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mt-3">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mt-3">
                 Find, Report &amp; Generate <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-sky-700 bg-clip-text text-transparent">Your Dream Domain</span>
             </h2>
-            <p class="mt-3 text-xs sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
+            <p class="mt-2.5 text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
                 Search any name to check availability across all extensions (.com, .net, .xyz, .com.bd, etc.) or let our AI generate catchy, available domain names for your brand.
             </p>
 
-            <!-- Mode Switcher Tabs -->
-            <div class="mt-8 inline-flex p-1.5 rounded-2xl bg-slate-200/70 border border-slate-300/80 shadow-inner flex-wrap justify-center gap-1">
-                <button type="button" id="tab-btn-multi" onclick="switchDomainMode('multi')" class="px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md shadow-blue-600/25 cursor-pointer">
-                    <i class="fa-solid fa-layer-group"></i> <span>Multi-TLD Report</span>
+            <!-- Mode Switcher Tabs (Perfect 471px Width, Centered & Clean Grid) -->
+            <div class="mt-5 sm:mt-6 p-1 rounded-xl sm:rounded-2xl bg-slate-200/80 border border-slate-300/80 shadow-inner w-full max-w-[471px] mx-auto grid grid-cols-3 justify-center gap-1">
+                <button type="button" id="tab-btn-multi" onclick="switchDomainMode('multi')" class="px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-layer-group text-xs"></i> <span class="truncate">Search TLDs</span>
                 </button>
-                <button type="button" id="tab-btn-ai" onclick="switchDomainMode('ai')" class="px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 cursor-pointer">
-                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-600"></i> <span>AI Domain Generator</span>
+                <button type="button" id="tab-btn-ai" onclick="switchDomainMode('ai')" class="px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-600 text-xs"></i> <span class="truncate">AI Generator</span>
                 </button>
-                <button type="button" id="tab-btn-transfer" onclick="switchDomainMode('transfer')" class="px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 cursor-pointer">
-                    <i class="fa-solid fa-arrow-right-arrow-left text-purple-600"></i> <span>Transfer Domain</span>
-                    <span class="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 text-[9px] font-extrabold uppercase hidden sm:inline">+1 Yr Extension</span>
+                <button type="button" id="tab-btn-transfer" onclick="switchDomainMode('transfer')" class="px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 cursor-pointer">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-purple-600 text-xs"></i> <span class="truncate">Transfer</span>
                 </button>
             </div>
         </div>
 
-        <!-- MODE 1: MULTI-TLD SEARCH BOX -->
-        <div id="domain-mode-multi" class="space-y-6">
-            <div class="relative bg-white border-2 border-slate-200/90 hover:border-blue-500/80 rounded-3xl p-3 sm:p-4 shadow-xl transition">
-                <form id="multi-search-form" onsubmit="handleMultiDomainSearch(event)" class="flex flex-col sm:flex-row gap-2.5 items-center">
+        <!-- MODE 1: MULTI-TLD SEARCH BOX (Sleek & Proportional) -->
+        <div id="domain-mode-multi" class="space-y-4 max-w-4xl mx-auto">
+            <div class="relative bg-white border-2 border-slate-200/90 hover:border-blue-500/80 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
+                <form id="multi-search-form" onsubmit="handleMultiDomainSearch(event)" class="flex flex-col sm:flex-row gap-2 items-center">
                     <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-globe text-lg text-blue-600"></i>
+                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-globe text-base text-blue-600"></i>
                         </div>
                         <input type="text" id="multi-domain-input" placeholder="Type name or brand (e.g. shuvotech, mybrand)..." required autocomplete="off"
-                            class="w-full pl-12 sm:pl-14 pr-4 py-4 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base font-medium">
+                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" id="multi-search-btn" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-2xl transition shadow-xl shadow-blue-600/25 whitespace-nowrap text-sm cursor-pointer flex items-center justify-center gap-2">
+                    <button type="submit" id="multi-search-btn" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-blue-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
                         <span id="multi-btn-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                        <span id="multi-btn-text"><i class="fa-solid fa-magnifying-glass mr-1.5"></i> Check All TLDs</span>
+                        <span id="multi-btn-text"><i class="fa-solid fa-magnifying-glass mr-1 text-xs"></i> Check All TLDs</span>
                     </button>
                 </form>
             </div>
 
             <!-- Quick TLD Chips -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
-                <span class="text-slate-500 font-bold uppercase text-[10px] tracking-wider mr-1">Popular Extensions:</span>
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-xs">
+                <span class="text-slate-500 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mr-1">Popular Extensions:</span>
                 {% for t in tld_prices|slice:":6" %}
-                <button type="button" onclick="quickFillName('{{ t.tld }}')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 border border-slate-200/90 text-slate-700 shadow-xs transition flex items-center gap-1.5 text-[11px] cursor-pointer">
+                <button type="button" onclick="quickFillName('{{ t.tld }}')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50 border border-slate-200/90 text-slate-700 shadow-2xs transition flex items-center gap-1.5 text-[11px] cursor-pointer">
                     <span class="font-bold text-slate-900">{{ t.tld }}</span>
                     <span class="text-blue-600 font-bold">৳{{ t.register_price|floatformat:0 }}</span>
                 </button>
@@ -139,68 +140,68 @@
             </div>
         </div>
 
-        <!-- MODE 2: AI DOMAIN GENERATOR BOX -->
-        <div id="domain-mode-ai" class="space-y-6 hidden">
-            <div class="relative bg-white border-2 border-cyan-200 hover:border-cyan-500 rounded-3xl p-3 sm:p-4 shadow-xl transition">
-                <form id="ai-search-form" onsubmit="handleAIDomainGenerate(event)" class="flex flex-col sm:flex-row gap-2.5 items-center">
+        <!-- MODE 2: AI DOMAIN GENERATOR BOX (Sleek & Proportional) -->
+        <div id="domain-mode-ai" class="space-y-4 max-w-4xl mx-auto hidden">
+            <div class="relative bg-white border-2 border-cyan-200 hover:border-cyan-500 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
+                <form id="ai-search-form" onsubmit="handleAIDomainGenerate(event)" class="flex flex-col sm:flex-row gap-2 items-center">
                     <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-cyan-600">
-                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-cyan-600">
+                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
                         </div>
                         <input type="text" id="ai-prompt-input" placeholder="Describe your brand or keywords (e.g. coffee shop in dhaka, python dev agency)..." required autocomplete="off"
-                            class="w-full pl-12 sm:pl-14 pr-4 py-4 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base font-medium">
+                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" id="ai-gen-btn" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:opacity-95 text-white font-bold rounded-2xl transition shadow-xl shadow-cyan-600/25 whitespace-nowrap text-sm cursor-pointer flex items-center justify-center gap-2">
+                    <button type="submit" id="ai-gen-btn" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:opacity-95 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-cyan-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
                         <span id="ai-btn-spinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                        <span id="ai-btn-text"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Generate with AI</span>
+                        <span id="ai-btn-text"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-xs"></i> Generate with AI</span>
                     </button>
                 </form>
             </div>
 
             <!-- AI Example Ideas -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
-                <span class="text-cyan-800 font-bold uppercase text-[10px] tracking-wider mr-1">Try Prompts:</span>
-                <button type="button" onclick="quickFillAIPrompt('Fashion clothing brand BD')" class="px-3 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100/80 border border-cyan-200 text-cyan-900 text-[11px] shadow-xs transition flex items-center gap-1.5">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-xs">
+                <span class="text-cyan-800 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mr-1">Try Prompts:</span>
+                <button type="button" onclick="quickFillAIPrompt('Fashion clothing brand BD')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-cyan-50 hover:bg-cyan-100/80 border border-cyan-200 text-cyan-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
                     <i class="fa-solid fa-shirt text-cyan-600"></i> Fashion clothing brand BD
                 </button>
-                <button type="button" onclick="quickFillAIPrompt('Organic grocery food Dhaka')" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 text-[11px] shadow-xs transition flex items-center gap-1.5">
+                <button type="button" onclick="quickFillAIPrompt('Organic grocery food Dhaka')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
                     <i class="fa-solid fa-leaf text-emerald-600"></i> Organic grocery Dhaka
                 </button>
-                <button type="button" onclick="quickFillAIPrompt('SaaS tech startup')" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-blue-900 text-[11px] shadow-xs transition flex items-center gap-1.5">
+                <button type="button" onclick="quickFillAIPrompt('SaaS tech startup')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 text-blue-900 text-[11px] shadow-2xs transition flex items-center gap-1.5">
                     <i class="fa-solid fa-rocket text-blue-600"></i> SaaS tech startup
                 </button>
             </div>
         </div>
 
-        <!-- MODE 3: DOMAIN TRANSFER BOX -->
-        <div id="domain-mode-transfer" class="space-y-6 hidden">
-            <div class="relative bg-white border-2 border-purple-200 hover:border-purple-500 rounded-3xl p-3 sm:p-4 shadow-xl transition">
-                <form action="{% url 'cart_domain' %}" method="GET" class="flex flex-col sm:flex-row gap-2.5 items-center">
+        <!-- MODE 3: DOMAIN TRANSFER BOX (Sleek & Proportional) -->
+        <div id="domain-mode-transfer" class="space-y-4 max-w-4xl mx-auto hidden">
+            <div class="relative bg-white border-2 border-purple-200 hover:border-purple-500 rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition">
+                <form action="{% url 'cart_domain' %}" method="GET" class="flex flex-col sm:flex-row gap-2 items-center">
                     <input type="hidden" name="domain_option" value="transfer">
                     <div class="relative flex-1 w-full">
-                        <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-purple-600">
-                            <i class="fa-solid fa-arrow-right-arrow-left text-lg"></i>
+                        <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-purple-600">
+                            <i class="fa-solid fa-arrow-right-arrow-left text-base"></i>
                         </div>
                         <input type="text" name="domain" id="transfer-domain-input" placeholder="Enter domain name to transfer (e.g. mycompany.com)..." required autocomplete="off"
-                            class="w-full pl-12 sm:pl-14 pr-4 py-4 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base font-medium">
+                            class="w-full pl-10 sm:pl-12 pr-3 py-2.5 sm:py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs sm:text-sm font-medium">
                     </div>
                     
-                    <button type="submit" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-2xl transition shadow-xl shadow-purple-600/25 whitespace-nowrap text-sm cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-right-arrow-left mr-1.5"></i> Transfer Domain
+                    <button type="submit" class="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl sm:rounded-2xl transition shadow-md shadow-purple-600/25 whitespace-nowrap text-xs sm:text-sm cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-arrow-right-arrow-left mr-1 text-xs"></i> Transfer Domain
                     </button>
                 </form>
             </div>
 
             <!-- Transfer Features Row -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
-                <div class="px-3.5 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-semibold flex items-center gap-1.5 shadow-xs">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs">
+                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
                     <i class="fa-solid fa-arrows-rotate text-purple-600"></i> +1 Year Extension Included
                 </div>
-                <div class="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold flex items-center gap-1.5 shadow-xs">
+                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
                     <i class="fa-solid fa-circle-check text-emerald-600"></i> Zero Downtime Guarantee
                 </div>
-                <div class="px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5 shadow-xs">
+                <div class="px-3 py-1.5 rounded-lg sm:rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center gap-1.5 shadow-2xs text-[11px]">
                     <i class="fa-solid fa-shield-halved text-blue-600"></i> Free DNS &amp; Theft Protection
                 </div>
             </div>
@@ -210,6 +211,8 @@
         <div id="domain-results-area" class="mt-8 hidden">
             <!-- Injected via JavaScript -->
         </div>
+
+
     </div>
 </section>
 
@@ -744,28 +747,30 @@
         const boxTransfer = document.getElementById('domain-mode-transfer');
         const resultsArea = document.getElementById('domain-results-area');
 
+        const inactiveClasses = 'px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 cursor-pointer';
+
         // Reset all tabs
-        tabMulti.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 cursor-pointer';
-        tabAi.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 cursor-pointer';
-        if (tabTransfer) tabTransfer.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900 cursor-pointer';
+        tabMulti.className = inactiveClasses;
+        tabAi.className = inactiveClasses;
+        if (tabTransfer) tabTransfer.className = inactiveClasses;
 
         boxMulti.classList.add('hidden');
         boxAi.classList.add('hidden');
         if (boxTransfer) boxTransfer.classList.add('hidden');
 
         if (mode === 'ai') {
-            tabAi.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-500 text-white shadow-lg shadow-cyan-600/30 cursor-pointer';
+            tabAi.className = 'px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-500 text-white shadow-xs cursor-pointer';
             boxAi.classList.remove('hidden');
             const el = document.getElementById('ai-prompt-input');
             if (el) el.focus();
         } else if (mode === 'transfer') {
-            if (tabTransfer) tabTransfer.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30 cursor-pointer';
+            if (tabTransfer) tabTransfer.className = 'px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-purple-600 text-white shadow-xs cursor-pointer';
             if (boxTransfer) boxTransfer.classList.remove('hidden');
             if (resultsArea) resultsArea.classList.add('hidden');
             const el = document.getElementById('transfer-domain-input');
             if (el) el.focus();
         } else {
-            tabMulti.className = 'px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-lg shadow-blue-600/30 cursor-pointer';
+            tabMulti.className = 'px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-xs cursor-pointer';
             boxMulti.classList.remove('hidden');
             const el = document.getElementById('multi-domain-input');
             if (el) el.focus();

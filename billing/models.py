@@ -133,7 +133,10 @@ class InvoiceItem(models.Model):
 class Gateway(models.TextChoices):
     BKASH = 'bkash', 'bKash'
     NAGAD = 'nagad', 'Nagad'
+    ROCKET = 'rocket', 'DBBL Rocket'
     SSLCOMMERZ = 'sslcommerz', 'SSLCommerz'
+    CRYPTOMUS = 'cryptomus', 'Cryptomus (Crypto & Global Cards)'
+    DIRECT_CRYPTO = 'direct_crypto', 'Direct Crypto (USDT / Binance Pay)'
     MANUAL = 'manual', 'Manual / Bank Transfer'
     CREDIT = 'credit', 'Account Credit'
 

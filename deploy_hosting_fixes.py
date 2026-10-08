@@ -1,5 +1,6 @@
-import paramiko
 import os
+
+import paramiko
 
 FILES_TO_UPLOAD = [
     'templates/base.html',
@@ -32,20 +33,38 @@ FILES_TO_UPLOAD = [
     'core/page_views.py',
     'core/migrations/__init__.py',
     'core/migrations/0001_initial.py',
+    'core/migrations/0002_alter_sitesetting_company_name_and_more.py',
+    'core/migrations/0003_sitesetting_show_hero_section.py',
+    'core/migrations/0004_sitesetting_binance_pay_id_and_more.py',
+    'billing/urls.py',
     'domains/migrations/0002_alter_domainregistrar_driver.py',
     'core/context_processors.py',
+    'core/signals.py',
+    'core/cache.py',
+    'core/sitemaps.py',
+    'core/security.py',
     'hosting/services.py',
+    'hosting/models.py',
+    'hosting/views.py',
+    'hosting/tasks.py',
+    'accounts/models.py',
+    'accounts/views.py',
+    'accounts/serializers.py',
     'core/views.py',
     'core/admin_views.py',
     'core/cart_views.py',
     'domains/models.py',
     'domains/services.py',
     'domains/views.py',
+    'domains/whois_checker.py',
     'domains/drivers/__init__.py',
     'domains/drivers/factory.py',
     'domains/drivers/spaceship.py',
     'domains/drivers/bdwebs.py',
+    'billing/models.py',
+    'billing/views.py',
     'billing/services.py',
+    'billing/gateway_factory.py',
     'static/images/server-rack-hero.svg',
     'static/images/domain-cloud-hero.svg',
     'static/images/cpanel-mockup.svg',
@@ -61,11 +80,15 @@ FILES_TO_UPLOAD = [
     'static/images/vps-architecture.svg',
     'static/images/reseller-whm.svg',
     'static/images/banner-3.gif',
+    'static/images/banner-3.webp',
+    'static/img/logo.png',
+    'static/img/favicon.png',
+    'static/img/favicon.ico',
+    'static/img/og_thumbnail.png',
 ]
 
 TARGET_DOMAINS = [
     '/home/webkoders/velohoster.com',
-    '/home/webkoders/host.webkoders.com',
 ]
 
 def run_cmd(ssh, cmd):
@@ -88,7 +111,7 @@ def deploy():
         print(f"\nDeploying to {base_dir}...", flush=True)
         
         # Ensure directories exist
-        for d in ['templates/partials', 'templates/pages', 'core/migrations', 'domains/migrations', 'hosting/migrations', 'static/images', 'staticfiles/images', 'tmp']:
+        for d in ['templates/partials', 'templates/pages', 'core/migrations', 'domains/migrations', 'hosting/migrations', 'static/images', 'staticfiles/images', 'static/img', 'staticfiles/img', 'mediafiles', 'tmp']:
             run_cmd(ssh, f"mkdir -p {base_dir}/{d}")
         
         for rel_path in FILES_TO_UPLOAD:
@@ -103,7 +126,7 @@ def deploy():
         run_cmd(ssh, f"{py_bin} {base_dir}/manage.py migrate")
         
         # Update SiteSetting in DB to VeloHoster using python remote script
-        update_py = f"""
+        update_py = """
 import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hostpro.settings')
 django.setup()
@@ -140,4 +163,3 @@ print('SUCCESS: Updated SiteSetting to VeloHoster in database.')
 
 if __name__ == '__main__':
     deploy()
-

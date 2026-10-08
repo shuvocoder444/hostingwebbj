@@ -1716,6 +1716,7 @@ def admin_action_handler_view(request, action_type):
         site.tagline = request.POST.get('tagline', site.tagline).strip()
         site.meta_description = request.POST.get('meta_description', site.meta_description).strip()
         site.meta_keywords = request.POST.get('meta_keywords', site.meta_keywords).strip()
+        site.show_hero_section = bool(request.POST.get('show_hero_section'))
 
         site.whatsapp_number = request.POST.get('whatsapp_number', site.whatsapp_number).strip()
         site.support_email = request.POST.get('support_email', site.support_email).strip()
@@ -1729,31 +1730,41 @@ def admin_action_handler_view(request, action_type):
         site.twitter_url = request.POST.get('twitter_url', site.twitter_url).strip()
         site.telegram_url = request.POST.get('telegram_url', site.telegram_url).strip()
 
-        # Direct Image URL inputs
+        # Direct Image URL inputs (allow updating text URLs)
         logo_url_input = request.POST.get('logo_url', '').strip()
         favicon_url_input = request.POST.get('favicon_url', '').strip()
         thumbnail_url_input = request.POST.get('thumbnail_url', '').strip()
-        if logo_url_input:
+        if logo_url_input != '':
             site.logo_url = logo_url_input
-        if favicon_url_input:
+        if favicon_url_input != '':
             site.favicon_url = favicon_url_input
-        if thumbnail_url_input:
+        if thumbnail_url_input != '':
             site.thumbnail_url = thumbnail_url_input
 
-        # Handle Direct Image File Uploads
+        # Handle Direct Image File Uploads with Cache-Busting Filenames
         import os
+        import time
         from django.conf import settings as dj_settings
         static_img_dir = os.path.join(dj_settings.BASE_DIR, 'static', 'img')
         staticfiles_img_dir = os.path.join(dj_settings.BASE_DIR, 'staticfiles', 'img')
-        os.makedirs(static_img_dir, exist_ok=True)
-        os.makedirs(staticfiles_img_dir, exist_ok=True)
+        mediafiles_img_dir = os.path.join(dj_settings.BASE_DIR, 'mediafiles')
+        for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
+            os.makedirs(d, exist_ok=True)
 
+        ts = int(time.time())
         if request.FILES.get('logo_file'):
             f = request.FILES['logo_file']
-            ext = os.path.splitext(f.name)[1] or '.png'
-            filename = f"logo{ext}"
+            ext = os.path.splitext(f.name)[1].lower() or '.png'
+            filename = f"logo_{ts}{ext}"
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
+                with open(file_path, 'wb+') as dest:
+                    for chunk in f.chunks():
+                        dest.write(chunk)
+            # Also overwrite default logo.png
+            for d in (static_img_dir, staticfiles_img_dir):
+                f.seek(0)
+                file_path = os.path.join(d, f"logo{ext}")
                 with open(file_path, 'wb+') as dest:
                     for chunk in f.chunks():
                         dest.write(chunk)
@@ -1761,10 +1772,17 @@ def admin_action_handler_view(request, action_type):
 
         if request.FILES.get('favicon_file'):
             f = request.FILES['favicon_file']
-            ext = os.path.splitext(f.name)[1] or '.ico'
-            filename = f"favicon{ext}"
+            ext = os.path.splitext(f.name)[1].lower() or '.png'
+            filename = f"favicon_{ts}{ext}"
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
+                with open(file_path, 'wb+') as dest:
+                    for chunk in f.chunks():
+                        dest.write(chunk)
+            # Also overwrite default favicon.png / favicon.ico
+            for d in (static_img_dir, staticfiles_img_dir):
+                f.seek(0)
+                file_path = os.path.join(d, f"favicon{ext}")
                 with open(file_path, 'wb+') as dest:
                     for chunk in f.chunks():
                         dest.write(chunk)
@@ -1772,16 +1790,30 @@ def admin_action_handler_view(request, action_type):
 
         if request.FILES.get('thumbnail_file'):
             f = request.FILES['thumbnail_file']
-            ext = os.path.splitext(f.name)[1] or '.png'
-            filename = f"og_thumbnail{ext}"
+            ext = os.path.splitext(f.name)[1].lower() or '.png'
+            filename = f"og_thumbnail_{ts}{ext}"
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
                 with open(file_path, 'wb+') as dest:
                     for chunk in f.chunks():
                         dest.write(chunk)
+            # Also overwrite default og_thumbnail.png
+            for d in (static_img_dir, staticfiles_img_dir):
+                f.seek(0)
+                file_path = os.path.join(d, f"og_thumbnail{ext}")
+                with open(file_path, 'wb+') as dest:
+                    for chunk in f.chunks():
+                        dest.write(chunk)
             site.thumbnail_url = f"/static/img/{filename}"
 
+        # International & Crypto Payment Gateways
+        site.cryptomus_merchant_id = request.POST.get('cryptomus_merchant_id', site.cryptomus_merchant_id).strip()
+        site.cryptomus_payment_api_key = request.POST.get('cryptomus_payment_api_key', site.cryptomus_payment_api_key).strip()
+        site.usdt_trc20_wallet = request.POST.get('usdt_trc20_wallet', site.usdt_trc20_wallet).strip()
+        site.usdt_bep20_wallet = request.POST.get('usdt_bep20_wallet', site.usdt_bep20_wallet).strip()
+        site.binance_pay_id = request.POST.get('binance_pay_id', site.binance_pay_id).strip()
+
         site.save()
-        messages.success(request, "Website Branding, SEO Meta Tags, WhatsApp Number & Social Media Settings saved successfully!")
+        messages.success(request, "Website Branding, SEO Meta Tags, WhatsApp Number & Crypto Payment Settings saved successfully!")
 
     return redirect_to_admin_tab(action_type, request)

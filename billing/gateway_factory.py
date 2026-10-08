@@ -291,11 +291,117 @@ class SSLCommerzGateway(BasePaymentGateway):
             raise PaymentGatewayError(f"SSLCommerz status check failed: {exc}")
 
 
+# ─── Cryptomus Gateway ────────────────────────────────────────────────────────
+
+class CryptomusGateway(BasePaymentGateway):
+    """
+    Cryptomus Payment Gateway (Crypto USDT/BTC/ETH + Global Cards & Apple Pay).
+    Official API: https://doc.cryptomus.com/business/payments/creating-invoice
+    """
+    BASE_URL: str = 'https://api.cryptomus.com/v1'
+
+    def __init__(self):
+        from core.models import SiteSetting
+        setting = SiteSetting.get_settings()
+        self.merchant_id = getattr(setting, 'cryptomus_merchant_id', '') or getattr(settings, 'CRYPTOMUS_MERCHANT_ID', '')
+        self.payment_api_key = getattr(setting, 'cryptomus_payment_api_key', '') or getattr(settings, 'CRYPTOMUS_PAYMENT_API_KEY', '')
+
+    def _generate_sign(self, data: dict) -> str:
+        import base64
+        import hashlib
+        import json
+        data_json = json.dumps(data, separators=(',', ':'))
+        encoded = base64.b64encode(data_json.encode('utf-8')).decode('utf-8')
+        return hashlib.md5((encoded + self.payment_api_key).encode('utf-8')).hexdigest()
+
+    def initiate_payment(self, invoice: Invoice, customer, callback_url: str) -> dict:
+        if not self.merchant_id or not self.payment_api_key:
+            raise PaymentGatewayError("Cryptomus Merchant ID or Payment API Key is not configured in Admin Settings.")
+
+        # Convert BDT to USD (125 BDT = 1 USD approx)
+        amount_usd = round(float(invoice.total) / 125.0, 2)
+        if amount_usd < 1.0:
+            amount_usd = 1.0
+
+        payload = {
+            'amount': f"{amount_usd:.2f}",
+            'currency': 'USD',
+            'order_id': str(invoice.invoice_number),
+            'url_return': f"https://velohoster.com/dashboard/?tab=invoices&paid_invoice={invoice.id}",
+            'url_callback': callback_url,
+            'is_payment_multiple': False,
+            'lifetime': 3600,
+        }
+
+        sign = self._generate_sign(payload)
+        headers = {
+            'merchant': self.merchant_id,
+            'sign': sign,
+            'Content-Type': 'application/json',
+        }
+
+        url = f"{self.BASE_URL}/payment"
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=20)
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as exc:
+            raise PaymentGatewayError(f"Cryptomus payment session failed: {exc}")
+
+        if data.get('state') != 0:
+            raise PaymentGatewayError(f"Cryptomus error: {data.get('message', 'Unknown error')}", detail=data)
+
+        result = data.get('result', {})
+        return {
+            'payment_url': result.get('url'),
+            'payment_id': result.get('uuid'),
+            'gateway': 'cryptomus',
+        }
+
+    def verify_ipn(self, request_data: dict, request_headers: dict) -> bool:
+        if not self.payment_api_key:
+            raise InvalidIPNSignature("Cryptomus API key missing on server.")
+
+        import base64
+        import hashlib
+        import json
+
+        data_copy = dict(request_data)
+        sign = data_copy.pop('sign', None)
+        if not sign:
+            raise InvalidIPNSignature("Cryptomus webhook missing signature ('sign').")
+
+        data_json = json.dumps(data_copy, separators=(',', ':'))
+        encoded = base64.b64encode(data_json.encode('utf-8')).decode('utf-8')
+        computed_sign = hashlib.md5((encoded + self.payment_api_key).encode('utf-8')).hexdigest()
+
+        if sign != computed_sign:
+            raise InvalidIPNSignature("Cryptomus signature verification failed.")
+
+        status = data_copy.get('status', '').lower()
+        if status not in ('paid', 'paid_over'):
+            raise InvalidIPNSignature(f"Cryptomus payment status not paid: {status}")
+
+        return True
+
+    def get_payment_status(self, payment_id: str) -> dict:
+        payload = {'uuid': payment_id}
+        sign = self._generate_sign(payload)
+        headers = {'merchant': self.merchant_id, 'sign': sign, 'Content-Type': 'application/json'}
+        url = f"{self.BASE_URL}/payment/info"
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=15)
+            return response.json()
+        except requests.RequestException as exc:
+            raise PaymentGatewayError(f"Cryptomus status check failed: {exc}")
+
+
 # ─── Gateway Factory ──────────────────────────────────────────────────────────
 
 _GATEWAY_REGISTRY: dict[str, type[BasePaymentGateway]] = {
     'bkash': BKashGateway,
     'sslcommerz': SSLCommerzGateway,
+    'cryptomus': CryptomusGateway,
 }
 
 
@@ -304,7 +410,7 @@ def get_payment_gateway(name: str) -> BasePaymentGateway:
     Return an initialised payment gateway instance.
 
     Args:
-        name: Gateway identifier ('bkash', 'sslcommerz').
+        name: Gateway identifier ('bkash', 'sslcommerz', 'cryptomus').
 
     Raises:
         PaymentGatewayError: If gateway name is not registered.

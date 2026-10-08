@@ -221,3 +221,59 @@ class BKashCallbackView(APIView):
         except Exception as exc:
             logger.error("bKash callback error: %s", exc, exc_info=True)
             return Response({'status': 'error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CryptomusIPNView(APIView):
+    """
+    POST /api/v1/billing/ipn/cryptomus/
+    Cryptomus IPN / Webhook Callback.
+    Automatic payment verification and instant WHM & domain provisioning!
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        data = request.data
+        logger.info("Cryptomus IPN received: order_id=%s, uuid=%s, status=%s", data.get('order_id'), data.get('uuid'), data.get('status'))
+
+        try:
+            gateway = get_payment_gateway('cryptomus')
+            gateway.verify_ipn(dict(data), dict(request.headers))
+        except InvalidIPNSignature as exc:
+            logger.warning("Cryptomus IPN signature invalid: %s", exc)
+            return Response({'status': 'invalid_signature'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as exc:
+            logger.error("Cryptomus IPN verification error: %s", exc)
+            return Response({'status': 'error', 'message': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        order_id = data.get('order_id')
+        txid = data.get('txid') or data.get('uuid') or f"CRYPTO-{uuid.uuid4().hex[:8].upper()}"
+        status_str = str(data.get('status', '')).lower()
+
+        if status_str in ('paid', 'paid_over'):
+            try:
+                invoice = Invoice.objects.filter(invoice_number=order_id).first()
+                if not invoice:
+                    invoice = Invoice.objects.filter(id=order_id).first()
+
+                if not invoice:
+                    logger.error("Cryptomus IPN: Invoice not found for order_id=%s", order_id)
+                    return Response({'status': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
+
+                # Confirm payment in billing service (triggers automatic provisioning of WHM & Domain!)
+                PaymentService.confirm_payment(
+                    invoice_id=str(invoice.id),
+                    gateway='cryptomus',
+                    gateway_transaction_id=txid,
+                    amount=invoice.total,
+                    gateway_response=dict(data),
+                )
+                logger.info("Cryptomus payment confirmed & auto-provisioning triggered for invoice %s", invoice.invoice_number)
+                return Response({'status': 'OK'}, status=status.HTTP_200_OK)
+
+            except Exception as exc:
+                logger.error("Cryptomus IPN confirmation error: %s", exc, exc_info=True)
+                return Response({'status': 'error', 'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'status': 'ignored', 'payment_status': status_str}, status=status.HTTP_200_OK)

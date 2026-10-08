@@ -252,69 +252,108 @@
                 <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-credit-card text-brand-600"></i> Payment Method
+                            <i class="fa-solid fa-credit-card text-brand-600"></i> Payment Method (পেমেন্ট পদ্ধতি)
                         </h3>
                         <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Step 3 of 3</span>
                     </div>
 
                     <!-- Gateway selector tiles -->
-                    <div class="space-y-3">
-                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">পেমেন্ট মেথড নির্বাচন করুন:</span>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <!-- bKash -->
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">পেমেন্ট মেথড নির্বাচন করুন:</span>
+                            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-[10px]"></i> Instant Automated Provisioning
+                            </span>
+                        </div>
+
+                        <!-- 6 Gateway Tiles Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+                            <!-- 1. bKash -->
                             <div id="card-gateway-bkash" onclick="selectPaymentGateway('bkash')"
-                                class="relative p-3.5 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-pink-500/20">
+                                class="relative p-3 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-pink-500/20">
                                 <input type="radio" id="radio-gateway-bkash" name="payment_gateway" value="bkash" checked class="sr-only">
-                                <div class="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
+                                <div class="w-8 h-8 rounded-xl bg-pink-600 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">bKash</strong>
-                                    <span class="text-[10px] text-pink-700 font-semibold">বিকাশ পেমেন্ট</span>
+                                    <span class="text-[9px] text-pink-700 font-semibold">বিকাশ</span>
                                 </div>
-                                <span id="check-gateway-bkash" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-pink-600 text-white flex items-center justify-center text-[9px]">
+                                <span id="check-gateway-bkash" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-pink-600 text-white flex items-center justify-center text-[8px]">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                             </div>
 
-                            <!-- Nagad -->
+                            <!-- 2. Nagad -->
                             <div id="card-gateway-nagad" onclick="selectPaymentGateway('nagad')"
-                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
+                                class="relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/30 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group">
                                 <input type="radio" id="radio-gateway-nagad" name="payment_gateway" value="nagad" class="sr-only">
-                                <div class="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
+                                <div class="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">Nagad</strong>
-                                    <span class="text-[10px] text-slate-500 font-medium">নগদ পেমেন্ট</span>
+                                    <span class="text-[9px] text-slate-500 font-medium">নগদ</span>
                                 </div>
-                                <span id="check-gateway-nagad" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-orange-500 text-white hidden items-center justify-center text-[9px]">
+                                <span id="check-gateway-nagad" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-orange-500 text-white hidden items-center justify-center text-[8px]">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                             </div>
 
-                            <!-- Rocket -->
+                            <!-- 3. Rocket -->
                             <div id="card-gateway-rocket" onclick="selectPaymentGateway('rocket')"
-                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
+                                class="relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-300 hover:bg-purple-50/30 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group">
                                 <input type="radio" id="radio-gateway-rocket" name="payment_gateway" value="rocket" class="sr-only">
-                                <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
+                                <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">৳</div>
                                 <div>
                                     <strong class="text-xs font-bold text-slate-900 block">Rocket</strong>
-                                    <span class="text-[10px] text-slate-500 font-medium">DBBL রকেট</span>
+                                    <span class="text-[9px] text-slate-500 font-medium">রকেট</span>
                                 </div>
-                                <span id="check-gateway-rocket" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-purple-600 text-white hidden items-center justify-center text-[9px]">
+                                <span id="check-gateway-rocket" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-purple-600 text-white hidden items-center justify-center text-[8px]">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                             </div>
 
-                            <!-- Bank / Card -->
-                            <div id="card-gateway-manual" onclick="selectPaymentGateway('manual')"
-                                class="relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group">
-                                <input type="radio" id="radio-gateway-manual" name="payment_gateway" value="manual" class="sr-only">
-                                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shadow-xs group-hover:scale-105 transition-transform">
-                                    <i class="fa-solid fa-building-columns text-xs"></i>
+                            <!-- 4. Cryptomus (🏆 Auto Crypto & Global Cards) -->
+                            <div id="card-gateway-cryptomus" onclick="selectPaymentGateway('cryptomus')"
+                                class="relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/30 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-cryptomus" name="payment_gateway" value="cryptomus" class="sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">
+                                    <i class="fa-brands fa-bitcoin"></i>
                                 </div>
                                 <div>
-                                    <strong class="text-xs font-bold text-slate-900 block">Bank / Card</strong>
-                                    <span class="text-[10px] text-slate-500 font-medium">ব্যাংক ট্রান্সফার</span>
+                                    <strong class="text-xs font-bold text-slate-900 block">Cryptomus</strong>
+                                    <span class="text-[9px] text-emerald-700 font-semibold">Card / Crypto</span>
                                 </div>
-                                <span id="check-gateway-manual" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-blue-600 text-white hidden items-center justify-center text-[9px]">
+                                <span id="check-gateway-cryptomus" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-600 text-white hidden items-center justify-center text-[8px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
+
+                            <!-- 5. Direct Crypto (USDT / Binance Pay) -->
+                            <div id="card-gateway-direct_crypto" onclick="selectPaymentGateway('direct_crypto')"
+                                class="relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/30 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-direct_crypto" name="payment_gateway" value="direct_crypto" class="sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">Direct USDT</strong>
+                                    <span class="text-[9px] text-amber-700 font-semibold">Binance (0% Fee)</span>
+                                </div>
+                                <span id="check-gateway-direct_crypto" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white hidden items-center justify-center text-[8px]">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                            </div>
+
+                            <!-- 6. Bank / Card Transfer -->
+                            <div id="card-gateway-manual" onclick="selectPaymentGateway('manual')"
+                                class="relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-manual" name="payment_gateway" value="manual" class="sr-only">
+                                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-black shadow-xs group-hover:scale-105 transition-transform">
+                                    <i class="fa-solid fa-building-columns text-[10px]"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-xs font-bold text-slate-900 block">Bank / EFTN</strong>
+                                    <span class="text-[9px] text-slate-500 font-medium">ব্যাংক ট্রান্সফার</span>
+                                </div>
+                                <span id="check-gateway-manual" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-blue-600 text-white hidden items-center justify-center text-[8px]">
                                     <i class="fa-solid fa-check"></i>
                                 </span>
                             </div>
@@ -322,42 +361,44 @@
                     </div>
 
                     <!-- Payment Guidelines Box (Dynamic) -->
-                    <div id="gateway-guide-box" class="p-4 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-1.5 transition-all">
+                    <div id="gateway-guide-box" class="p-4 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-2 transition-all">
                         <div id="gateway-guide-title" class="font-bold flex items-center gap-2 text-pink-900">
                             <i class="fa-solid fa-circle-info text-pink-600"></i> bKash পেমেন্ট নির্দেশিকা:
                         </div>
-                        <p id="gateway-guide-desc" class="text-[11px] text-pink-950">
+                        <div id="gateway-guide-desc" class="text-[11px] text-pink-950 leading-relaxed">
                             বিকাশ অ্যাপ অথবা <strong>*247#</strong> থেকে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা পেমেন্ট সম্পন্ন করার পর আপনার <strong>বিকাশ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করে অর্ডার কনফার্ম করুন।
-                        </p>
+                        </div>
                     </div>
 
                     <!-- Direct Transaction Submission Inputs -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label id="label-sender-number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Sender bKash Number (বিকাশ প্রেরক নম্বর) <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" id="input-sender-number" name="sender_number" required placeholder="e.g. 01712345678"
-                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold">
+                    <div id="payment-input-fields" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label id="label-sender-number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Sender bKash Number (বিকাশ প্রেরক নম্বর) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" id="input-sender-number" name="sender_number" required placeholder="e.g. 01712345678"
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold">
+                            </div>
+                            <div>
+                                <label id="label-trx-id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Transaction ID (TrxID) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" id="input-trx-id" name="trx_id" required placeholder="e.g. 9H7X8KL9"
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold uppercase">
+                            </div>
                         </div>
-                        <div>
-                            <label id="label-trx-id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Transaction ID (TrxID) <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" id="input-trx-id" name="trx_id" required placeholder="e.g. 9H7X8KL9"
-                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono font-bold uppercase">
-                        </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Additional Notes / Reference (ঐচ্ছিক রেফারেন্স নোট)</label>
-                        <input type="text" id="input-payment-notes" name="notes" placeholder="e.g. Paid from personal bKash number"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Additional Notes / Reference (ঐচ্ছিক রেফারেন্স নোট)</label>
+                            <input type="text" id="input-payment-notes" name="notes" placeholder="e.g. Paid from personal bKash number"
+                                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                        </div>
                     </div>
 
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-emerald-600 text-sm shrink-0"></i>
-                        <span>অর্ডার সাবমিট হলে আমাদের সিস্টেম ট্রানজেকশন যাচাই করে দ্রুত ডোমেইন ও হোস্টিং অ্যাক্টিভেশন সম্পন্ন করবে।</span>
+                        <span>অর্ডার সাবমিট হলে আমাদের সিস্টেম ট্রানজেকশন ও Webhook IPN যাচাই করে স্বয়ংক্রিয়ভাবে cPanel হোস্টিং ও ডোমেইন প্রভিশন করবে।</span>
                     </div>
                 </div>
 
@@ -465,62 +506,275 @@ function switchAuthTab(mode) {
     }
 }
 
+const TRC20_WALLET = "{{ site_setting.usdt_trc20_wallet|default:'TV6y4s7X9hQweU3vKopLz91MnvXqLmnB2A' }}";
+const BEP20_WALLET = "{{ site_setting.usdt_bep20_wallet|default:'0x71C9d832bA2A1e21bF7038166D4e8a4a581C650A' }}";
+const BINANCE_PAY_ID = "{{ site_setting.binance_pay_id|default:'589214732' }}";
+const SUPPORT_PHONE = "{{ site_setting.support_phone|default:site_setting.whatsapp_number|default:'01790830250' }}";
+
+let currentCryptoNet = 'trc20';
+
+function getCryptoData(net) {
+    if (net === 'bep20') {
+        return {
+            name: 'USDT (BEP-20 / BNB Smart Chain)',
+            badge: 'BNB Smart Chain (BEP-20)',
+            badgeClass: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            address: BEP20_WALLET,
+            qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(BEP20_WALLET)}&margin=6`,
+            instruction: 'BNB Smart Chain (BEP-20) ওয়ালেট থেকে USDT পাঠাতে নিচের QR কোডটি স্ক্যান করুন অথবা অ্যাড্রেসটি কপি করুন:'
+        };
+    } else if (net === 'binance_pay') {
+        return {
+            name: 'Binance Pay ID',
+            badge: 'Binance Pay (Instant 0% Fee)',
+            badgeClass: 'bg-amber-100 text-amber-900 border-amber-200',
+            address: BINANCE_PAY_ID,
+            qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(BINANCE_PAY_ID)}&margin=6`,
+            instruction: 'Binance App > Pay অপশনে গিয়ে নিচের QR কোড স্ক্যান করুন অথবা Pay ID কপি করুন:'
+        };
+    } else {
+        return {
+            name: 'USDT (TRC-20 / Tron Network)',
+            badge: 'Tron Network (TRC-20)',
+            badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+            address: TRC20_WALLET,
+            qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(TRC20_WALLET)}&margin=6`,
+            instruction: 'Tron (TRC-20) ওয়ালেট বা যেকোনো এক্সচেঞ্জ থেকে নিচের QR কোড স্ক্যান করুন অথবা অ্যাড্রেস কপি করুন:'
+        };
+    }
+}
+
+function switchCryptoNetwork(net) {
+    currentCryptoNet = net;
+    const data = getCryptoData(net);
+
+    const btnTRC = document.getElementById('btn-crypto-trc20');
+    const btnBEP = document.getElementById('btn-crypto-bep20');
+    const btnPay = document.getElementById('btn-crypto-binance');
+
+    if (btnTRC && btnBEP && btnPay) {
+        const activeClass = 'px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-white shadow-sm transition';
+        const inactiveClass = 'px-3 py-1.5 rounded-xl font-bold text-xs bg-white text-slate-700 hover:bg-amber-100 border border-amber-200 transition';
+
+        btnTRC.className = (net === 'trc20') ? activeClass : inactiveClass;
+        btnBEP.className = (net === 'bep20') ? activeClass : inactiveClass;
+        btnPay.className = (net === 'binance_pay') ? activeClass : inactiveClass;
+    }
+
+    const qrImg = document.getElementById('crypto-qr-img');
+    const addrTxt = document.getElementById('crypto-address-text');
+    const badgeTxt = document.getElementById('crypto-network-badge');
+    const instrTxt = document.getElementById('crypto-instruction-text');
+
+    if (qrImg) qrImg.src = data.qrUrl;
+    if (addrTxt) addrTxt.innerText = data.address;
+    if (badgeTxt) {
+        badgeTxt.innerText = data.badge;
+        badgeTxt.className = `px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${data.badgeClass}`;
+    }
+    if (instrTxt) instrTxt.innerText = data.instruction;
+}
+
+function copyCryptoAddress() {
+    const data = getCryptoData(currentCryptoNet);
+    navigator.clipboard.writeText(data.address).then(() => {
+        const copyBtn = document.getElementById('btn-copy-crypto');
+        if (copyBtn) {
+            const orig = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            copyBtn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+            copyBtn.classList.add('bg-emerald-600');
+            setTimeout(() => {
+                copyBtn.innerHTML = orig;
+                copyBtn.classList.remove('bg-emerald-600');
+                copyBtn.classList.add('bg-amber-500', 'hover:bg-amber-600');
+            }, 2000);
+        }
+    });
+}
+
 const GATEWAY_CONFIG = {
     bkash: {
-        cardClass: 'relative p-3.5 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-pink-500/20',
-        guideBoxClass: 'p-4 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-1.5 transition-all',
+        cardClass: 'relative p-3 rounded-2xl border-2 border-pink-500 bg-pink-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-pink-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-pink-50/90 border border-pink-200 rounded-2xl text-xs text-pink-950 leading-relaxed space-y-3 transition-all shadow-xs',
         guideTitleClass: 'font-bold flex items-center gap-2 text-pink-900',
-        guideTitle: '<i class="fa-solid fa-circle-info text-pink-600"></i> bKash পেমেন্ট নির্দেশিকা:',
-        guideDesc: 'বিকাশ অ্যাপ অথবা <strong>*247#</strong> থেকে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা পেমেন্ট সম্পন্ন করার পর আপনার <strong>বিকাশ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করে অর্ডার কনফার্ম করুন।',
+        guideTitle: '<i class="fa-solid fa-qrcode text-pink-600 text-sm"></i> bKash QR Scan &amp; Send Money নির্দেশিকা:',
+        guideDesc: `
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div class="p-2 bg-white rounded-2xl border border-pink-200 shadow-xs shrink-0 text-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=01790830250&margin=4" alt="bKash QR" class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl object-contain mx-auto">
+                    <span class="block text-[9px] font-bold text-pink-700 mt-1 uppercase">Scan bKash QR</span>
+                </div>
+                <div class="space-y-2 flex-1 text-left">
+                    <p class="text-[11px] leading-relaxed">বিকাশ অ্যাপ থেকে QR স্ক্যান করুন অথবা <strong>*247#</strong> ডায়াল করে নিচের নম্বরে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি করুন:</p>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-pink-200 font-mono text-xs">
+                        <span class="font-bold text-pink-900">01790830250</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('01790830250'); alert('Copied bKash Number: 01790830250');" class="px-2.5 py-1 rounded-lg bg-pink-100 hover:bg-pink-200 text-pink-800 font-bold text-[11px] cursor-pointer">Copy</button>
+                    </div>
+                    <p class="text-[10px] text-pink-800">পেমেন্ট সম্পন্ন হলে ফিরতি SMS-এ পাওয়া <strong>TrxID</strong> ও আপনার প্রেরক নম্বর নিচে বসিয়ে সাবমিট করুন।</p>
+                </div>
+            </div>
+        `,
         senderLabel: 'Sender bKash Number (বিকাশ প্রেরক নম্বর) <span class="text-rose-500">*</span>',
         senderPlaceholder: 'e.g. 01712345678',
         trxLabel: 'bKash Transaction ID (TrxID) <span class="text-rose-500">*</span>',
         trxPlaceholder: 'e.g. 9H7X8KL9',
-        notesPlaceholder: 'e.g. Paid from personal bKash number'
+        notesPlaceholder: 'e.g. Paid from personal bKash number',
+        isAuto: false
     },
     nagad: {
-        cardClass: 'relative p-3.5 rounded-2xl border-2 border-orange-500 bg-orange-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-orange-500/20',
-        guideBoxClass: 'p-4 bg-orange-50/90 border border-orange-200 rounded-2xl text-xs text-orange-950 leading-relaxed space-y-1.5 transition-all',
+        cardClass: 'relative p-3 rounded-2xl border-2 border-orange-500 bg-orange-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-orange-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-orange-50/90 border border-orange-200 rounded-2xl text-xs text-orange-950 leading-relaxed space-y-3 transition-all shadow-xs',
         guideTitleClass: 'font-bold flex items-center gap-2 text-orange-900',
-        guideTitle: '<i class="fa-solid fa-circle-info text-orange-600"></i> Nagad পেমেন্ট নির্দেশিকা:',
-        guideDesc: 'নগদ অ্যাপ অথবা <strong>*167#</strong> ডায়াল করে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি বা ক্যাশ আউট সম্পন্ন করার পর আপনার <strong>নগদ প্রেরক নম্বর</strong> এবং ফিরতি এসএমএসে প্রাপ্ত <strong>TrxID</strong> নিচে পূরণ করুন।',
+        guideTitle: '<i class="fa-solid fa-qrcode text-orange-600 text-sm"></i> Nagad QR Scan &amp; Send Money নির্দেশিকা:',
+        guideDesc: `
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div class="p-2 bg-white rounded-2xl border border-orange-200 shadow-xs shrink-0 text-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=01790830250&margin=4" alt="Nagad QR" class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl object-contain mx-auto">
+                    <span class="block text-[9px] font-bold text-orange-700 mt-1 uppercase">Scan Nagad QR</span>
+                </div>
+                <div class="space-y-2 flex-1 text-left">
+                    <p class="text-[11px] leading-relaxed">নগদ অ্যাপ থেকে QR স্ক্যান করুন অথবা <strong>*167#</strong> ডায়াল করে নিচের নম্বরে <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি করুন:</p>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-orange-200 font-mono text-xs">
+                        <span class="font-bold text-orange-950">01790830250</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('01790830250'); alert('Copied Nagad Number: 01790830250');" class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-900 font-bold text-[11px] cursor-pointer">Copy</button>
+                    </div>
+                    <p class="text-[10px] text-orange-800">পেমেন্টের পর এসএমএসে প্রাপ্ত <strong>TrxID</strong> ও প্রেরক নম্বর নিচে প্রদান করুন।</p>
+                </div>
+            </div>
+        `,
         senderLabel: 'Sender Nagad Number (নগদ প্রেরক নম্বর) <span class="text-rose-500">*</span>',
         senderPlaceholder: 'e.g. 01912345678',
         trxLabel: 'Nagad Transaction ID (TrxID) <span class="text-rose-500">*</span>',
         trxPlaceholder: 'e.g. 8K4P9LM2',
-        notesPlaceholder: 'e.g. Paid from personal Nagad account'
+        notesPlaceholder: 'e.g. Paid from personal Nagad account',
+        isAuto: false
     },
     rocket: {
-        cardClass: 'relative p-3.5 rounded-2xl border-2 border-purple-500 bg-purple-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-purple-500/20',
-        guideBoxClass: 'p-4 bg-purple-50/90 border border-purple-200 rounded-2xl text-xs text-purple-950 leading-relaxed space-y-1.5 transition-all',
+        cardClass: 'relative p-3 rounded-2xl border-2 border-purple-500 bg-purple-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-purple-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-purple-50/90 border border-purple-200 rounded-2xl text-xs text-purple-950 leading-relaxed space-y-3 transition-all shadow-xs',
         guideTitleClass: 'font-bold flex items-center gap-2 text-purple-900',
-        guideTitle: '<i class="fa-solid fa-circle-info text-purple-600"></i> Rocket পেমেন্ট নির্দেশিকা:',
-        guideDesc: 'DBBL রকেট অ্যাপ অথবা <strong>*322#</strong> ডায়াল করে সর্বমোট <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি করার পর আপনার <strong>১২ ডিজিটের রকেট নম্বর</strong> এবং ফিরতি এসএমএসের <strong>TrxID</strong> নিচে পূরণ করুন।',
+        guideTitle: '<i class="fa-solid fa-qrcode text-purple-600 text-sm"></i> Rocket QR Scan &amp; Send Money নির্দেশিকা:',
+        guideDesc: `
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div class="p-2 bg-white rounded-2xl border border-purple-200 shadow-xs shrink-0 text-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=01790830250&margin=4" alt="Rocket QR" class="w-28 h-28 sm:w-32 sm:h-32 rounded-xl object-contain mx-auto">
+                    <span class="block text-[9px] font-bold text-purple-700 mt-1 uppercase">Scan Rocket QR</span>
+                </div>
+                <div class="space-y-2 flex-1 text-left">
+                    <p class="text-[11px] leading-relaxed">রকেট অ্যাপ অথবা <strong>*322#</strong> ডায়াল করে নিচের নম্বরে <strong>৳{{ total|floatformat:0 }} BDT</strong> সেন্ড মানি করুন:</p>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-purple-200 font-mono text-xs">
+                        <span class="font-bold text-purple-950">01790830250</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('01790830250'); alert('Copied Rocket Number: 01790830250');" class="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-[11px] cursor-pointer">Copy</button>
+                    </div>
+                    <p class="text-[10px] text-purple-800">পেমেন্ট সম্পন্ন হলে ১২ ডিজিটের রকেট নম্বর ও <strong>TrxID</strong> নিচে পূরণ করুন।</p>
+                </div>
+            </div>
+        `,
         senderLabel: 'Sender Rocket Number (১২ ডিজিট রকেট নম্বর) <span class="text-rose-500">*</span>',
         senderPlaceholder: 'e.g. 018123456789',
         trxLabel: 'Rocket Transaction ID (TrxID) <span class="text-rose-500">*</span>',
         trxPlaceholder: 'e.g. 7X3M9Q1A',
-        notesPlaceholder: 'e.g. Paid from personal Rocket number'
+        notesPlaceholder: 'e.g. Paid from personal Rocket number',
+        isAuto: false
+    },
+    cryptomus: {
+        cardClass: 'relative p-3 rounded-2xl border-2 border-emerald-500 bg-emerald-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-emerald-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-2xl text-xs text-emerald-950 leading-relaxed space-y-3 transition-all shadow-xs',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-emerald-900',
+        guideTitle: '<i class="fa-brands fa-bitcoin text-emerald-600 text-sm"></i> Cryptomus Global Pay (Crypto, Visa/MasterCard &amp; Apple Pay):',
+        guideDesc: `
+            <div class="space-y-2">
+                <p>পেমেন্ট সাবমিট করার সাথে সাথেই আপনি সরাসরি <strong>Cryptomus Hosted Checkout</strong> পেজে চলে যাবেন। সেখানে রিয়েলটাইম <strong>QR Code স্ক্যান</strong> করে ক্রিপ্টো (USDT, BTC, ETH, TON, LTC) অথবা <strong>Credit/Debit Card</strong> দিয়ে ইনস্ট্যান্ট পে করতে পারবেন।</p>
+                <div class="flex flex-wrap items-center gap-2 pt-1 font-bold text-[11px] text-emerald-800">
+                    <span class="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 shadow-2xs"><i class="fa-solid fa-qrcode text-emerald-600"></i> Dynamic Live QR Code</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 shadow-2xs"><i class="fa-solid fa-bolt text-amber-500"></i> Automated Post-Payment IPN</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 shadow-2xs">Pay Amount: <strong>${{ total_usd }} USD</strong> (৳{{ total|floatformat:0 }} BDT)</span>
+                </div>
+            </div>
+        `,
+        senderLabel: 'Payer Contact Email / Phone (প্রেরকের ইমেইল) <span class="text-slate-400 font-normal">(Auto)</span>',
+        senderPlaceholder: 'e.g. customer@domain.com',
+        trxLabel: 'Payment Tracking ID <span class="text-slate-400 font-normal">(Auto Generated)</span>',
+        trxPlaceholder: 'Auto-Forwarded to Cryptomus Gateway',
+        notesPlaceholder: 'e.g. Paying with USDT / Credit Card',
+        isAuto: true
+    },
+    direct_crypto: {
+        cardClass: 'relative p-3 rounded-2xl border-2 border-amber-500 bg-amber-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-amber-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-gradient-to-br from-amber-50 via-orange-50/40 to-yellow-50 border border-amber-200 rounded-2xl text-xs text-amber-950 leading-relaxed space-y-4 transition-all shadow-xs',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-amber-900',
+        guideTitle: '<i class="fa-solid fa-qrcode text-amber-600 text-sm"></i> Direct Crypto &amp; Binance Pay QR Code (0% Fee):',
+        guideDesc: `
+            <div class="space-y-3">
+                <!-- Network Selector Tabs -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" id="btn-crypto-trc20" onclick="switchCryptoNetwork('trc20')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-white shadow-sm transition cursor-pointer">
+                        <i class="fa-solid fa-coins mr-1"></i> USDT (TRC-20)
+                    </button>
+                    <button type="button" id="btn-crypto-bep20" onclick="switchCryptoNetwork('bep20')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-white text-slate-700 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
+                        <i class="fa-solid fa-cube mr-1"></i> USDT (BEP-20)
+                    </button>
+                    <button type="button" id="btn-crypto-binance" onclick="switchCryptoNetwork('binance_pay')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-white text-slate-700 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
+                        <i class="fa-solid fa-id-badge mr-1"></i> Binance Pay ID
+                    </button>
+                </div>
+
+                <!-- Dynamic QR Card Box -->
+                <div class="p-4 bg-white rounded-2xl border border-amber-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-4">
+                    <!-- QR Code Image -->
+                    <div class="relative p-2 bg-slate-50 rounded-xl border border-slate-200 shrink-0 text-center group">
+                        <img id="crypto-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(TRC20_WALLET)}&margin=6" alt="Crypto QR Code" class="w-32 h-32 sm:w-36 sm:h-36 rounded-lg object-contain mx-auto bg-white p-1">
+                        <div class="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold text-slate-600">
+                            <i class="fa-solid fa-qrcode text-amber-600"></i> Scan to Pay
+                        </div>
+                    </div>
+
+                    <!-- Details & 1-Click Copy -->
+                    <div class="space-y-2 flex-1 text-left min-w-0 w-full">
+                        <div class="flex items-center justify-between gap-2">
+                            <span id="crypto-network-badge" class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border bg-emerald-100 text-emerald-800 border-emerald-200">Tron Network (TRC-20)</span>
+                            <span class="text-xs font-extrabold text-amber-700">Amount: <strong>${{ total_usd }} USDT</strong></span>
+                        </div>
+                        <p id="crypto-instruction-text" class="text-[11px] text-slate-600 leading-snug">Tron (TRC-20) ওয়ালেট বা যেকোনো এক্সচেঞ্জ থেকে নিচের QR কোড স্ক্যান করুন অথবা অ্যাড্রেস কপি করুন:</p>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                            <span id="crypto-address-text" class="font-mono text-xs text-slate-900 font-bold truncate select-all">${TRC20_WALLET}</span>
+                            <button type="button" id="btn-copy-crypto" onclick="copyCryptoAddress()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-2xs transition shrink-0 flex items-center gap-1 cursor-pointer">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-400">পেমেন্ট সম্পন্ন করার পর নিচে আপনার প্রেরক ওয়ালেট বা ইমেইল এবং <strong>TxHash (Transaction ID)</strong> দিন।</p>
+                    </div>
+                </div>
+            </div>
+        `,
+        senderLabel: 'Your Crypto Wallet / Binance Email (আপনার ওয়ালেট) <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'e.g. Txyz... / 0x... / your@email.com',
+        trxLabel: 'Transaction Hash (TxHash / Binance Pay TrxID) <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'e.g. 7f8a9b2c4e5f6a1b2c3d4e5f...',
+        notesPlaceholder: 'e.g. Paid ${{ total_usd }} USDT via Binance TRC-20',
+        isAuto: false
     },
     manual: {
-        cardClass: 'relative p-3.5 rounded-2xl border-2 border-blue-600 bg-blue-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group ring-2 ring-blue-500/20',
+        cardClass: 'relative p-3 rounded-2xl border-2 border-blue-600 bg-blue-50/80 shadow-xs cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group ring-2 ring-blue-500/20',
         guideBoxClass: 'p-4 bg-blue-50/90 border border-blue-200 rounded-2xl text-xs text-blue-950 leading-relaxed space-y-1.5 transition-all',
         guideTitleClass: 'font-bold flex items-center gap-2 text-blue-900',
-        guideTitle: '<i class="fa-solid fa-circle-info text-blue-600"></i> Bank / Card Transfer নির্দেশিকা:',
+        guideTitle: '<i class="fa-solid fa-building-columns text-blue-600 text-sm"></i> Bank / Card Transfer নির্দেশিকা:',
         guideDesc: 'আমাদের ব্যাংক একাউন্টে ডিপোজিট বা অনলাইন EFTN / NPSB ট্রান্সফার করে <strong>৳{{ total|floatformat:0 }} BDT</strong> পাঠান। এরপর আপনার প্রেরক ব্যাংক একাউন্ট নম্বর বা নাম এবং <strong>ডিপোজিট রেফারেন্স নম্বর</strong> নিচে পূরণ করুন।',
         senderLabel: 'Sender Account Name / Number (ব্যাংক অ্যাকাউন্ট / কার্ড প্রেরকের নাম) <span class="text-rose-500">*</span>',
         senderPlaceholder: 'e.g. Brac Bank A/C / John Doe',
         trxLabel: 'Deposit Slip / Reference Number <span class="text-rose-500">*</span>',
         trxPlaceholder: 'e.g. DEP-2026-987654',
-        notesPlaceholder: 'e.g. Transferred via CityTouch App / Bank Branch'
+        notesPlaceholder: 'e.g. Transferred via CityTouch App / Bank Branch',
+        isAuto: false
     }
 };
 
 function selectPaymentGateway(gateway) {
-    const gateways = ['bkash', 'nagad', 'rocket', 'manual'];
+    const gateways = ['bkash', 'nagad', 'rocket', 'cryptomus', 'direct_crypto', 'manual'];
     if (!gateways.includes(gateway)) gateway = 'bkash';
 
-    const defaultCardClass = 'relative p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 group';
+    const defaultCardClass = 'relative p-3 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 cursor-pointer flex flex-col items-center text-center gap-1.5 transition-all duration-200 group';
 
     gateways.forEach(g => {
         const card = document.getElementById(`card-gateway-${g}`);
@@ -562,9 +816,27 @@ function selectPaymentGateway(gateway) {
         }
         if (guideDesc) guideDesc.innerHTML = conf.guideDesc;
         if (labelSender) labelSender.innerHTML = conf.senderLabel;
-        if (inputSender) inputSender.placeholder = conf.senderPlaceholder;
+        if (inputSender) {
+            inputSender.placeholder = conf.senderPlaceholder;
+            if (conf.isAuto) {
+                inputSender.required = false;
+                inputSender.value = 'Auto (Cryptomus)';
+            } else {
+                inputSender.required = true;
+                if (inputSender.value === 'Auto (Cryptomus)') inputSender.value = '';
+            }
+        }
         if (labelTrx) labelTrx.innerHTML = conf.trxLabel;
-        if (inputTrx) inputTrx.placeholder = conf.trxPlaceholder;
+        if (inputTrx) {
+            inputTrx.placeholder = conf.trxPlaceholder;
+            if (conf.isAuto) {
+                inputTrx.required = false;
+                inputTrx.value = 'Auto (Cryptomus)';
+            } else {
+                inputTrx.required = true;
+                if (inputTrx.value === 'Auto (Cryptomus)') inputTrx.value = '';
+            }
+        }
         if (inputNotes) inputNotes.placeholder = conf.notesPlaceholder;
     }
 }

@@ -8,9 +8,7 @@ Handles dedicated landing pages for:
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from hosting.models import HostingPackage
-from domains.models import TLDPricing
-from core.models import SiteSetting
+from core.views import get_cached_packages, get_cached_tld_prices
 
 
 def about_us_view(request):
@@ -54,67 +52,60 @@ def blog_view(request):
 
 def domain_register_view(request):
     """Dedicated Domain Registration & Search Portal."""
-    tld_prices = TLDPricing.objects.filter(is_active=True).select_related('registrar').order_by('register_price')
     return render(request, 'pages/domain_register.html', {
         'page_title': 'Register a Domain Name — Cheap & Instant Registration',
-        'tld_prices': tld_prices,
+        'tld_prices': get_cached_tld_prices(),
     })
 
 
 def domain_transfer_view(request):
     """Domain Transfer to VeloHoster with 1 Year Extension."""
-    tld_prices = TLDPricing.objects.filter(is_active=True).select_related('registrar').order_by('transfer_price')
     return render(request, 'pages/domain_transfer.html', {
         'page_title': 'Transfer Your Domain — Zero Downtime & 1-Year Extension',
-        'tld_prices': tld_prices,
+        'tld_prices': get_cached_tld_prices(),
     })
 
 
 def hosting_singapore_view(request):
     """Singapore NVMe SSD High Performance Web Hosting."""
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
     return render(request, 'pages/hosting_singapore.html', {
         'page_title': 'Singapore NVMe SSD Web Hosting — Ultra Low Latency',
-        'packages': packages,
+        'packages': get_cached_packages(),
         'location': 'Singapore 🇸🇬',
     })
 
 
 def hosting_usa_view(request):
     """USA NVMe SSD Super Fast Web Hosting."""
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
     return render(request, 'pages/hosting_usa.html', {
         'page_title': 'USA NVMe SSD Web Hosting — Super Fast Global CDN',
-        'packages': packages,
+        'packages': get_cached_packages(),
         'location': 'USA 🇺🇸',
     })
 
 
 def hosting_bdix_view(request):
     """Premium BDIX 10Gbps Bangladeshi Server Hosting."""
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
     return render(request, 'pages/hosting_bdix.html', {
         'page_title': 'Premium BDIX Server Hosting — 1-5ms Ping Across Bangladesh',
-        'packages': packages,
+        'packages': get_cached_packages(),
         'location': 'Dhaka BDIX 🇧🇩',
     })
 
 
 def hosting_premium_view(request):
     """Premium Hosting for Business & High-Traffic Corporate Websites."""
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
     return render(request, 'pages/hosting_premium.html', {
         'page_title': 'Premium Business Web Hosting — Dedicated Performance & VIP Support',
-        'packages': packages,
+        'packages': get_cached_packages(),
     })
 
 
 def hosting_turbo_cloud_view(request):
     """Turbo Cloud Hosting Optimized for WooCommerce & E-Commerce."""
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
     return render(request, 'pages/hosting_turbo_cloud.html', {
         'page_title': 'Turbo Cloud E-Commerce Hosting — LiteSpeed & Redis Cache',
-        'packages': packages,
+        'packages': get_cached_packages(),
     })
 
 
