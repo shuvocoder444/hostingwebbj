@@ -92,17 +92,44 @@ sitemaps = {
 }
 
 def robots_txt_view(request):
-    """Dynamic robots.txt generator for search engine crawlers."""
+    """Dynamic robots.txt generator for all major search engine crawlers."""
     host = request.get_host() or 'velohoster.com'
-    content = f"""User-agent: *
+    content = f"""# VeloHoster Robots.txt Configuration
+User-agent: Googlebot
 Allow: /
+Allow: /static/
+Allow: /media/
+
+User-agent: Bingbot
+Allow: /
+Allow: /static/
+Allow: /media/
+
+User-agent: Applebot
+Allow: /
+Allow: /static/
+
+User-agent: Yandex
+Allow: /
+Allow: /static/
+
+User-agent: DuckDuckBot
+Allow: /
+Allow: /static/
+
+User-agent: *
+Allow: /
+Allow: /static/
 Disallow: /admin/
 Disallow: /admin-dashboard/
 Disallow: /billing/
 Disallow: /dashboard/
 Disallow: /services/
 Disallow: /api/
+Disallow: /cart/complete/
 
+# Host and Sitemap
+Host: https://{host}
 Sitemap: https://{host}/sitemap.xml
 """
     return HttpResponse(content, content_type='text/plain')

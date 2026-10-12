@@ -1193,4 +1193,32 @@
         renderAiDomainResults(promptVal, globalAiResults, expand);
     }
 </script>
+
+<!-- Product Schema for Hosting Packages -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {% for pkg in packages %}
+    {
+      "@type": "Product",
+      "name": "VeloHoster {{ pkg.name }} Hosting",
+      "description": "High performance NVMe Gen4 cloud web hosting with {{ pkg.disk_space_mb|default:'10240' }}MB storage, cPanel control panel, and LiteSpeed Enterprise.",
+      "brand": {
+        "@type": "Brand",
+        "name": "VeloHoster"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": "https://velohoster.com/cart/?package={{ pkg.id }}",
+        "priceCurrency": "BDT",
+        "price": "{{ pkg.monthly_price }}",
+        "availability": "https://schema.org/InStock",
+        "priceValidUntil": "2027-12-31"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
 {% endblock %}

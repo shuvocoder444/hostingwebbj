@@ -44,13 +44,13 @@ def global_brand_context(request):
         clean_wa = '88' + clean_wa
 
     company_name = getattr(site, 'company_name', '') or getattr(settings, 'COMPANY_NAME', 'VeloHoster')
-    site_title = getattr(site, 'site_title', '') or f"{company_name} — High Performance Cloud Web Hosting & Domains"
-    meta_desc = getattr(site, 'meta_description', '') or 'Premium high-speed cloud web hosting, cPanel, BDIX, LiteSpeed, and domain registration.'
-    meta_keys = getattr(site, 'meta_keywords', '') or 'web hosting, bdix hosting, cpanel hosting, buy domain bangladesh'
-    tagline = getattr(site, 'tagline', '') or 'Next-Gen Cloud Web Hosting'
+    site_title = getattr(site, 'site_title', '') or f"{company_name} — High Performance NVMe Cloud Web Hosting & Domains"
+    meta_desc = getattr(site, 'meta_description', '') or 'Fast, secure NVMe cPanel cloud web hosting in Bangladesh & globally. 99.99% uptime, BDIX low-latency connectivity, LiteSpeed Web Server, free SSL, and instant domain registration.'
+    meta_keys = getattr(site, 'meta_keywords', '') or 'web hosting bangladesh, bdix hosting, cpanel hosting, cheap domain registration, buy domain bd, nvme web hosting, fast cloud hosting, velohoster, domain hosting bd, best hosting provider'
+    tagline = getattr(site, 'tagline', '') or 'Ultra-Fast NVMe Cloud Web Hosting'
 
-    logo_url = getattr(site, 'logo_url', '') or '/static/img/logo.png'
-    favicon_url = getattr(site, 'favicon_url', '') or '/static/img/favicon.png'
+    logo_url = getattr(site, 'logo_url', '') or '/static/images/cpanel.webp'
+    favicon_url = getattr(site, 'favicon_url', '') or '/static/images/17373262.png'
     thumbnail_url = getattr(site, 'thumbnail_url', '')
 
     # Absolute HTTPS URLs for Social Media Open Graph previews (WhatsApp, Facebook, Twitter, Telegram, LinkedIn)
@@ -59,7 +59,7 @@ def global_brand_context(request):
     elif logo_url:
         og_image_url = make_absolute_https_url(request, logo_url)
     else:
-        og_image_url = make_absolute_https_url(request, '/static/img/og_thumbnail.png')
+        og_image_url = make_absolute_https_url(request, '/static/images/banner-3.webp')
 
     # Absolute current page URL
     current_path = request.path if hasattr(request, 'path') else '/'

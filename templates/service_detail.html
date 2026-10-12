@@ -22,16 +22,8 @@
             <div>
                 <div class="h-20 px-5 border-b border-slate-100 flex items-center justify-between">
                     <!-- Brand (full & icon mode) -->
-                    <a href="{% url 'landing' %}" class="flex items-center gap-3 overflow-hidden group">
-                        <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white shrink-0 shadow-md shadow-brand-500/20">
-                            <i class="fa-solid fa-server text-base"></i>
-                        </div>
-                        <div class="sidebar-text-element transition-opacity duration-200 whitespace-nowrap">
-                            <span class="text-lg font-extrabold tracking-tight text-slate-900">
-                                Host<span class="text-brand-600">Pro</span>
-                            </span>
-                            <span class="block text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Client Portal</span>
-                        </div>
+                    <a href="{% url 'landing' %}" class="flex items-center overflow-hidden group">
+                        {% include 'partials/brand_logo.html' %}
                     </a>
 
                     <!-- Sidebar Toggle (Collapse / Minimize) -->
@@ -257,8 +249,6 @@
                                 <a href="http://{{ account.domain }}" target="_blank" class="text-brand-600 hover:text-brand-700 hover:underline font-bold">
                                     {{ account.domain }}
                                 </a>
-                                <span class="text-slate-300">•</span>
-                                <span class="text-slate-500 text-xs">{{ account.server.name }} ({{ account.server.hostname }})</span>
                             </div>
                         </div>
 
@@ -381,13 +371,6 @@
                             </h3>
 
                             <div class="space-y-3 text-xs">
-                                <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
-                                    <div class="text-[11px] font-bold text-slate-400 uppercase">Server Hostname</div>
-                                    <div class="font-mono font-bold text-slate-800 flex items-center justify-between">
-                                        <span>{{ server.hostname|default:"cpanel.velohoster.com" }}</span>
-                                        <button onclick="copyText('{{ server.hostname|default:"cpanel.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
-                                    </div>
-                                </div>
 
                                 <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-1">
                                     <div class="text-[11px] font-bold text-slate-400 uppercase">Server IP Address</div>
@@ -425,11 +408,8 @@
                                     <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
                                         <i class="fa-solid fa-chart-pie text-brand-600"></i> Live Resource Usage
                                     </h3>
-                                    <p class="text-xs text-slate-500 mt-0.5">Real-time disk and network bandwidth statistics from server node.</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">Real-time disk and network bandwidth statistics from your hosting account.</p>
                                 </div>
-                                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> WHM Sync Active
-                                </span>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">

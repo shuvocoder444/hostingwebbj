@@ -47,18 +47,37 @@ class DomainService:
     def check_availability(cls, domain_name: str) -> DomainCheckResult:
         """
         Check if a domain is available and fetch retail price from TLDPricing.
-        Uses multi-tier live WHOIS/RDAP/DNS verification engine for 100% accuracy.
+        Uses multi-tier live WHOIS/RDAP/DNS verification engine with short-lived cache (180s)
+        to prevent duplicate network latency and external rate limits.
         """
+        from django.core.cache import cache
         clean_name = domain_name.lower().strip().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
+        cache_key = f'domain_avail_check_{clean_name}'
+        cached_res = cache.get(cache_key)
+        if cached_res is not None:
+            return cached_res
+
         sld, tld = cls.extract_tld(clean_name)
 
-        # Lookup price from our catalogue
-        tld_pricing = TLDPricing.objects.filter(tld__iexact=tld, is_active=True).first()
+        # Lookup price from cached catalogue or fallback to DB
+        tld_pricing = None
+        try:
+            from core.views import get_cached_tld_prices
+            for item in get_cached_tld_prices():
+                if item.tld.lower() == tld.lower():
+                    tld_pricing = item
+                    break
+        except Exception:
+            pass
+
+        if not tld_pricing:
+            tld_pricing = TLDPricing.objects.filter(tld__iexact=tld, is_active=True).first()
+
         price = tld_pricing.register_price if tld_pricing else Decimal('1350.00')
 
         # 1. Check if already registered on our local platform
         if Domain.objects.filter(domain_name=clean_name, status=Domain.Status.ACTIVE).exists():
-            return DomainCheckResult(
+            result = DomainCheckResult(
                 domain=clean_name,
                 is_available=False,
                 status="taken",
@@ -66,12 +85,14 @@ class DomainService:
                 currency="BDT",
                 message="Domain already registered on HostPro",
             )
+            cache.set(cache_key, result, 180)
+            return result
 
         # 2. Live Authoritative WHOIS + RDAP + DNS Engine Check
         from .whois_checker import check_domain_live
         lookup = check_domain_live(clean_name)
 
-        return DomainCheckResult(
+        result = DomainCheckResult(
             domain=clean_name,
             is_available=lookup.is_available,
             status=lookup.status,
@@ -79,6 +100,8 @@ class DomainService:
             currency="BDT",
             message=lookup.message,
         )
+        cache.set(cache_key, result, 180)
+        return result
 
     @classmethod
     def get_suggestions(cls, domain_name: str, max_results: int = 6) -> list[dict]:

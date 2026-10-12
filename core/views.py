@@ -231,31 +231,37 @@ def dashboard_view(request):
     user = request.user
     profile, _ = ClientProfile.objects.get_or_create(user=user)
 
-    hosting_accounts = (
+    hosting_accounts = list(
         HostingAccount.objects
         .filter(user=user)
         .select_related('package', 'server')
         .order_by('-created_at')
     )
 
-    invoices = (
+    invoices = list(
         Invoice.objects
         .filter(user=user)
+        .select_related('hosting_account', 'domain')
         .prefetch_related('items', 'transactions')
         .order_by('-issued_date')
     )
 
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
+    packages = get_cached_packages()
 
-    from domains.models import Domain, TLDPricing
-    client_domains = Domain.objects.filter(user=user).select_related('registrar').order_by('-created_at')
-    tld_prices = TLDPricing.objects.filter(is_active=True).order_by('register_price')
+    from domains.models import Domain
+    client_domains = list(
+        Domain.objects
+        .filter(user=user)
+        .select_related('registrar')
+        .order_by('-created_at')
+    )
+    tld_prices = get_cached_tld_prices()
 
-    # Compute key stats
-    active_accounts_count = hosting_accounts.filter(status=HostingAccount.Status.ACTIVE).count()
-    active_domains_count = client_domains.filter(status=Domain.Status.ACTIVE).count()
-    unpaid_invoices = invoices.filter(status=Invoice.Status.UNPAID)
-    unpaid_invoices_count = unpaid_invoices.count()
+    # Compute key stats in-memory (0 extra SQL queries!)
+    active_accounts_count = sum(1 for acc in hosting_accounts if acc.status == HostingAccount.Status.ACTIVE)
+    active_domains_count = sum(1 for dom in client_domains if dom.status == Domain.Status.ACTIVE)
+    unpaid_invoices = [inv for inv in invoices if inv.status == Invoice.Status.UNPAID]
+    unpaid_invoices_count = len(unpaid_invoices)
     total_unpaid_amount = sum(inv.total for inv in unpaid_invoices)
 
     # Expiration notice (50 days window)

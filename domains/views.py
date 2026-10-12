@@ -61,7 +61,11 @@ class TLDPricingListView(APIView):
 
     @extend_schema(summary='List TLD prices', tags=['Domains'])
     def get(self, request):
-        tlds = TLDPricing.objects.filter(is_active=True).order_by('register_price')
+        try:
+            from core.views import get_cached_tld_prices
+            tlds = get_cached_tld_prices()
+        except Exception:
+            tlds = TLDPricing.objects.filter(is_active=True).select_related('registrar').order_by('register_price')
         serializer = TLDPricingSerializer(tlds, many=True)
         return Response(serializer.data)
 
@@ -75,7 +79,7 @@ class DomainViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Domain.objects.filter(user=self.request.user).order_by('-created_at')
+        return Domain.objects.filter(user=self.request.user).select_related('registrar', 'user').order_by('-created_at')
 
 
 class OrderDomainAPIView(APIView):

@@ -48,7 +48,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         return (
             Invoice.objects
             .filter(user=self.request.user)
-            .select_related('hosting_account', 'user')
+            .select_related('hosting_account', 'domain', 'user')
             .prefetch_related('items', 'transactions')
             .order_by('-issued_date')
         )

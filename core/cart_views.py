@@ -22,6 +22,7 @@ from accounts.models import ClientProfile
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction
 from billing.services import InvoiceNumberGenerator
 from core.security import rate_limit
+from core.views import get_cached_packages, get_cached_tld_prices
 from domains.models import Domain, DomainRegistrar, TLDPricing
 from domains.services import DomainService
 from hosting.models import HostingAccount, HostingPackage
@@ -29,6 +30,19 @@ from hosting.services import ProvisioningService
 
 User = get_user_model()
 logger = logging.getLogger('cart')
+
+
+def get_cached_tld_pricing_for(tld_ext):
+    """Retrieve TLDPricing from memory cache by extension name."""
+    if not tld_ext:
+        return None
+    target = tld_ext.lower().strip()
+    if not target.startswith('.'):
+        target = '.' + target
+    for item in get_cached_tld_prices():
+        if item.tld.lower() == target:
+            return item
+    return None
 
 
 # ─── AJAX DOMAIN AVAILABILITY CHECK ───────────────────────────────────────────
@@ -100,7 +114,7 @@ def ajax_domain_bulk_search_view(request):
         clean_sld = clean_name.split('.')[0]
 
     # Active TLD catalogue
-    active_tlds = list(TLDPricing.objects.filter(is_active=True))
+    active_tlds = list(get_cached_tld_prices())
     priority = {
         '.com': 1, '.net': 2, '.org': 3, '.com.bd': 4, '.xyz': 5,
         '.online': 6, '.store': 7, '.tech': 8, '.site': 9, '.info': 10,
@@ -197,7 +211,7 @@ def ajax_domain_ai_generate_view(request):
         generated_names.add(f"{base_word}dhaka")
 
     candidate_list = list(generated_names)[:16]
-    active_tlds = list(TLDPricing.objects.filter(is_active=True))
+    active_tlds = list(get_cached_tld_prices())
     tld_map = {t.tld.lower(): t for t in active_tlds}
 
     target_domains = []
@@ -287,8 +301,12 @@ def safe_get_package(package_id):
     """Safely retrieves a HostingPackage by UUID or string without crashing on invalid UUIDs."""
     if not package_id or str(package_id).strip().lower() in ('none', 'null', '', 'clear'):
         return None
+    pkg_str = str(package_id).strip()
+    for pkg in get_cached_packages():
+        if str(pkg.id) == pkg_str:
+            return pkg
     try:
-        return HostingPackage.objects.filter(id=str(package_id).strip(), is_active=True).first()
+        return HostingPackage.objects.filter(id=pkg_str, is_active=True).first()
     except Exception:
         return None
 
@@ -324,7 +342,7 @@ def cart_domain_view(request):
         saved_pkg_id = cart.get('package_id')
         package = safe_get_package(saved_pkg_id) if saved_pkg_id else None
 
-    tld_prices = TLDPricing.objects.filter(is_active=True).order_by('tld')
+    tld_prices = sorted(get_cached_tld_prices(), key=lambda t: t.tld.lower())
 
     # Handle incoming query parameters from home search or direct buy links
     initial_domain = request.GET.get('domain', '').strip().lower() or cart.get('domain', '')
@@ -382,7 +400,7 @@ def cart_domain_view(request):
             update_cart_session(request, package_id=str(package.id) if package else 'none', domain=transfer_domain, domain_option='transfer', epp=epp_code)
             return redirect(f"/cart/configure/?{pkg_param}&domain={transfer_domain}&domain_option=transfer&epp={epp_code}")
 
-    packages = HostingPackage.objects.filter(is_active=True).order_by('monthly_price')
+    packages = get_cached_packages()
 
     context = {
         'package': package,
@@ -457,10 +475,10 @@ def cart_configure_view(request):
     # Determine domain registration fee if option is register or transfer
     domain_price = Decimal('0.00')
     if domain_option in ('register', 'transfer') or is_domain_only:
-        tld_obj = TLDPricing.objects.filter(tld__iexact=tld, is_active=True).first()
+        tld_obj = get_cached_tld_pricing_for(tld)
         if not tld_obj:
             _, ext = DomainService.extract_tld(domain)
-            tld_obj = TLDPricing.objects.filter(tld__iexact=ext, is_active=True).first()
+            tld_obj = get_cached_tld_pricing_for(ext)
         
         if domain_option == 'transfer':
             domain_price = tld_obj.transfer_price if tld_obj else Decimal('1350.00')
@@ -468,7 +486,7 @@ def cart_configure_view(request):
             domain_price = tld_obj.register_price if tld_obj else Decimal('1350.00')
 
     # Suggested hosting packages for domain-only buyers
-    suggested_packages = HostingPackage.objects.filter(is_active=True).order_by('-is_featured', 'monthly_price')[:3]
+    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price))[:3]
 
     context = {
         'package': package,
@@ -569,10 +587,10 @@ def cart_checkout_view(request):
     # Calculate domain price
     domain_price = Decimal('0.00')
     if is_domain_only or domain_option in ('register', 'transfer'):
-        tld_obj = TLDPricing.objects.filter(tld__iexact=tld, is_active=True).first()
+        tld_obj = get_cached_tld_pricing_for(tld)
         if not tld_obj:
             _, ext = DomainService.extract_tld(domain)
-            tld_obj = TLDPricing.objects.filter(tld__iexact=ext, is_active=True).first()
+            tld_obj = get_cached_tld_pricing_for(ext)
         
         if domain_option == 'transfer':
             domain_price = tld_obj.transfer_price if tld_obj else Decimal('1350.00')
@@ -593,7 +611,7 @@ def cart_checkout_view(request):
     total_usd = max(1.0, round(float(total) / 125.0, 2))
     from core.models import SiteSetting
     site_setting = SiteSetting.get_settings()
-    suggested_packages = HostingPackage.objects.filter(is_active=True).order_by('-is_featured', 'monthly_price')[:3]
+    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price))[:3]
 
     context = {
         'package': package,
@@ -740,7 +758,7 @@ def cart_complete_order_view(request):
         
         if is_domain_only or domain_option in ('register', 'transfer'):
             _, ext = DomainService.extract_tld(clean_domain)
-            tld_obj = TLDPricing.objects.filter(tld__iexact=ext, is_active=True).first()
+            tld_obj = get_cached_tld_pricing_for(ext)
             if domain_option == 'transfer':
                 domain_amount = tld_obj.transfer_price if tld_obj else Decimal('1350.00')
             else:
@@ -798,7 +816,7 @@ def cart_complete_order_view(request):
             domain_record = None
             if (is_domain_only or domain_option in ('register', 'transfer')) and clean_domain:
                 _, ext = DomainService.extract_tld(clean_domain)
-                tld_obj = TLDPricing.objects.filter(tld__iexact=ext, is_active=True).first()
+                tld_obj = get_cached_tld_pricing_for(ext)
                 registrar = tld_obj.registrar if (tld_obj and tld_obj.registrar) else DomainRegistrar.objects.filter(is_default=True).first()
 
                 domain_record = Domain.objects.filter(domain_name=clean_domain).first()

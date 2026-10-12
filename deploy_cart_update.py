@@ -2,14 +2,20 @@ import os
 import paramiko
 
 FILES_TO_UPLOAD = [
+    'hostpro/settings.py',
+    'hostpro/urls.py',
+    'core/views.py',
+    'core/admin_views.py',
+    'core/cart_views.py',
+    'core/context_processors.py',
+    'domains/services.py',
+    'domains/views.py',
+    'billing/views.py',
     'templates/base.html',
     'templates/index.html',
     'templates/cart_domain.html',
     'templates/cart_configure.html',
     'templates/cart_checkout.html',
-    'core/cart_views.py',
-    'core/context_processors.py',
-    'hostpro/urls.py',
 ]
 
 STATIC_IMAGE_DIR = 'static/images'
@@ -18,10 +24,86 @@ TARGET_DOMAINS = [
     '/home/webkoders/velohoster.com',
 ]
 
+PASSENGER_WSGI_CONTENT = """import os
+import sys
+
+# 1. Activate Virtualenv
+VENV_LIB = "/home/webkoders/virtualenv/velohoster.com/3.12/lib/python3.12/site-packages"
+if VENV_LIB not in sys.path:
+    sys.path.insert(0, VENV_LIB)
+
+# 2. Add Project Directory
+PROJECT_DIR = "/home/webkoders/velohoster.com"
+if PROJECT_DIR not in sys.path:
+    sys.path.insert(1, PROJECT_DIR)
+
+# 3. Set Settings Module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hostpro.settings')
+
+# 4. Load WSGI Application
+try:
+    from django.core.wsgi import get_wsgi_application
+    application = get_wsgi_application()
+except Exception as e:
+    import traceback
+    error_trace = traceback.format_exc()
+    def application(environ, start_response):
+        status = '500 Internal Server Error'
+        body = f\"\"\"<!DOCTYPE html>
+<html>
+<head><title>VeloHoster Startup Error</title></head>
+<body style="font-family: monospace; padding: 25px; background: #0f172a; color: #f8fafc;">
+    <h2 style="color: #ef4444;">VeloHoster Application Startup Error</h2>
+    <pre style="background: #1e293b; padding: 15px; border-radius: 8px; color: #fca5a5; overflow-x: auto;">{error_trace}</pre>
+</body>
+</html>\"\"\"
+        response_headers = [('Content-Type', 'text/html; charset=utf-8'), ('Content-Length', str(len(body.encode('utf-8'))))]
+        start_response(status, response_headers)
+        return [body.encode('utf-8')]
+"""
+
+HTACCESS_CONTENT = """# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/webkoders/velohoster.com"
+PassengerBaseURI "/"
+PassengerPython "/home/webkoders/virtualenv/velohoster.com/3.12/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# ── LiteSpeed / Apache Browser Caching & Gzip Compression ──
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(ico|jpe?g|png|gif|webp|svg|woff2?|ttf)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+</IfModule>
+"""
+
 def run_cmd(ssh, cmd):
     stdin, stdout, stderr = ssh.exec_command(cmd)
-    out = stdout.read().decode('utf-8')
-    err = stderr.read().decode('utf-8')
+    out = stdout.read().decode('utf-8', errors='replace')
+    err = stderr.read().decode('utf-8', errors='replace')
     exit_code = stdout.channel.recv_exit_status()
     return exit_code, out, err
 
@@ -58,9 +140,18 @@ def deploy():
                     sftp.put(local_img, remote_img)
             print(f"  Uploaded all images from {STATIC_IMAGE_DIR}", flush=True)
                 
-        py_bin = "/home/webkoders/virtualenv/host.webkoders.com/3.12/bin/python"
+        py_bin = "/home/webkoders/virtualenv/velohoster.com/3.12/bin/python"
         
-        # Clear cache and restart passenger
+        # Write passenger_wsgi.py & .htaccess
+        with sftp.open(f"{base_dir}/passenger_wsgi.py", "w") as f:
+            f.write(PASSENGER_WSGI_CONTENT)
+        print(f"  Updated passenger_wsgi.py", flush=True)
+
+        with sftp.open(f"{base_dir}/.htaccess", "w") as f:
+            f.write(HTACCESS_CONTENT)
+        print(f"  Updated .htaccess", flush=True)
+
+        # Clear cache
         clear_cache_script = f"""
 import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hostpro.settings')

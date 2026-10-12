@@ -57,14 +57,16 @@ def admin_dashboard_view(request):
         messages.error(request, "Access restricted. Staff or Administrator privileges required.")
         return redirect('dashboard')
 
-    # 1. Connected Servers & Statistics
-    servers_qs = Server.objects.all().order_by('-is_active', 'name')
-    servers_list = []
-    for s in servers_qs:
-        active_accts = s.accounts.filter(status=HostingAccount.Status.ACTIVE).count()
-        pending_accts = s.accounts.filter(status=HostingAccount.Status.PENDING).count()
-        total_accts = s.accounts.count()
-        servers_list.append({
+    # 1. Connected Servers & Statistics (Computed in 1 Single Query via Annotate)
+    from django.db.models import Count
+    servers_qs = Server.objects.annotate(
+        active_accts=Count('accounts', filter=Q(accounts__status=HostingAccount.Status.ACTIVE)),
+        pending_accts=Count('accounts', filter=Q(accounts__status=HostingAccount.Status.PENDING)),
+        total_accts=Count('accounts')
+    ).order_by('-is_active', 'name')
+
+    servers_list = [
+        {
             'id': s.id,
             'name': s.name,
             'hostname': s.hostname,
@@ -74,51 +76,53 @@ def admin_dashboard_view(request):
             'api_username': s.api_username,
             'is_active': s.is_active,
             'max_accounts': s.max_accounts,
-            'active_accts': active_accts,
-            'pending_accts': pending_accts,
-            'total_accts': total_accts,
-        })
+            'active_accts': s.active_accts,
+            'pending_accts': s.pending_accts,
+            'total_accts': s.total_accts,
+        }
+        for s in servers_qs
+    ]
 
     # 2. Domain Registrars & TLD Pricing
-    registrars = DomainRegistrar.objects.all().order_by('-is_default', 'name')
-    tld_prices = TLDPricing.objects.all().order_by('tld')
+    registrars = list(DomainRegistrar.objects.all().order_by('-is_default', 'name'))
+    tld_prices = list(TLDPricing.objects.all().order_by('tld'))
 
     # 3. Hosting Packages
-    packages = HostingPackage.objects.select_related('server').prefetch_related('accounts').all().order_by('monthly_price')
+    packages = list(HostingPackage.objects.select_related('server').prefetch_related('accounts').all().order_by('monthly_price'))
 
     # 4. Operations: Hosting Accounts
-    hosting_accounts = HostingAccount.objects.select_related('user', 'server', 'package').all().order_by('-created_at')
+    hosting_accounts = list(HostingAccount.objects.select_related('user', 'server', 'package').all().order_by('-created_at'))
 
     # 5. Operations: Registered Domains
-    domains = Domain.objects.select_related('user', 'registrar').all().order_by('-created_at')
+    domains = list(Domain.objects.select_related('user', 'registrar').all().order_by('-created_at'))
 
-    # 6. Operations: Invoices & Transactions
-    invoices = Invoice.objects.select_related('user', 'hosting_account', 'domain').all().order_by('-issued_date', '-created_at')
-    recent_transactions = Transaction.objects.select_related('user', 'invoice').all().order_by('-created_at')[:15]
+    # 6. Operations: Invoices & Transactions (Prefetched to eliminate N+1 on items/transactions)
+    invoices = list(Invoice.objects.select_related('user', 'hosting_account', 'domain').prefetch_related('items', 'transactions').all().order_by('-issued_date', '-created_at'))
+    recent_transactions = list(Transaction.objects.select_related('user', 'invoice').all().order_by('-created_at')[:15])
 
     # 7. Clients & Wallets
-    clients = User.objects.filter(
+    clients = list(User.objects.filter(
         Q(role='client') | Q(role=User.Role.CLIENT) | Q(is_staff=False, is_superuser=False)
-    ).distinct().select_related('profile').order_by('-date_joined')
-    if not clients.exists():
+    ).distinct().select_related('profile').order_by('-date_joined'))
+    if not clients:
         # Fallback to non-superuser users
-        clients = User.objects.filter(is_superuser=False).select_related('profile').order_by('-date_joined')
+        clients = list(User.objects.filter(is_superuser=False).select_related('profile').order_by('-date_joined'))
 
-    # 8. High-Level KPI Calculations
-    active_accounts_count = HostingAccount.objects.filter(status=HostingAccount.Status.ACTIVE).count()
-    pending_accounts_count = HostingAccount.objects.filter(status=HostingAccount.Status.PENDING).count()
-    suspended_accounts_count = HostingAccount.objects.filter(status=HostingAccount.Status.SUSPENDED).count()
+    # 8. High-Level KPI Calculations (In-memory from loaded querysets: 0 extra queries!)
+    active_accounts_count = sum(1 for a in hosting_accounts if a.status == HostingAccount.Status.ACTIVE)
+    pending_accounts_count = sum(1 for a in hosting_accounts if a.status == HostingAccount.Status.PENDING)
+    suspended_accounts_count = sum(1 for a in hosting_accounts if a.status == HostingAccount.Status.SUSPENDED)
 
-    active_domains_count = Domain.objects.filter(status=Domain.Status.ACTIVE).count()
-    pending_domains_count = Domain.objects.filter(status=Domain.Status.PENDING).count()
+    active_domains_count = sum(1 for d in domains if d.status == Domain.Status.ACTIVE)
+    pending_domains_count = sum(1 for d in domains if d.status == Domain.Status.PENDING)
 
-    total_clients_count = clients.count()
-    total_servers_count = servers_qs.count()
+    total_clients_count = len(clients)
+    total_servers_count = len(servers_list)
 
-    # Revenue metrics
-    monthly_revenue = Invoice.objects.filter(status=Invoice.Status.PAID).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
-    unpaid_revenue = Invoice.objects.filter(status__in=[Invoice.Status.UNPAID, Invoice.Status.OVERDUE]).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
-    pending_invoices_count = Invoice.objects.filter(status=Invoice.Status.UNPAID).count()
+    # Revenue metrics (Computed in 1 single aggregated pass)
+    monthly_revenue = sum(inv.total for inv in invoices if inv.status == Invoice.Status.PAID)
+    unpaid_revenue = sum(inv.total for inv in invoices if inv.status in (Invoice.Status.UNPAID, Invoice.Status.OVERDUE))
+    pending_invoices_count = sum(1 for inv in invoices if inv.status == Invoice.Status.UNPAID)
 
     context = {
         'admin_user': request.user,

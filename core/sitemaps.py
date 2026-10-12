@@ -53,3 +53,7 @@ class StaticViewSitemap(Sitemap):
             return 'weekly'
         return 'monthly'
 
+    def lastmod(self, item):
+        from django.utils import timezone
+        return timezone.now()
+
