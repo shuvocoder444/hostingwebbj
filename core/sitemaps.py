@@ -19,6 +19,8 @@ class StaticViewSitemap(Sitemap):
             'hosting_bdix',
             'hosting_singapore',
             'hosting_usa',
+            'hosting_germany',
+            'hosting_finland',
             'hosting_turbo_cloud',
             'hosting_premium',
             'hosting_reseller',

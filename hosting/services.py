@@ -164,15 +164,17 @@ class ProvisioningService:
         password = password or ProvisioningService.generate_secure_password()
 
         # Determine price from cycle
+        m_price = package.monthly_price or Decimal('0.00')
+        a_price = package.annual_price or (m_price * 10)
         price_map = {
-            BillingCycle.MONTHLY: package.monthly_price,
-            BillingCycle.QUARTERLY: package.quarterly_price or package.monthly_price * 3,
-            BillingCycle.SEMI_ANNUAL: package.semi_annual_price or package.monthly_price * 6,
-            BillingCycle.ANNUAL: package.annual_price or package.monthly_price * 12,
-            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or package.monthly_price * 24,
-            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or package.monthly_price * 36,
+            BillingCycle.MONTHLY: m_price if m_price > 0 else a_price,
+            BillingCycle.QUARTERLY: package.quarterly_price or (m_price * 3),
+            BillingCycle.SEMI_ANNUAL: package.semi_annual_price or (m_price * 6),
+            BillingCycle.ANNUAL: a_price,
+            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or (a_price * Decimal('1.80')),
+            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or (a_price * Decimal('2.50')),
         }
-        amount = price_map.get(billing_cycle, package.monthly_price)
+        amount = price_map.get(billing_cycle, a_price if m_price == 0 else m_price)
 
         days_map = {
             BillingCycle.MONTHLY: 30,

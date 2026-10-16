@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load currency_tags %}
+
+{% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-surface-50 py-12 sm:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+        <!-- Hero Section -->
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-50 text-teal-800 border border-teal-200">
+                <i class="fa-solid fa-leaf text-teal-600 mr-1.5"></i> Helsinki, Finland Nordic Cloud Datacenter 🇫🇮
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Finland Nordic <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600">NVMe Cloud Web Hosting</span>
+            </h1>
+            <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                Powered by 100% renewable green Nordic energy, advanced Tier-3 infrastructure, top-tier European security standards, and high-speed NVMe Gen4 drives.
+            </p>
+        </div>
+
+        <!-- Highlights Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-teal-600 block">100% Green</span>
+                <span class="text-xs font-semibold text-slate-600">Eco-Friendly Energy</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-blue-600 block">NVMe Gen4</span>
+                <span class="text-xs font-semibold text-slate-600">Pure Solid State Storage</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-cyan-600 block">FICIX Peering</span>
+                <span class="text-xs font-semibold text-slate-600">Nordic Low Latency</span>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center">
+                <span class="text-2xl font-black text-emerald-600 block">99.9%</span>
+                <span class="text-xs font-semibold text-slate-600">Uptime SLA Guaranteed</span>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="space-y-6">
+            <div class="text-center max-w-xl mx-auto space-y-4">
+                <h2 class="text-2xl font-black text-slate-900">Finland Web Hosting Plans</h2>
+                <p class="text-xs text-slate-500">Instant setup with cPanel, Softaculous, LiteSpeed, and free AutoSSL.</p>
+
+                <!-- Monthly / Annual Billing Switcher -->
+                <div class="inline-flex items-center p-1.5 rounded-2xl bg-slate-200/80 border border-slate-300 text-xs font-bold shadow-inner">
+                    <button type="button" onclick="setPageBillingCycle('monthly')" id="btn-cycle-monthly" class="px-5 py-2 rounded-xl bg-white text-slate-900 shadow-sm transition cursor-pointer">
+                        Monthly Billing
+                    </button>
+                    <button type="button" onclick="setPageBillingCycle('annual')" id="btn-cycle-annual" class="px-5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer">
+                        <span>Annual Billing</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Save 20%</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% for pkg in packages %}
+                <div class="bg-white rounded-3xl border {% if pkg.is_featured %}border-teal-500 ring-2 ring-teal-500/20 shadow-xl{% else %}border-slate-200 shadow-xs{% endif %} p-8 flex flex-col justify-between relative">
+                    {% if pkg.badge_text %}
+                    <span class="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-600 text-white shadow-sm flex items-center gap-1">
+                        <i class="fa-solid fa-tag text-[9px]"></i> {{ pkg.badge_text }}
+                    </span>
+                    {% elif pkg.is_featured %}
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-600 text-white shadow-sm">
+                        <i class="fa-solid fa-star text-yellow-300 mr-1"></i> Popular Nordic Plan
+                    </span>
+                    {% endif %}
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-teal-100 font-mono text-xs font-bold text-teal-800 border border-teal-200">FI</span>
+                                <h3 class="font-extrabold text-slate-900 text-lg">{{ pkg.name }}</h3>
+                            </div>
+                            {% if pkg.subtitle %}
+                            <p class="text-xs font-bold text-teal-700 mt-1">{{ pkg.subtitle }}</p>
+                            {% else %}
+                            <p class="text-xs text-slate-500 mt-1">Helsinki Tier-3 Datacenter</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="space-y-1">
+                            {% if pkg.regular_price %}
+                            <div class="text-xs font-bold text-slate-400 line-through">Regular: {{ CURRENCY_SYMBOL }}{{ pkg.regular_price|currency_val:CURRENT_CURRENCY }}</div>
+                            {% endif %}
+                            {% if pkg.monthly_price and pkg.monthly_price > 0 %}
+                            <div class="price-monthly-display flex items-baseline gap-1">
+                                <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
+                                <span class="text-xs font-medium text-slate-500">/ month</span>
+                            </div>
+                            <div class="price-annual-display hidden items-baseline gap-1">
+                                <span class="text-3xl sm:text-4xl font-black text-emerald-600 font-mono">{{ CURRENCY_SYMBOL }}{% if pkg.annual_price and pkg.annual_price > 0 %}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}{% else %}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}{% endif %}</span>
+                                <span class="text-xs font-medium text-slate-500">/ year</span>
+                            </div>
+                            {% else %}
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl sm:text-4xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}</span>
+                                <span class="text-xs font-medium text-slate-500">/ year (Yearly Only)</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100">
+                            {% for feat in pkg.get_features %}
+                            <li class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-circle-check text-teal-600 text-sm shrink-0"></i>
+                                <span>{{ feat }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="pt-8">
+                        <a href="{% url 'cart_domain' %}?package={{ pkg.id }}&billing_cycle={% if pkg.monthly_price and pkg.monthly_price > 0 %}monthly{% else %}annual{% endif %}"
+                           data-base-href="{% url 'cart_domain' %}?package={{ pkg.id }}"
+                           data-has-monthly="{% if pkg.monthly_price and pkg.monthly_price > 0 %}1{% else %}0{% endif %}"
+                           class="pkg-order-btn w-full py-3 px-4 rounded-xl {% if pkg.is_featured %}bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/25{% else %}bg-slate-900 hover:bg-teal-600 text-white{% endif %} font-bold text-xs transition flex items-center justify-center gap-2">
+                            <span>Order Finland Hosting</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-3 text-center py-12 text-slate-400 bg-white rounded-3xl border border-slate-200">
+                    <i class="fa-solid fa-server text-3xl text-slate-300 mb-2 block"></i>
+                    <p class="font-bold text-slate-700">No Finland hosting packages configured yet.</p>
+                    <p class="text-xs text-slate-400 mt-1">Assign packages to "Finland Hosting Page" from Admin Dashboard.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

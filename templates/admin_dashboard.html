@@ -794,10 +794,17 @@
  <div id="admin-tab-packages" class="admin-tab-content hidden space-y-6">
  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
  <div>
+ <div class="flex items-center gap-2.5">
  <h2 class="text-lg font-bold text-slate-900">Hosting Packages & WHM Synchronization</h2>
- <p class="text-xs text-slate-500 mt-1">Manage plans, two-way sync with live WHM server packages, and automatic client provisioning.</p>
+ <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800">{{ package_categories|length }} Categories</span>
  </div>
- <div class="flex items-center gap-3">
+ <p class="text-xs text-slate-500 mt-1">Manage categories (tabs), custom feature bullets, badges, WHM sync, and target landing pages.</p>
+ </div>
+ <div class="flex items-center gap-2.5 flex-wrap">
+ <button type="button" onclick="openModal('modal-manage-categories')"
+ class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 shadow-xs transition shrink-0">
+ <i class="fa-solid fa-layer-group text-indigo-600"></i> Manage Categories (Tabs)
+ </button>
  <button type="button" onclick="openModal('modal-sync-whm-packages')"
  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 shadow-xs transition shrink-0">
  <i class="fa-solid fa-arrows-rotate text-brand-600"></i> Sync / Import from WHM
@@ -815,8 +822,16 @@
  <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:border-brand-300 transition">
  <div>
  <div class="flex items-center justify-between">
+ <div>
  <span class="font-extrabold text-base text-slate-900">{{ p.name }}</span>
- <div class="flex items-center gap-1.5">
+ {% if p.subtitle %}
+ <div class="text-[11px] font-semibold text-blue-600 mt-0.5"><i class="fa-solid fa-sparkles text-[10px] mr-1"></i>{{ p.subtitle }}</div>
+ {% endif %}
+ </div>
+ <div class="flex items-center gap-1.5 flex-wrap justify-end">
+ {% if p.badge_text %}
+ <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800"><i class="fa-solid fa-tag text-[9px] mr-0.5"></i>{{ p.badge_text }}</span>
+ {% endif %}
  {% if p.is_featured %}
  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-100 text-brand-700">FEATURED</span>
  {% endif %}
@@ -825,7 +840,25 @@
  </span>
  </div>
  </div>
- <div class="mt-2 flex items-center gap-2 flex-wrap">
+ <div class="mt-2.5 flex items-center gap-1.5 flex-wrap">
+ {% for c in p.get_all_categories %}
+ <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+ <i class="fa-solid fa-layer-group text-[9px]"></i> {{ c.name }}
+ </span>
+ {% empty %}
+ <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-500">
+ Uncategorized
+ </span>
+ {% endfor %}
+ {% for tp in p.get_target_pages_list %}
+ <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 uppercase">
+ <i class="fa-solid fa-globe text-[9px]"></i> {{ tp }}
+ </span>
+ {% empty %}
+ <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-500">
+ No page
+ </span>
+ {% endfor %}
  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/80">
  <i class="fa-solid fa-cube text-amber-600 text-[10px]"></i> WHM: {{ p.panel_package_name }}
  </span>
@@ -841,9 +874,19 @@
  <span class="text-slate-500">Bandwidth:</span>
  <span class="font-bold text-slate-800">{% if p.bandwidth_mb == 0 %}Unlimited{% else %}{{ p.bandwidth_mb }} MB{% endif %}</span>
  </div>
- <div class="flex justify-between">
+ <div class="flex justify-between items-center">
  <span class="text-slate-500">Pricing:</span>
- <span class="font-bold text-brand-600">৳{{ p.monthly_price }}/mo (৳{{ p.annual_price|default:p.monthly_price }}/yr)</span>
+ <div class="text-right">
+ {% if p.regular_price %}
+ <span class="text-xs text-slate-400 line-through mr-1 font-bold">৳{{ p.regular_price }}</span>
+ {% endif %}
+ {% if p.monthly_price and p.monthly_price > 0 %}
+ <span class="font-bold text-brand-600">৳{{ p.monthly_price }}/mo</span>
+ {% if p.annual_price %}<span class="text-xs text-slate-500 font-semibold">(৳{{ p.annual_price }}/yr)</span>{% endif %}
+ {% else %}
+ <span class="font-bold text-emerald-600">৳{{ p.annual_price }}/yr <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700">Yearly</span></span>
+ {% endif %}
+ </div>
  </div>
  </div>
  </div>
@@ -851,8 +894,26 @@
  <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
  <span class="text-slate-500 font-medium"><i class="fa-solid fa-users text-slate-400 mr-1"></i> {{ p.accounts.count }} Clients</span>
  <div class="flex items-center gap-1.5">
- <button type="button" onclick="openEditPackageModal('{{ p.id }}', '{{ p.name|escapejs }}', '{{ p.server.id }}', '{{ p.panel_package_name|escapejs }}', '{{ p.monthly_price }}', '{{ p.annual_price }}', '{{ p.disk_quota_mb }}', '{{ p.bandwidth_mb }}', {{ p.is_featured|yesno:'true,false' }}, {{ p.is_active|yesno:'true,false' }})"
- class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
+ <button type="button"
+     data-id="{{ p.id }}"
+     data-name="{{ p.name }}"
+     data-server="{{ p.server.id }}"
+     data-panel-package-name="{{ p.panel_package_name }}"
+     data-category-ids="{% for c in p.get_all_categories %}{{ c.id }},{% endfor %}"
+     data-target-pages="{{ p.get_target_pages_list|join:',' }}"
+     data-badge-text="{{ p.badge_text }}"
+     data-subtitle="{{ p.subtitle }}"
+     data-features-list="{{ p.features_list }}"
+     data-sort-order="{{ p.sort_order }}"
+     data-monthly-price="{{ p.monthly_price }}"
+     data-annual-price="{{ p.annual_price|default:'' }}"
+     data-regular-price="{{ p.regular_price|default:'' }}"
+     data-disk-quota="{{ p.disk_quota_mb }}"
+     data-bandwidth="{{ p.bandwidth_mb }}"
+     data-is-featured="{{ p.is_featured|yesno:'1,0' }}"
+     data-is-active="{{ p.is_active|yesno:'1,0' }}"
+     onclick="openEditPackageModalFromBtn(this)"
+     class="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] font-bold transition">
  <i class="fa-solid fa-pen"></i> Edit
  </button>
  <form method="POST" action="{% url 'admin_action_handler' action_type='delete_package' %}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete package {{ p.name|escapejs }}?');">
@@ -2517,18 +2578,157 @@
  </div>
 </div>
 
+<!-- 5a2. Modal: Manage Package Categories (Tabs) -->
+<div id="modal-manage-categories" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+ <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+ <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+ <div class="flex items-center gap-2.5">
+ <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+ <i class="fa-solid fa-layer-group text-sm"></i>
+ </div>
+ <div>
+ <h3 class="font-black text-slate-900 text-base">Manage Hosting Categories & Tabs</h3>
+ <p class="text-[11px] text-slate-500">Create & organize package tab categories (e.g. Domain & Hosting OFFER, BDIX, USA, Singapore)</p>
+ </div>
+ </div>
+ <button type="button" onclick="closeModal('modal-manage-categories')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+ </div>
+
+ <!-- Existing Categories List -->
+ <div class="space-y-3">
+ <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Current Active Categories</h4>
+ <div class="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+ {% for cat in package_categories %}
+ <div class="p-3.5 flex items-center justify-between gap-3 hover:bg-white transition">
+ <div class="flex items-center gap-3">
+ <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">{{ cat.sort_order }}</span>
+ <div>
+ <div class="flex items-center gap-2">
+ <span class="font-bold text-slate-900 text-xs">{{ cat.name }}</span>
+ <span class="font-mono text-[10px] text-slate-500 bg-slate-200/70 px-1.5 py-0.5 rounded">slug: {{ cat.slug }}</span>
+ </div>
+ <span class="text-[11px] text-slate-400">{{ cat.packages.count }} package(s) assigned</span>
+ </div>
+ </div>
+ <div class="flex items-center gap-2">
+ <form method="POST" action="{% url 'admin_action_handler' action_type='delete_package_category' %}" onsubmit="return confirm('Delete category {{ cat.name|escapejs }}? Packages will become uncategorized.');">
+ {% csrf_token %}
+ <input type="hidden" name="category_id" value="{{ cat.id }}">
+ <button type="submit" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition" title="Delete Category">
+ <i class="fa-solid fa-trash-can text-xs"></i>
+ </button>
+ </form>
+ </div>
+ </div>
+ {% empty %}
+ <div class="p-6 text-center text-xs text-slate-400">No categories created yet. Create your first category below!</div>
+ {% endfor %}
+ </div>
+ </div>
+
+ <!-- Add New Category Form -->
+ <div class="pt-3 border-t border-slate-200 space-y-3">
+ <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+ <i class="fa-solid fa-plus-circle text-indigo-600"></i> Add New Category
+ </h4>
+ <form method="POST" action="{% url 'admin_action_handler' action_type='add_package_category' %}" class="space-y-3">
+ {% csrf_token %}
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Category Title</label>
+ <input type="text" name="name" required placeholder="e.g. Domain & Hosting OFFER, BDIX Hosting" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Slug Identifier <span class="text-[10px] text-slate-400 font-normal">(Leave blank to auto-create)</span></label>
+ <input type="text" name="slug" placeholder="e.g. domain-hosting-offer" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+ </div>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div class="sm:col-span-2">
+ <label class="block text-xs font-bold text-slate-700 mb-1">Short Description</label>
+ <input type="text" name="description" placeholder="e.g. Special combo discount packages with free .COM domain" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Display Sort Order</label>
+ <input type="number" name="sort_order" value="1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ </div>
+ </div>
+ <div class="flex items-center justify-between pt-2">
+ <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+ <input type="checkbox" name="is_active" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+ <span>Active Category Tab</span>
+ </label>
+ <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5">
+ <i class="fa-solid fa-plus"></i> Save Category
+ </button>
+ </div>
+ </form>
+ </div>
+
+ <div class="pt-3 flex justify-end border-t border-slate-100">
+ <button type="button" onclick="closeModal('modal-manage-categories')" class="px-5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Close</button>
+ </div>
+ </div>
+</div>
+
 <!-- 5b. Modal: Add Hosting Package -->
 <div id="modal-add-package" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
+ <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
  <div class="flex items-center justify-between pb-3 border-b border-slate-100">
  <div>
  <h3 class="font-black text-slate-900 text-base">Add Hosting Package</h3>
- <p class="text-[11px] text-slate-500">Pick from live WHM packages or define a new plan</p>
+ <p class="text-[11px] text-slate-500">Pick WHM plan, assign category tab, target page & customize promo features</p>
  </div>
  <button type="button" onclick="closeModal('modal-add-package')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
  </div>
  <form method="POST" action="{% url 'admin_action_handler' action_type='add_package' %}" class="space-y-4">
  {% csrf_token %}
+
+ <!-- Category & Target Page Placement -->
+ <div class="space-y-3">
+ <!-- Multi-Category Selection -->
+ <div class="p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
+ <div class="flex items-center justify-between">
+ <label class="block text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+ <i class="fa-solid fa-layer-group text-indigo-600 text-xs"></i> Select Categories / Tabs (একাধিক ক্যাটাগরি সিলেক্ট করতে পারেন)
+ </label>
+ <span class="text-[10px] text-indigo-600 font-semibold">Multi-category</span>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-36 overflow-y-auto pr-1">
+ {% for cat in package_categories %}
+ <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-indigo-100 hover:border-indigo-300 transition cursor-pointer text-xs font-semibold text-slate-800 shadow-2xs">
+ <input type="checkbox" name="category_ids" value="{{ cat.id }}" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+ <span class="truncate">{{ cat.name }}</span>
+ </label>
+ {% empty %}
+ <p class="text-xs text-slate-500 italic col-span-full">No categories created yet.</p>
+ {% endfor %}
+ </div>
+ </div>
+
+ <!-- Multi-Page Selection -->
+ <div class="p-3.5 bg-cyan-50/50 rounded-2xl border border-cyan-100 space-y-2">
+ <div class="flex items-center justify-between">
+ <label class="block text-xs font-bold text-cyan-950 flex items-center gap-1.5">
+ <i class="fa-solid fa-globe text-cyan-600 text-xs"></i> Target Pages to Display On (যে যে পেজে দেখাবে - একাধিক সিলেক্ট করুন)
+ </label>
+ <div class="flex items-center gap-2">
+ <button type="button" onclick="selectAllAddPages(true)" class="text-[10px] font-bold text-cyan-700 hover:underline">Select All</button>
+ <span class="text-slate-300">|</span>
+ <button type="button" onclick="selectAllAddPages(false)" class="text-[10px] font-bold text-slate-500 hover:underline">Clear</button>
+ </div>
+ </div>
+ <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+ {% for code, label in available_target_pages %}
+ <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-cyan-100 hover:border-cyan-300 transition cursor-pointer text-xs font-semibold text-slate-800 shadow-2xs">
+ <input type="checkbox" name="target_pages" value="{{ code }}" class="add-pkg-page-chk rounded text-cyan-600 focus:ring-cyan-500 h-4 w-4" {% if code != 'home' %}checked{% endif %}>
+ <span class="truncate">{{ label }}</span>
+ </label>
+ {% endfor %}
+ </div>
+ </div>
+ </div>
+
  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">WHM Server</label>
@@ -2558,7 +2758,20 @@
  </div>
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">Exact WHM Package Name</label>
- <input type="text" id="pkg_add_panel_package_name" name="panel_package_name" required placeholder="e.g. resellerperfect_Advance" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+ <input type="text" id="pkg_add_panel_package_name" name="panel_package_name" required placeholder="e.g. resellerperfect_Advance" oninput="this.value = this.value.replace(/&/g, 'and').replace(/[^a-zA-Z0-9 ._\-]/g, '')" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+ <p class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-circle-info text-blue-500"></i> WHM allows: <code>a-z A-Z 0-9 . _ -</code> and spaces. (Character <code>&amp;</code> is automatically replaced by <code>and</code>).</p>
+ </div>
+ </div>
+
+ <!-- Badges & Subtitle -->
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Promo Badge Text</label>
+ <input type="text" name="badge_text" placeholder='e.g. "Save 45%", "Save 35%", "Hot Deal"' class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Subtitle / Offer Highlight</label>
+ <input type="text" name="subtitle" placeholder='e.g. "10 GB Hosting + Free .com", "200X Fast"' class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
  </div>
  </div>
 
@@ -2573,14 +2786,33 @@
  </div>
  </div>
 
- <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
  <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳)</label>
- <input type="number" step="0.01" name="monthly_price" required placeholder="350.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳) <span class="text-[10px] text-slate-400 font-normal">(Optional if Yearly)</span></label>
+ <input type="number" step="0.01" name="monthly_price" placeholder="350.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
  </div>
  <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">Annual Price (৳)</label>
- <input type="number" step="0.01" name="annual_price" placeholder="3500.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ <label class="block text-xs font-bold text-slate-700 mb-1">Annual / Yearly Price (৳)</label>
+ <input type="number" step="0.01" name="annual_price" placeholder="3500.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Old Regular Price (৳)</label>
+ <input type="number" step="0.01" name="regular_price" placeholder="4500.00 (Strikethrough)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ </div>
+ </div>
+
+ <div>
+ <div class="flex items-center justify-between mb-1">
+ <label class="block text-xs font-bold text-slate-700">Custom Feature List (One feature per line)</label>
+ <span class="text-[10px] text-slate-400">Leave blank for automatic smart features</span>
+ </div>
+ <textarea name="features_list" rows="5" placeholder="FREE Domain 1st Year (.com, .net, .org)&#10;10GB NVMe SSD Disk Space&#10;Unlimited Bandwidth&#10;cPanel Control Panel&#10;Life Time Free SSL Certificate&#10;LiteSpeed Enterprise Web Server" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+ </div>
+
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Sort Order (Lower = shows first)</label>
+ <input type="number" name="sort_order" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
  </div>
  </div>
 
@@ -2616,17 +2848,64 @@
 
 <!-- 5c. Modal: Edit Hosting Package -->
 <div id="modal-edit-package" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
+ <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
  <div class="flex items-center justify-between pb-3 border-b border-slate-100">
  <div>
  <h3 class="font-black text-slate-900 text-base">Edit Hosting Package</h3>
- <p class="text-[11px] text-slate-500">Update pricing, WHM plan link, and quotas</p>
+ <p class="text-[11px] text-slate-500">Update category tab, target page, badges, bullet features, and quotas</p>
  </div>
  <button type="button" onclick="closeModal('modal-edit-package')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
  </div>
  <form method="POST" action="{% url 'admin_action_handler' action_type='edit_package' %}" class="space-y-4">
  {% csrf_token %}
  <input type="hidden" id="edit_pkg_id" name="package_id">
+
+ <!-- Category & Target Page Placement -->
+ <!-- Category & Target Page Placement -->
+ <div class="space-y-3">
+ <!-- Multi-Category Selection -->
+ <div class="p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
+ <div class="flex items-center justify-between">
+ <label class="block text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+ <i class="fa-solid fa-layer-group text-indigo-600 text-xs"></i> Select Categories / Tabs (একাধিক ক্যাটাগরি সিলেক্ট করুন)
+ </label>
+ <span class="text-[10px] text-indigo-600 font-semibold">Multi-category</span>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-36 overflow-y-auto pr-1">
+ {% for cat in package_categories %}
+ <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-indigo-100 hover:border-indigo-300 transition cursor-pointer text-xs font-semibold text-slate-800 shadow-2xs">
+ <input type="checkbox" name="category_ids" value="{{ cat.id }}" class="edit-pkg-cat-chk rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4">
+ <span class="truncate">{{ cat.name }}</span>
+ </label>
+ {% empty %}
+ <p class="text-xs text-slate-500 italic col-span-full">No categories available.</p>
+ {% endfor %}
+ </div>
+ </div>
+
+ <!-- Multi-Page Selection -->
+ <div class="p-3.5 bg-cyan-50/50 rounded-2xl border border-cyan-100 space-y-2">
+ <div class="flex items-center justify-between">
+ <label class="block text-xs font-bold text-cyan-950 flex items-center gap-1.5">
+ <i class="fa-solid fa-globe text-cyan-600 text-xs"></i> Target Pages to Display On (যে যে পেজে দেখাবে)
+ </label>
+ <div class="flex items-center gap-2">
+ <button type="button" onclick="selectAllEditPages(true)" class="text-[10px] font-bold text-cyan-700 hover:underline">Select All</button>
+ <span class="text-slate-300">|</span>
+ <button type="button" onclick="selectAllEditPages(false)" class="text-[10px] font-bold text-slate-500 hover:underline">Clear</button>
+ </div>
+ </div>
+ <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+ {% for code, label in available_target_pages %}
+ <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-cyan-100 hover:border-cyan-300 transition cursor-pointer text-xs font-semibold text-slate-800 shadow-2xs">
+ <input type="checkbox" name="target_pages" value="{{ code }}" class="edit-pkg-page-chk rounded text-cyan-600 focus:ring-cyan-500 h-4 w-4">
+ <span class="truncate">{{ label }}</span>
+ </label>
+ {% endfor %}
+ </div>
+ </div>
+ </div>
+
  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">Plan Display Name</label>
@@ -2634,9 +2913,23 @@
  </div>
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">WHM Package Plan Name</label>
- <input type="text" id="edit_pkg_panel_package_name" name="panel_package_name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+ <input type="text" id="edit_pkg_panel_package_name" name="panel_package_name" required oninput="this.value = this.value.replace(/&/g, 'and').replace(/[^a-zA-Z0-9 ._\-]/g, '')" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none font-mono">
+ <p class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-circle-info text-blue-500"></i> WHM allows: <code>a-z A-Z 0-9 . _ -</code> and spaces. (Character <code>&amp;</code> is automatically replaced by <code>and</code>).</p>
  </div>
  </div>
+
+ <!-- Badges & Subtitle -->
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Promo Badge Text</label>
+ <input type="text" id="edit_pkg_badge_text" name="badge_text" placeholder='e.g. "Save 45%", "Save 35%", "Hot Deal"' class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Subtitle / Offer Highlight</label>
+ <input type="text" id="edit_pkg_subtitle" name="subtitle" placeholder='e.g. "10 GB Hosting + Free .com", "200X Fast"' class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ </div>
+ </div>
+
  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">Disk Quota (MB)</label>
@@ -2647,16 +2940,37 @@
  <input type="number" id="edit_pkg_bw" name="bandwidth_mb" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
  </div>
  </div>
+
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳) <span class="text-[10px] text-slate-400 font-normal">(Optional if Yearly)</span></label>
+ <input type="number" step="0.01" id="edit_pkg_monthly" name="monthly_price" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Annual / Yearly Price (৳)</label>
+ <input type="number" step="0.01" id="edit_pkg_annual" name="annual_price" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold">
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1">Old Regular Price (৳)</label>
+ <input type="number" step="0.01" id="edit_pkg_regular_price" name="regular_price" placeholder="4500.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ </div>
+ </div>
+
+ <div>
+ <div class="flex items-center justify-between mb-1">
+ <label class="block text-xs font-bold text-slate-700">Custom Feature List (One feature per line)</label>
+ <span class="text-[10px] text-slate-400">Lines will render as checkmark bullets</span>
+ </div>
+ <textarea id="edit_pkg_features_list" name="features_list" rows="5" placeholder="FREE Domain 1st Year (.com, .net, .org)&#10;10GB NVMe SSD Disk Space&#10;Unlimited Bandwidth&#10;cPanel Control Panel&#10;Life Time Free SSL Certificate&#10;LiteSpeed Enterprise Web Server" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+ </div>
+
  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">Monthly Price (৳)</label>
- <input type="number" step="0.01" id="edit_pkg_monthly" name="monthly_price" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
- </div>
- <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">Annual Price (৳)</label>
- <input type="number" step="0.01" id="edit_pkg_annual" name="annual_price" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+ <label class="block text-xs font-bold text-slate-700 mb-1">Sort Order</label>
+ <input type="number" id="edit_pkg_sort_order" name="sort_order" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
  </div>
  </div>
+
  <div class="flex items-center gap-6 pt-2">
  <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
  <input type="checkbox" id="edit_pkg_featured" name="is_featured" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
@@ -3918,6 +4232,57 @@ function openAddPackageModal() {
  if (serverSelect && serverSelect.value) {
  fetchWhmPackagesForModal(serverSelect.value);
  }
+}
+
+function selectAllAddPages(select) {
+    document.querySelectorAll('.add-pkg-page-chk').forEach(chk => { chk.checked = select; });
+}
+
+function selectAllEditPages(select) {
+    document.querySelectorAll('.edit-pkg-page-chk').forEach(chk => { chk.checked = select; });
+}
+
+function openEditPackageModalFromBtn(btn) {
+ if (!btn) return;
+ document.getElementById('edit_pkg_id').value = btn.dataset.id || '';
+ document.getElementById('edit_pkg_name').value = btn.dataset.name || '';
+ document.getElementById('edit_pkg_panel_package_name').value = btn.dataset.panelPackageName || '';
+
+ // Category Checkboxes
+ const catIds = (btn.dataset.categoryIds || '').split(',').map(s => s.trim()).filter(Boolean);
+ document.querySelectorAll('.edit-pkg-cat-chk').forEach(chk => {
+     chk.checked = catIds.includes(chk.value);
+ });
+
+ // Target Page Checkboxes
+ const targetPages = (btn.dataset.targetPages || '').split(',').map(s => s.trim()).filter(Boolean);
+ document.querySelectorAll('.edit-pkg-page-chk').forEach(chk => {
+     chk.checked = targetPages.includes(chk.value);
+ });
+
+ const badgeInput = document.getElementById('edit_pkg_badge_text');
+ if (badgeInput) badgeInput.value = btn.dataset.badgeText || '';
+
+ const subInput = document.getElementById('edit_pkg_subtitle');
+ if (subInput) subInput.value = btn.dataset.subtitle || '';
+
+ const regPriceInput = document.getElementById('edit_pkg_regular_price');
+ if (regPriceInput) regPriceInput.value = btn.dataset.regularPrice || '';
+
+ const sortOrderInput = document.getElementById('edit_pkg_sort_order');
+ if (sortOrderInput) sortOrderInput.value = btn.dataset.sortOrder || '0';
+
+ const featTextarea = document.getElementById('edit_pkg_features_list');
+ if (featTextarea) featTextarea.value = btn.dataset.featuresList || '';
+
+ document.getElementById('edit_pkg_monthly').value = btn.dataset.monthlyPrice || '';
+ document.getElementById('edit_pkg_annual').value = btn.dataset.annualPrice || '';
+ document.getElementById('edit_pkg_disk').value = btn.dataset.diskQuota || '';
+ document.getElementById('edit_pkg_bw').value = btn.dataset.bandwidth || '';
+ document.getElementById('edit_pkg_featured').checked = btn.dataset.isFeatured === '1';
+ document.getElementById('edit_pkg_active').checked = btn.dataset.isActive === '1';
+
+ openModal('modal-edit-package');
 }
 
 function openEditPackageModal(id, name, serverId, panelPackageName, monthlyPrice, annualPrice, diskQuota, bandwidth, isFeatured, isActive) {

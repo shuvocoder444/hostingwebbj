@@ -159,8 +159,13 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                 </div>
                                 
                                 <div class="mb-3">
+                                    {% if sp.monthly_price and sp.monthly_price > 0 %}
                                     <span class="text-2xl font-black text-slate-900">৳{{ sp.monthly_price|floatformat:0 }}</span>
                                     <span class="text-[11px] text-slate-500 font-medium">/ mo</span>
+                                    {% else %}
+                                    <span class="text-2xl font-black text-slate-900">৳{{ sp.annual_price|floatformat:0 }}</span>
+                                    <span class="text-[11px] text-slate-500 font-medium">/ yr</span>
+                                    {% endif %}
                                 </div>
 
                                 <ul class="space-y-1.5 text-[11px] text-slate-600 mb-4">
@@ -182,7 +187,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                             <a href="{% url 'cart_configure' %}?package={{ sp.id }}&domain={{ domain }}&domain_option=register&tld={{ tld }}"
                                 class="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-cart-plus text-[10px]"></i>
-                                <span>Add to Order (+৳{{ sp.monthly_price|floatformat:0 }})</span>
+                                <span>Add to Order (+৳{% if sp.monthly_price and sp.monthly_price > 0 %}{{ sp.monthly_price|floatformat:0 }}{% else %}{{ sp.annual_price|floatformat:0 }}{% endif %})</span>
                             </a>
                         </div>
                         {% endfor %}
@@ -218,8 +223,13 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                             </div>
                         </div>
                         <div class="text-left sm:text-right">
+                            {% if monthly_price and monthly_price > 0 %}
                             <span class="text-2xl font-black text-slate-900">৳{{ monthly_price|floatformat:0 }}</span>
                             <span class="text-xs text-slate-500 font-medium">/ month</span>
+                            {% else %}
+                            <span class="text-2xl font-black text-slate-900">৳{{ annual_price|floatformat:0 }}</span>
+                            <span class="text-xs text-slate-500 font-medium">/ year</span>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -272,6 +282,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
                         
                         <!-- Monthly -->
+                        {% if monthly_price and monthly_price > 0 %}
                         <label class="billing-card relative p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-300 cursor-pointer transition flex items-start gap-3 bg-white"
                             id="card-cycle-monthly">
                             <input type="radio" name="billing_cycle" value="monthly" onchange="updateSelectedCycle('monthly', {{ monthly_price }}, 'Monthly')"
@@ -281,6 +292,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                 <span class="text-xs font-bold text-slate-700 mt-0.5 block">৳{{ monthly_price|floatformat:0 }} BDT</span>
                             </div>
                         </label>
+                        {% endif %}
 
                         <!-- Annually (Default) -->
                         <label class="billing-card relative p-4 rounded-2xl border-2 border-brand-600 bg-brand-50/40 cursor-pointer transition flex items-start gap-3"

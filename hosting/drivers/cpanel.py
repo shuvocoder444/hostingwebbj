@@ -253,10 +253,35 @@ class CPanelDriver(BaseServerDriver):
             })
         return packages
 
+    def sanitize_package_name(self, name: str) -> str:
+        """
+        Sanitize package name for WHM API addpkg.
+        WHM rules: Only multi-byte UTF-8 characters, spaces, and: a-z A-Z 0-9 . _ -
+        No '&', '%', '/', '#', '@', etc.
+        Also, if user included reseller prefix 'resellerusername_', WHM's addpkg adds it automatically.
+        """
+        import re
+        clean = (name or '').strip()
+        # Replace '&' with 'and'
+        clean = clean.replace('&', 'and')
+        # If reseller username prefix is present, strip it because WHM addpkg adds it automatically
+        if self.username and self.username.lower() != 'root':
+            prefix = f"{self.username.lower()}_"
+            if clean.lower().startswith(prefix):
+                clean = clean[len(prefix):]
+        # Remove any character not in [a-zA-Z0-9 ._-]
+        clean = re.sub(r'[^a-zA-Z0-9 ._\-]', '', clean).strip()
+        clean = re.sub(r'\s+', ' ', clean)
+        return clean
+
     def create_package(self, name: str, disk_quota_mb: int = 1024, bandwidth_mb: int = 10240) -> dict:
         """Create a new package in WHM via addpkg API."""
+        clean_name = self.sanitize_package_name(name)
+        if not clean_name:
+            raise ServerDriverError("Package name is empty or contains only invalid characters for WHM.")
+
         params = {
-            'name': name,
+            'name': clean_name,
             'quota': str(disk_quota_mb) if disk_quota_mb > 0 else 'unlimited',
             'bwlimit': str(bandwidth_mb) if bandwidth_mb > 0 else 'unlimited',
             'featurelist': 'default',
@@ -275,7 +300,16 @@ class CPanelDriver(BaseServerDriver):
         if status.get('status') != 1:
             err = status.get('statusmsg', res.get('metadata', {}).get('reason', 'Failed to create package in WHM'))
             raise ServerDriverError(f"WHM addpkg failed: {err}")
-        return {'success': True, 'message': status.get('statusmsg', f"Package '{name}' created in WHM.")}
+
+        # When created by a reseller, WHM names the package '{reseller}_{clean_name}'
+        full_whm_name = f"{self.username}_{clean_name}" if self.username and self.username.lower() != 'root' else clean_name
+
+        return {
+            'success': True,
+            'clean_name': clean_name,
+            'full_package_name': full_whm_name,
+            'message': status.get('statusmsg', f"Package '{clean_name}' created in WHM.")
+        }
 
     def delete_package(self, name: str) -> dict:
         """Delete a package from WHM via killpkg API."""

@@ -14,6 +14,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -22,10 +23,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.models import ClientProfile
 from billing.models import Invoice, Transaction
 from billing.services import InvoiceService
-from hosting.models import BillingCycle, HostingAccount, HostingPackage
-from hosting.services import ProvisioningService
 from core.security import rate_limit
-from django.core.cache import cache
+from hosting.models import BillingCycle, HostingAccount, HostingPackage, PackageCategory
+from hosting.services import ProvisioningService
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -36,9 +36,74 @@ def get_cached_packages():
     cache_key = 'velohoster_active_packages_list'
     packages = cache.get(cache_key)
     if packages is None:
-        packages = list(HostingPackage.objects.filter(is_active=True).select_related('server').order_by('monthly_price'))
+        packages = list(
+            HostingPackage.objects.filter(is_active=True)
+            .select_related('server', 'category')
+            .prefetch_related('categories')
+            .order_by('sort_order', 'id')
+        )
         cache.set(cache_key, packages, 600)
     return packages
+
+
+def get_cached_package_categories():
+    """Fetch active package categories with Redis / in-memory cache-aside."""
+    cache_key = 'velohoster_active_categories_list'
+    categories = cache.get(cache_key)
+    if categories is None:
+        categories = list(
+            PackageCategory.objects.filter(is_active=True).order_by('sort_order', 'name')
+        )
+        cache.set(cache_key, categories, 600)
+    return categories
+
+
+def get_packages_for_page(page_name: str):
+    """
+    Returns active packages assigned to a specific target page.
+    A package is displayed on page_name if page_name is included in the package's
+    target_pages list, or if the package belongs to a category associated with page_name.
+    """
+    all_active = get_cached_packages()
+    page_name = (page_name or '').lower().strip()
+    return [p for p in all_active if p.shows_on_page(page_name)]
+
+
+def get_home_packages():
+    """
+    Returns packages designated for the home page:
+    Matches packages where 'home' is in target_pages, or tagged with home categories.
+    """
+    all_active = get_cached_packages()
+    home_pkgs = [p for p in all_active if 'home' in p.get_target_pages_list()]
+    if home_pkgs:
+        return home_pkgs
+    home_slugs = {'domain-hosting-offer', 'premium-hosting'}
+    fallback = [
+        p for p in all_active
+        if any(c.slug in home_slugs for c in p.get_all_categories())
+    ]
+    return fallback if fallback else all_active
+
+
+def get_home_categories():
+    """
+    Returns categories for the Home page tabs.
+    Dynamically includes categories that have packages displaying on the Home page.
+    """
+    all_categories = get_cached_package_categories()
+    home_pkgs = get_home_packages()
+    home_cat_ids = set()
+    for p in home_pkgs:
+        for c in p.get_all_categories():
+            home_cat_ids.add(c.id)
+    if home_cat_ids:
+        filtered = [c for c in all_categories if c.id in home_cat_ids]
+        if filtered:
+            return filtered
+    home_slugs = {'domain-hosting-offer', 'premium-hosting'}
+    filtered = [c for c in all_categories if c.slug in home_slugs]
+    return filtered if filtered else all_categories
 
 
 def get_cached_tld_prices():
@@ -55,10 +120,11 @@ def get_cached_tld_prices():
 def landing_page_view(request):
     """
     Public Landing Page.
-    Ultra-fast cached queries for packages and TLD pricing.
+    Shows 'Domain & Hosting Offer' and 'Premium Hosting' packages (yearly plans).
     """
     context = {
-        'packages': get_cached_packages(),
+        'packages': get_home_packages(),
+        'categories': get_home_categories(),
         'tld_prices': get_cached_tld_prices(),
         'user': request.user,
     }
@@ -354,15 +420,17 @@ def order_hosting_view(request):
         )
 
         # 2. Determine price based on cycle
+        m_price = package.monthly_price or Decimal('0.00')
+        a_price = package.annual_price or (m_price * 10)
         price_map = {
-            BillingCycle.MONTHLY: package.monthly_price,
-            BillingCycle.QUARTERLY: package.quarterly_price or package.monthly_price * 3,
-            BillingCycle.SEMI_ANNUAL: package.semi_annual_price or package.monthly_price * 6,
-            BillingCycle.ANNUAL: package.annual_price or package.monthly_price * 12,
-            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or package.monthly_price * 24,
-            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or package.monthly_price * 36,
+            BillingCycle.MONTHLY: m_price if m_price > 0 else a_price,
+            BillingCycle.QUARTERLY: package.quarterly_price or (m_price * 3),
+            BillingCycle.SEMI_ANNUAL: package.semi_annual_price or (m_price * 6),
+            BillingCycle.ANNUAL: a_price,
+            BillingCycle.BIENNIAL: getattr(package, 'biennial_price', None) or (a_price * Decimal('1.80')),
+            BillingCycle.TRIENNIAL: getattr(package, 'triennial_price', None) or (a_price * Decimal('2.50')),
         }
-        amount = price_map.get(billing_cycle, package.monthly_price)
+        amount = price_map.get(billing_cycle, a_price if m_price == 0 else m_price)
 
         # 3. Create hosting invoice
         invoice = InvoiceService.create_hosting_invoice(

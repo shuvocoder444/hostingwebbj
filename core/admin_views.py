@@ -20,6 +20,7 @@ from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.text import slugify
 
 from accounts.models import ClientProfile
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction
@@ -28,7 +29,13 @@ from domains.drivers.factory import get_registrar_driver
 from domains.models import Domain, DomainRegistrar, RegistrarType, TLDPricing
 from domains.services import DomainService
 from hosting.drivers.factory import get_driver
-from hosting.models import BillingCycle, HostingAccount, HostingPackage, Server
+from hosting.models import (
+    BillingCycle,
+    HostingAccount,
+    HostingPackage,
+    PackageCategory,
+    Server,
+)
 from hosting.services import ProvisioningService
 from hosting.tasks import provision_hosting_account
 
@@ -87,8 +94,22 @@ def admin_dashboard_view(request):
     registrars = list(DomainRegistrar.objects.all().order_by('-is_default', 'name'))
     tld_prices = list(TLDPricing.objects.all().order_by('tld'))
 
-    # 3. Hosting Packages
-    packages = list(HostingPackage.objects.select_related('server').prefetch_related('accounts').all().order_by('monthly_price'))
+    AVAILABLE_TARGET_PAGES = [
+        ('home', 'Home Page'),
+        ('usa', 'USA Hosting Page'),
+        ('singapore', 'Singapore Hosting Page'),
+        ('germany', 'Germany Hosting Page'),
+        ('finland', 'Finland Hosting Page'),
+        ('bdix', 'BDIX Hosting Page'),
+        ('vps', 'VPS Hosting Page'),
+        ('turbo', 'Turbo Cloud Page'),
+        ('premium', 'Premium Business Page'),
+        ('reseller', 'Reseller Hosting Page'),
+    ]
+
+    # 3. Hosting Packages & Categories
+    packages = list(HostingPackage.objects.select_related('server', 'category').prefetch_related('categories', 'accounts').all().order_by('sort_order', 'monthly_price'))
+    package_categories = list(PackageCategory.objects.prefetch_related('packages').all().order_by('sort_order', 'name'))
 
     # 4. Operations: Hosting Accounts
     hosting_accounts = list(HostingAccount.objects.select_related('user', 'server', 'package').all().order_by('-created_at'))
@@ -131,6 +152,9 @@ def admin_dashboard_view(request):
         'registrar_driver_choices': RegistrarType.choices,
         'tld_prices': tld_prices,
         'packages': packages,
+        'package_categories': package_categories,
+        'target_page_choices': HostingPackage.TargetPage.choices,
+        'available_target_pages': AVAILABLE_TARGET_PAGES,
         'hosting_accounts': hosting_accounts,
         'domains': domains,
         'invoices': invoices,
@@ -380,6 +404,9 @@ ACTION_TAB_MAP = {
     'add_package': 'packages',
     'edit_package': 'packages',
     'delete_package': 'packages',
+    'add_package_category': 'packages',
+    'edit_package_category': 'packages',
+    'delete_package_category': 'packages',
     'create_hosting_account': 'accounts',
     'edit_hosting_account': 'accounts',
     'account_action': 'accounts',
@@ -799,61 +826,210 @@ def admin_action_handler_view(request, action_type):
             else:
                 messages.info(request, "No packages found on the WHM server to import.")
 
+    # ── 4a1. ADD PACKAGE CATEGORY ─────────────────────────────────────────────
+    elif action_type == 'add_package_category':
+        name = request.POST.get('name', '').strip()
+        slug = request.POST.get('slug', '').strip()
+        if not slug and name:
+            slug = slugify(name)
+        description = request.POST.get('description', '').strip()
+        sort_order = int(request.POST.get('sort_order', 0) or 0)
+        is_active = request.POST.get('is_active', 'on') in ('on', '1', 'true')
+
+        if not name:
+            messages.error(request, "Category Name is required.")
+            return redirect_to_admin_tab(action_type, request)
+
+        if PackageCategory.objects.filter(slug=slug).exists():
+            messages.error(request, f"Category identifier '{slug}' already exists. Choose a distinct name.")
+            return redirect_to_admin_tab(action_type, request)
+
+        PackageCategory.objects.create(
+            name=name,
+            slug=slug,
+            description=description,
+            sort_order=sort_order,
+            is_active=is_active,
+        )
+        messages.success(request, f"Hosting Category '{name}' created successfully!")
+
+    # ── 4a2. EDIT PACKAGE CATEGORY ────────────────────────────────────────────
+    elif action_type == 'edit_package_category':
+        category_id = request.POST.get('category_id')
+        cat = get_object_or_404(PackageCategory, id=category_id)
+        cat.name = request.POST.get('name', cat.name).strip()
+        new_slug = request.POST.get('slug', '').strip()
+        if new_slug:
+            cat.slug = slugify(new_slug)
+        cat.description = request.POST.get('description', cat.description).strip()
+        cat.sort_order = int(request.POST.get('sort_order', cat.sort_order) or 0)
+        cat.is_active = request.POST.get('is_active') in ('on', '1', 'true')
+        cat.save()
+        messages.success(request, f"Hosting Category '{cat.name}' updated successfully.")
+
+    # ── 4a3. DELETE PACKAGE CATEGORY ──────────────────────────────────────────
+    elif action_type == 'delete_package_category':
+        category_id = request.POST.get('category_id')
+        cat = get_object_or_404(PackageCategory, id=category_id)
+        c_name = cat.name
+        HostingPackage.objects.filter(category=cat).update(category=None)
+        cat.delete()
+        messages.success(request, f"Hosting Category '{c_name}' deleted. Associated packages unlinked.")
+
     # ── 4b. ADD HOSTING PACKAGE (HOSTPRO + OPTIONAL TWO-WAY WHM CREATE) ───────
+    # ── 4b. CREATE HOSTING PACKAGE (OPTIONAL WHM SYNC) ────────────────────────
     elif action_type == 'add_package':
+        import re
         name = request.POST.get('name', '').strip()
         server_id = request.POST.get('server_id')
         panel_package_name = request.POST.get('package_name', '').strip() or request.POST.get('panel_package_name', '').strip() or request.POST.get('whm_package_name', '').strip()
-        monthly_price = Decimal(request.POST.get('monthly_price', '0.00'))
-        annual_price_val = request.POST.get('annual_price', '').strip()
-        annual_price = Decimal(annual_price_val) if annual_price_val else monthly_price * 10
+        
+        category_ids = request.POST.getlist('category_ids')
+        if not category_ids and request.POST.get('category_id'):
+            category_ids = [request.POST.get('category_id')]
+        category_ids = [cid.strip() for cid in category_ids if cid and cid.strip()]
+
+        target_pages = request.POST.getlist('target_pages')
+        if not target_pages and request.POST.get('target_page'):
+            target_pages = [request.POST.get('target_page')]
+        target_pages = [tp.strip() for tp in target_pages if tp and tp.strip()]
+        target_page_legacy = target_pages[0] if (len(target_pages) == 1 and target_pages[0] in dict(HostingPackage.TargetPage.choices)) else (HostingPackage.TargetPage.ALL if len(target_pages) > 1 else HostingPackage.TargetPage.HOME)
+
+        badge_text = request.POST.get('badge_text', '').strip()
+        subtitle = request.POST.get('subtitle', '').strip()
+        features_list = request.POST.get('features_list', '').strip()
+        sort_order = int(request.POST.get('sort_order', 0) or 0)
+
+        # Pricing: At least one of Monthly or Annual must be provided
+        monthly_val = request.POST.get('monthly_price', '').strip()
+        annual_val = request.POST.get('annual_price', '').strip()
+
+        if not monthly_val and not annual_val:
+            messages.error(request, "Please enter at least a Monthly Price or an Annual Price for the package.")
+            return redirect_to_admin_tab(action_type, request)
+
+        monthly_price = Decimal(monthly_val) if monthly_val else Decimal('0.00')
+        annual_price = Decimal(annual_val) if annual_val else (monthly_price * 10 if monthly_price > 0 else Decimal('0.00'))
+
+        reg_price_val = request.POST.get('regular_price', '').strip()
+        regular_price = Decimal(reg_price_val) if reg_price_val else None
+
         disk_quota_mb = int(request.POST.get('disk_quota_mb', 5120))
         bandwidth_mb = int(request.POST.get('bandwidth_quota_mb', 0) or request.POST.get('bandwidth_mb', 0) or 51200)
-        is_featured = request.POST.get('is_featured') == 'on'
-        is_active = request.POST.get('is_active', 'on') == 'on'
+        is_featured = request.POST.get('is_featured') in ('on', '1', 'true')
+        is_active = request.POST.get('is_active', 'on') in ('on', '1', 'true')
         create_on_whm = request.POST.get('create_on_whm') in ('on', '1', 'true')
 
         if not name or not server_id or not panel_package_name:
             messages.error(request, "Package Name, WHM Server, and WHM Package Name are required.")
             return redirect_to_admin_tab(action_type, request)
 
+        # Sanitize panel_package_name for WHM compatibility
+        panel_package_name = panel_package_name.replace('&', 'and')
+        panel_package_name = re.sub(r'[^a-zA-Z0-9 ._\-]', '', panel_package_name).strip()
+        panel_package_name = re.sub(r'\s+', ' ', panel_package_name)
+
         server = get_object_or_404(Server, id=server_id)
+        cat_obj = PackageCategory.objects.filter(id__in=category_ids).first() if category_ids else None
 
         # Two-way sync: Create package directly in WHM if requested
         if create_on_whm:
             try:
                 driver = get_driver(server)
-                driver.create_package(panel_package_name, disk_quota_mb=disk_quota_mb, bandwidth_mb=bandwidth_mb)
-                messages.info(request, f"Two-way Sync: Package '{panel_package_name}' was created directly on WHM server '{server.name}'!")
+                whm_res = driver.create_package(panel_package_name, disk_quota_mb=disk_quota_mb, bandwidth_mb=bandwidth_mb)
+                if isinstance(whm_res, dict) and whm_res.get('full_package_name'):
+                    panel_package_name = whm_res['full_package_name']
+                messages.info(request, f"Two-way Sync: Package '{panel_package_name}' was successfully created directly on WHM server '{server.name}'!")
             except Exception as exc:
-                messages.warning(request, f"WHM panel notification: {exc!s}")
+                messages.error(request, f"WHM package creation failed: {exc!s}. Please resolve WHM issue or uncheck 'Create on WHM'.")
+                return redirect_to_admin_tab(action_type, request)
 
-        HostingPackage.objects.create(
+        pkg = HostingPackage.objects.create(
             name=name,
             server=server,
+            category=cat_obj,
+            target_page=target_page_legacy,
+            target_pages=target_pages,
+            badge_text=badge_text,
+            subtitle=subtitle,
+            features_list=features_list,
+            sort_order=sort_order,
             panel_package_name=panel_package_name,
             monthly_price=monthly_price,
             annual_price=annual_price,
+            regular_price=regular_price,
             disk_quota_mb=disk_quota_mb,
             bandwidth_mb=bandwidth_mb,
             is_featured=is_featured,
             is_active=is_active,
         )
+        if category_ids:
+            pkg.categories.set(category_ids)
+
         messages.success(request, f"Hosting Package '{name}' saved and linked to WHM plan '{panel_package_name}' on server '{server.name}'!")
 
     # ── 4c. EDIT HOSTING PACKAGE ──────────────────────────────────────────────
     elif action_type == 'edit_package':
+        import re
         package_id = request.POST.get('package_id')
         pkg = get_object_or_404(HostingPackage, id=package_id)
         pkg.name = request.POST.get('name', pkg.name).strip()
-        pkg.panel_package_name = request.POST.get('panel_package_name', pkg.panel_package_name).strip() or request.POST.get('package_name', pkg.panel_package_name).strip()
-        pkg.monthly_price = Decimal(request.POST.get('monthly_price', str(pkg.monthly_price)))
-        ann_val = request.POST.get('annual_price', '').strip()
-        pkg.annual_price = Decimal(ann_val) if ann_val else pkg.monthly_price * 10
+        
+        raw_panel_name = request.POST.get('panel_package_name', pkg.panel_package_name).strip() or request.POST.get('package_name', pkg.panel_package_name).strip()
+        raw_panel_name = raw_panel_name.replace('&', 'and')
+        raw_panel_name = re.sub(r'[^a-zA-Z0-9 ._\-]', '', raw_panel_name).strip()
+        pkg.panel_package_name = re.sub(r'\s+', ' ', raw_panel_name)
+        
+        # Multi-category update
+        if 'category_ids' in request.POST or 'category_id' in request.POST:
+            category_ids = request.POST.getlist('category_ids')
+            if not category_ids and request.POST.get('category_id'):
+                category_ids = [request.POST.get('category_id')]
+            category_ids = [cid.strip() for cid in category_ids if cid and cid.strip()]
+            pkg.categories.set(category_ids)
+            pkg.category = PackageCategory.objects.filter(id__in=category_ids).first() if category_ids else None
+
+        # Multi-page update
+        if 'target_pages' in request.POST or 'target_page' in request.POST:
+            target_pages = request.POST.getlist('target_pages')
+            if not target_pages and request.POST.get('target_page'):
+                target_pages = [request.POST.get('target_page')]
+            target_pages = [tp.strip() for tp in target_pages if tp and tp.strip()]
+            pkg.target_pages = target_pages
+            if len(target_pages) == 1 and target_pages[0] in dict(HostingPackage.TargetPage.choices):
+                pkg.target_page = target_pages[0]
+            elif len(target_pages) > 1:
+                pkg.target_page = HostingPackage.TargetPage.ALL
+
+        pkg.badge_text = request.POST.get('badge_text', pkg.badge_text).strip()
+        pkg.subtitle = request.POST.get('subtitle', pkg.subtitle).strip()
+        pkg.features_list = request.POST.get('features_list', pkg.features_list).strip()
+        
+        sort_order_val = request.POST.get('sort_order')
+        if sort_order_val is not None:
+            pkg.sort_order = int(sort_order_val or 0)
+
+        # Pricing update
+        monthly_val = request.POST.get('monthly_price', '').strip()
+        annual_val = request.POST.get('annual_price', '').strip()
+
+        if monthly_val:
+            pkg.monthly_price = Decimal(monthly_val)
+        else:
+            pkg.monthly_price = Decimal('0.00')
+
+        if annual_val:
+            pkg.annual_price = Decimal(annual_val)
+        elif pkg.monthly_price and pkg.monthly_price > 0:
+            pkg.annual_price = pkg.monthly_price * 10
+        
+        reg_val = request.POST.get('regular_price', '').strip()
+        pkg.regular_price = Decimal(reg_val) if reg_val else None
+
         pkg.disk_quota_mb = int(request.POST.get('disk_quota_mb', pkg.disk_quota_mb))
         pkg.bandwidth_mb = int(request.POST.get('bandwidth_mb', pkg.bandwidth_mb))
-        pkg.is_featured = request.POST.get('is_featured') == 'on'
-        pkg.is_active = request.POST.get('is_active') == 'on'
+        pkg.is_featured = request.POST.get('is_featured') in ('on', '1', 'true')
+        pkg.is_active = request.POST.get('is_active') in ('on', '1', 'true')
         pkg.save()
         messages.success(request, f"Hosting Package '{pkg.name}' updated successfully.")
 
@@ -1748,6 +1924,7 @@ def admin_action_handler_view(request, action_type):
         # Handle Direct Image File Uploads with Cache-Busting Filenames
         import os
         import time
+
         from django.conf import settings as dj_settings
         static_img_dir = os.path.join(dj_settings.BASE_DIR, 'static', 'img')
         staticfiles_img_dir = os.path.join(dj_settings.BASE_DIR, 'staticfiles', 'img')
@@ -1763,15 +1940,13 @@ def admin_action_handler_view(request, action_type):
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             # Also overwrite default logo.png
             for d in (static_img_dir, staticfiles_img_dir):
                 f.seek(0)
                 file_path = os.path.join(d, f"logo{ext}")
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             site.logo_url = f"/static/img/{filename}"
 
         if request.FILES.get('favicon_file'):
@@ -1781,15 +1956,13 @@ def admin_action_handler_view(request, action_type):
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             # Also overwrite default favicon.png / favicon.ico
             for d in (static_img_dir, staticfiles_img_dir):
                 f.seek(0)
                 file_path = os.path.join(d, f"favicon{ext}")
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             site.favicon_url = f"/static/img/{filename}"
 
         if request.FILES.get('thumbnail_file'):
@@ -1799,15 +1972,13 @@ def admin_action_handler_view(request, action_type):
             for d in (static_img_dir, staticfiles_img_dir):
                 file_path = os.path.join(d, filename)
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             # Also overwrite default og_thumbnail.png
             for d in (static_img_dir, staticfiles_img_dir):
                 f.seek(0)
                 file_path = os.path.join(d, f"og_thumbnail{ext}")
                 with open(file_path, 'wb+') as dest:
-                    for chunk in f.chunks():
-                        dest.write(chunk)
+                    dest.writelines(f.chunks())
             site.thumbnail_url = f"/static/img/{filename}"
 
         # International & Crypto Payment Gateways

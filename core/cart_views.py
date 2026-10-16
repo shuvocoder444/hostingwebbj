@@ -23,7 +23,7 @@ from billing.models import Gateway, Invoice, InvoiceItem, Transaction
 from billing.services import InvoiceNumberGenerator
 from core.security import rate_limit
 from core.views import get_cached_packages, get_cached_tld_prices
-from domains.models import Domain, DomainRegistrar, TLDPricing
+from domains.models import Domain, DomainRegistrar
 from domains.services import DomainService
 from hosting.models import HostingAccount, HostingPackage
 from hosting.services import ProvisioningService
@@ -467,8 +467,8 @@ def cart_configure_view(request):
     triennial_price = Decimal('0.00')
 
     if package:
-        monthly_price = package.monthly_price
-        annual_price = package.annual_price or (monthly_price * 10)
+        monthly_price = package.monthly_price or Decimal('0.00')
+        annual_price = package.annual_price or (monthly_price * 10 if monthly_price > 0 else Decimal('0.00'))
         biennial_price = getattr(package, 'biennial_price', None) or (annual_price * Decimal('1.80'))
         triennial_price = getattr(package, 'triennial_price', None) or (annual_price * Decimal('2.50'))
 
@@ -486,7 +486,7 @@ def cart_configure_view(request):
             domain_price = tld_obj.register_price if tld_obj else Decimal('1350.00')
 
     # Suggested hosting packages for domain-only buyers
-    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price))[:3]
+    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00')))[:3]
 
     context = {
         'package': package,
@@ -564,8 +564,15 @@ def cart_checkout_view(request):
     hosting_price = Decimal('0.00')
     cycle_label = 'No Hosting Plan'
     if package:
-        if billing_cycle == 'monthly':
-            hosting_price = package.monthly_price
+        m_price = package.monthly_price or Decimal('0.00')
+        a_price = package.annual_price or (m_price * 10 if m_price > 0 else Decimal('0.00'))
+
+        # If package has no monthly price, force at least annual cycle
+        if m_price <= 0 and billing_cycle in ('monthly', 'quarterly', 'semi_annual'):
+            billing_cycle = 'annual'
+
+        if billing_cycle == 'monthly' and m_price > 0:
+            hosting_price = m_price
             cycle_label = 'Monthly (1 Month)'
         elif billing_cycle == 'quarterly' and package.quarterly_price:
             hosting_price = package.quarterly_price
@@ -574,14 +581,14 @@ def cart_checkout_view(request):
             hosting_price = package.semi_annual_price
             cycle_label = 'Semi-Annual (6 Months)'
         elif billing_cycle == 'biennial':
-            hosting_price = getattr(package, 'biennial_price', None) or ((package.annual_price or package.monthly_price * 10) * Decimal('1.80'))
+            hosting_price = getattr(package, 'biennial_price', None) or (a_price * Decimal('1.80'))
             cycle_label = 'Biennially (2 Years)'
         elif billing_cycle == 'triennial':
-            hosting_price = getattr(package, 'triennial_price', None) or ((package.annual_price or package.monthly_price * 10) * Decimal('2.50'))
+            hosting_price = getattr(package, 'triennial_price', None) or (a_price * Decimal('2.50'))
             cycle_label = 'Triennially (3 Years)'
         else:
             billing_cycle = 'annual'
-            hosting_price = package.annual_price or (package.monthly_price * 10)
+            hosting_price = a_price
             cycle_label = 'Annually (1 Year)'
 
     # Calculate domain price
@@ -611,7 +618,7 @@ def cart_checkout_view(request):
     total_usd = max(1.0, round(float(total) / 125.0, 2))
     from core.models import SiteSetting
     site_setting = SiteSetting.get_settings()
-    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price))[:3]
+    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00')))[:3]
 
     context = {
         'package': package,
@@ -739,19 +746,25 @@ def cart_complete_order_view(request):
         # 2. Compute Prices
         hosting_amount = Decimal('0.00')
         if package:
-            if billing_cycle == 'monthly':
-                hosting_amount = package.monthly_price
+            m_price = package.monthly_price or Decimal('0.00')
+            a_price = package.annual_price or (m_price * 10 if m_price > 0 else Decimal('0.00'))
+
+            if m_price <= 0 and billing_cycle in ('monthly', 'quarterly', 'semi_annual'):
+                billing_cycle = 'annual'
+
+            if billing_cycle == 'monthly' and m_price > 0:
+                hosting_amount = m_price
             elif billing_cycle == 'quarterly' and package.quarterly_price:
                 hosting_amount = package.quarterly_price
             elif billing_cycle == 'semi_annual' and package.semi_annual_price:
                 hosting_amount = package.semi_annual_price
             elif billing_cycle == 'biennial':
-                hosting_amount = getattr(package, 'biennial_price', None) or ((package.annual_price or package.monthly_price * 10) * Decimal('1.80'))
+                hosting_amount = getattr(package, 'biennial_price', None) or (a_price * Decimal('1.80'))
             elif billing_cycle == 'triennial':
-                hosting_amount = getattr(package, 'triennial_price', None) or ((package.annual_price or package.monthly_price * 10) * Decimal('2.50'))
+                hosting_amount = getattr(package, 'triennial_price', None) or (a_price * Decimal('2.50'))
             else:
                 billing_cycle = 'annual'
-                hosting_amount = package.annual_price or (package.monthly_price * 10)
+                hosting_amount = a_price
 
         domain_amount = Decimal('0.00')
         clean_domain = domain.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] if domain else ''

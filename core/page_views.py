@@ -8,7 +8,7 @@ Handles dedicated landing pages for:
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.views import get_cached_packages, get_cached_tld_prices
+from core.views import get_cached_packages, get_cached_tld_prices, get_packages_for_page
 
 
 def about_us_view(request):
@@ -70,7 +70,7 @@ def hosting_singapore_view(request):
     """Singapore NVMe SSD High Performance Web Hosting."""
     return render(request, 'pages/hosting_singapore.html', {
         'page_title': 'Singapore NVMe SSD Web Hosting — Ultra Low Latency',
-        'packages': get_cached_packages(),
+        'packages': get_packages_for_page('singapore'),
         'location': 'Singapore 🇸🇬',
     })
 
@@ -79,8 +79,26 @@ def hosting_usa_view(request):
     """USA NVMe SSD Super Fast Web Hosting."""
     return render(request, 'pages/hosting_usa.html', {
         'page_title': 'USA NVMe SSD Web Hosting — Super Fast Global CDN',
-        'packages': get_cached_packages(),
+        'packages': get_packages_for_page('usa'),
         'location': 'USA 🇺🇸',
+    })
+
+
+def hosting_germany_view(request):
+    """Germany Frankfurt Datacenter High-Speed Web Hosting."""
+    return render(request, 'pages/hosting_germany.html', {
+        'page_title': 'Germany NVMe SSD Web Hosting — Frankfurt European Hub',
+        'packages': get_packages_for_page('germany'),
+        'location': 'Frankfurt, Germany 🇩🇪',
+    })
+
+
+def hosting_finland_view(request):
+    """Finland Helsinki Nordic Cloud Infrastructure Web Hosting."""
+    return render(request, 'pages/hosting_finland.html', {
+        'page_title': 'Finland NVMe Cloud Web Hosting — 100% Green Energy Nordic Server',
+        'packages': get_packages_for_page('finland'),
+        'location': 'Helsinki, Finland 🇫🇮',
     })
 
 
@@ -88,7 +106,7 @@ def hosting_bdix_view(request):
     """Premium BDIX 10Gbps Bangladeshi Server Hosting."""
     return render(request, 'pages/hosting_bdix.html', {
         'page_title': 'Premium BDIX Server Hosting — 1-5ms Ping Across Bangladesh',
-        'packages': get_cached_packages(),
+        'packages': get_packages_for_page('bdix'),
         'location': 'Dhaka BDIX 🇧🇩',
     })
 
@@ -97,7 +115,7 @@ def hosting_premium_view(request):
     """Premium Hosting for Business & High-Traffic Corporate Websites."""
     return render(request, 'pages/hosting_premium.html', {
         'page_title': 'Premium Business Web Hosting — Dedicated Performance & VIP Support',
-        'packages': get_cached_packages(),
+        'packages': get_packages_for_page('premium'),
     })
 
 
@@ -105,7 +123,7 @@ def hosting_turbo_cloud_view(request):
     """Turbo Cloud Hosting Optimized for WooCommerce & E-Commerce."""
     return render(request, 'pages/hosting_turbo_cloud.html', {
         'page_title': 'Turbo Cloud E-Commerce Hosting — LiteSpeed & Redis Cache',
-        'packages': get_cached_packages(),
+        'packages': get_packages_for_page('turbo'),
     })
 
 
@@ -113,6 +131,7 @@ def hosting_reseller_view(request):
     """Cheap & Powerful White-Label cPanel/WHM Reseller Hosting."""
     return render(request, 'pages/hosting_reseller.html', {
         'page_title': 'Cheap Reseller Web Hosting — 100% White Label with WHM',
+        'packages': get_packages_for_page('reseller'),
     })
 
 
@@ -120,4 +139,5 @@ def hosting_vps_view(request):
     """Managed Cloud KVM VPS Hosting."""
     return render(request, 'pages/hosting_vps.html', {
         'page_title': 'Managed Cloud VPS Hosting — Dedicated KVM NVMe Performance',
+        'packages': get_packages_for_page('vps'),
     })

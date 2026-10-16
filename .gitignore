@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment & IDE
+.env
+.venv/
+venv/
+ENV/
+.idea/
+.vscode/
+
+# Temporary / Scratch scripts
+check_error.py
+check_remote_packages.py
+test_server_status.py
+deploy_*.py
+_temp_*
+

@@ -59,8 +59,13 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
 
             <div class="flex items-center justify-between w-full md:w-auto md:flex-col md:items-end gap-3 z-10 shrink-0 border-t md:border-t-0 border-white/10 pt-3 md:pt-0">
                 <div class="text-left md:text-right">
+                    {% if package.monthly_price and package.monthly_price > 0 %}
                     <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.monthly_price|floatformat:0 }}</div>
                     <span class="text-xs text-blue-200 font-medium">/ month</span>
+                    {% else %}
+                    <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.annual_price|floatformat:0 }}</div>
+                    <span class="text-xs text-blue-200 font-medium">/ year</span>
+                    {% endif %}
                 </div>
                 <a href="{% url 'cart_domain' %}?package=none" class="text-[11px] text-cyan-300 hover:text-white underline font-semibold transition">
                     Buy Domain Only instead
@@ -469,8 +474,13 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                                 <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block mt-0.5">NVMe Cloud Hosting</span>
                             </div>
                             <div class="text-right">
+                                {% if pkg.monthly_price and pkg.monthly_price > 0 %}
                                 <div class="text-xl font-black text-slate-900">৳{{ pkg.monthly_price|floatformat:0 }}</div>
                                 <span class="text-[10px] text-slate-400 font-medium">/ month</span>
+                                {% else %}
+                                <div class="text-xl font-black text-slate-900">৳{{ pkg.annual_price|floatformat:0 }}</div>
+                                <span class="text-[10px] text-slate-400 font-medium">/ year</span>
+                                {% endif %}
                             </div>
                         </div>
 

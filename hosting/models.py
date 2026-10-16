@@ -13,11 +13,14 @@ Indexing strategy:
   - ForeignKey to User is indexed by default by Django.
 """
 
+from decimal import Decimal
 import uuid
-from django.db import models
+
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
-from core.encryption import encrypt, decrypt
+
+from core.encryption import decrypt, encrypt
 
 User = get_user_model()
 
@@ -82,11 +85,48 @@ class Server(models.Model):
         return decrypt(self._api_token)
 
 
+class PackageCategory(models.Model):
+    """
+    Category/Group for hosting packages (e.g., Domain & Hosting Offer, BDIX Hosting, USA Hosting, etc.)
+    Allows dynamic tab filtering on homepage and specialized landing pages.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, unique=True, help_text='Category Title (e.g. Domain & Hosting OFFER, BDIX Hosting)')
+    slug = models.SlugField(max_length=100, unique=True, help_text='URL friendly identifier, e.g. bdix-hosting, domain-hosting-offer')
+    description = models.TextField(blank=True, help_text='Short description of this hosting category')
+    sort_order = models.PositiveIntegerField(default=0, help_text='Display order of tabs (lowest first)')
+    is_active = models.BooleanField(default=True, db_index=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Package Category'
+        verbose_name_plural = 'Package Categories'
+        ordering = ['sort_order', 'name']
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class HostingPackage(models.Model):
     """
     A hosting plan definition (the product catalogue).
     Maps 1:1 to a WHM/CyberPanel package on the server.
     """
+    class TargetPage(models.TextChoices):
+        ALL = 'all', 'All Pages'
+        HOME = 'home', 'Home Page Only'
+        BDIX = 'bdix', 'BDIX Hosting Page'
+        SINGAPORE = 'singapore', 'Singapore Hosting Page'
+        USA = 'usa', 'USA Hosting Page'
+        GERMANY = 'germany', 'Germany Hosting Page'
+        FINLAND = 'finland', 'Finland Hosting Page'
+        TURBO = 'turbo', 'Turbo Cloud Page'
+        PREMIUM = 'premium', 'Premium Business Page'
+        RESELLER = 'reseller', 'Reseller Hosting Page'
+        VPS = 'vps', 'VPS Hosting Page'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     server = models.ForeignKey(
@@ -95,6 +135,86 @@ class HostingPackage(models.Model):
         related_name='packages',
         db_index=True,
     )
+    category = models.ForeignKey(
+        PackageCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='packages',
+        db_index=True,
+        help_text='Assign package to a tab/category group'
+    )
+    target_page = models.CharField(
+        max_length=30,
+        choices=TargetPage.choices,
+        default=TargetPage.ALL,
+        db_index=True,
+        help_text='Choose which dedicated page this package should show on (Legacy fallback)'
+    )
+    categories = models.ManyToManyField(
+        PackageCategory,
+        blank=True,
+        related_name='multi_packages',
+        help_text='Assign package to one or multiple category tabs'
+    )
+    target_pages = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of dedicated pages where this package will be displayed'
+    )
+
+    def get_all_categories(self):
+        """Return list of categories assigned to this package (M2M with fallback to single category FK)."""
+        try:
+            cats = list(self.categories.all())
+            if cats:
+                return cats
+        except Exception:
+            pass
+        if self.category:
+            return [self.category]
+        return []
+
+    def get_target_pages_list(self) -> list:
+        """Return list of target page codes (e.g. ['home', 'bdix', 'usa'])."""
+        if self.target_pages and isinstance(self.target_pages, list) and len(self.target_pages) > 0:
+            return self.target_pages
+        if self.target_page:
+            if self.target_page == 'all':
+                return ['usa', 'singapore', 'germany', 'finland', 'bdix', 'vps', 'turbo', 'premium', 'reseller']
+            return [self.target_page]
+        return []
+
+    def shows_on_page(self, page_name: str) -> bool:
+        """Determine if package should be displayed on a specific page."""
+        p_name = (page_name or '').lower().strip()
+        pages = self.get_target_pages_list()
+        if p_name in pages or 'all' in pages:
+            return True
+        for cat in self.get_all_categories():
+            if p_name in (cat.slug or '').lower():
+                return True
+        return False
+
+    # ── Display Badges & Highlight Subtitles ──────────────────────────────
+    badge_text = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        help_text='Discount or promo badge, e.g. "Save 45%", "Most Popular", "Save 35%"'
+    )
+    subtitle = models.CharField(
+        max_length=150,
+        blank=True,
+        default='',
+        help_text='Offer subtitle, e.g. "10 GB Hosting + Free .com", "Unlimited Hosting + Free .com"'
+    )
+    features_list = models.TextField(
+        blank=True,
+        default='',
+        help_text='Custom bullet features list (one feature per line). Example:\nFREE Domain 1st Year\n10GB NVMe SSD Disk Space\ncPanel Control Panel\nLife Time Free SSL Certificate'
+    )
+    sort_order = models.PositiveIntegerField(default=0, help_text='Display ordering within category/page')
 
     # ── Resource limits ────────────────────────────────────────────────────
     disk_quota_mb = models.PositiveIntegerField(help_text='Disk quota in MB. 0 = unlimited.')
@@ -105,10 +225,11 @@ class HostingPackage(models.Model):
     max_ftp_accounts = models.PositiveIntegerField(default=5)
 
     # ── Pricing (use DecimalField — NEVER float for money) ─────────────────
-    monthly_price = models.DecimalField(max_digits=10, decimal_places=2)
+    monthly_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=Decimal('0.00'))
     quarterly_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     semi_annual_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     annual_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    regular_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Strikethrough old regular price, e.g. 3099.00')
     setup_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     # ── Metadata ──────────────────────────────────────────────────────────
@@ -126,10 +247,34 @@ class HostingPackage(models.Model):
     class Meta:
         verbose_name = 'Hosting Package'
         verbose_name_plural = 'Hosting Packages'
-        ordering = ['monthly_price']
+        ordering = ['sort_order', 'id']
 
     def __str__(self) -> str:
-        return f'{self.name} (BDT {self.monthly_price}/mo)'
+        if self.monthly_price and self.monthly_price > 0:
+            return f'{self.name} (BDT {self.monthly_price}/mo)'
+        elif self.annual_price:
+            return f'{self.name} (BDT {self.annual_price}/yr)'
+        return self.name
+
+    def get_features(self):
+        """Returns list of feature strings parsed from newline-separated features_list."""
+        if self.features_list:
+            lines = [line.strip() for line in self.features_list.splitlines() if line.strip()]
+            if lines:
+                return lines
+        # Default fallback features if not customized
+        disk_str = "Unlimited Pure NVMe SSD" if self.disk_quota_mb == 0 else f"{self.disk_quota_mb} MB NVMe SSD Disk Space"
+        bw_str = "Unlimited Bandwidth" if self.bandwidth_mb == 0 else f"{self.bandwidth_mb} MB Monthly Bandwidth"
+        return [
+            disk_str,
+            bw_str,
+            f"{self.max_databases} MySQL Database(s) + phpMyAdmin",
+            f"{self.max_email_accounts} Professional Email Account(s)",
+            "cPanel Control Panel + Softaculous 1-Click",
+            "Life Time Free SSL Certificate",
+            "Automatic Weekly/Daily Backup",
+            "LiteSpeed Enterprise + LSCache",
+        ]
 
 
 class BillingCycle(models.TextChoices):
@@ -267,4 +412,3 @@ class HostingAccount(models.Model):
     def is_expiring_soon(self) -> bool:
         """Returns True if account expires within 50 days."""
         return self.status == self.Status.ACTIVE and self.days_until_due <= 50
-

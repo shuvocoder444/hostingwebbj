@@ -138,7 +138,7 @@
                         </div>
                         <a href="{% url 'cart_configure' %}?package={{ suggested_packages.0.id }}&domain={{ domain }}&domain_option=register&tld={{ tld }}"
                             class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] shadow-xs whitespace-nowrap">
-                            + Add {{ suggested_packages.0.name }} (৳{{ suggested_packages.0.monthly_price|floatformat:0 }}/mo)
+                            + Add {{ suggested_packages.0.name }} ({% if suggested_packages.0.monthly_price and suggested_packages.0.monthly_price > 0 %}৳{{ suggested_packages.0.monthly_price|floatformat:0 }}/mo{% else %}৳{{ suggested_packages.0.annual_price|floatformat:0 }}/yr{% endif %})
                         </a>
                     </div>
                     {% endif %}

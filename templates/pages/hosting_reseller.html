@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static currency_tags %}
 
 {% block title %}{{ page_title }} | {{ COMPANY_NAME }}{% endblock %}
 
@@ -50,12 +50,83 @@
 
         <!-- Pricing Cards -->
         <div class="space-y-6 pt-6">
-            <div class="text-center max-w-xl mx-auto">
+            <div class="text-center max-w-xl mx-auto space-y-4">
                 <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Affordable Reseller Hosting Plans</h2>
-                <p class="text-xs text-slate-500 mt-1">Upgrade or scale resources seamlessly as your client base grows.</p>
+                <p class="text-xs text-slate-500">Upgrade or scale resources seamlessly as your client base grows.</p>
+
+                <!-- Monthly / Annual Billing Switcher -->
+                <div class="inline-flex items-center p-1.5 rounded-2xl bg-slate-200/80 border border-slate-300 text-xs font-bold shadow-inner">
+                    <button type="button" onclick="setPageBillingCycle('monthly')" id="btn-cycle-monthly" class="px-5 py-2 rounded-xl bg-white text-slate-900 shadow-sm transition cursor-pointer">
+                        Monthly Billing
+                    </button>
+                    <button type="button" onclick="setPageBillingCycle('annual')" id="btn-cycle-annual" class="px-5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer">
+                        <span>Annual Billing</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase">Save 20%</span>
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% if packages %}
+                    {% for pkg in packages %}
+                    <div class="bg-white rounded-3xl border {% if pkg.is_featured %}border-2 border-teal-600 shadow-xl relative scale-[1.02]{% else %}border-slate-200 shadow-sm{% endif %} p-8 flex flex-col justify-between">
+                        {% if pkg.badge_text %}
+                        <span class="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-600 text-white shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-tag text-[9px]"></i> {{ pkg.badge_text }}
+                        </span>
+                        {% elif pkg.is_featured %}
+                        <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-600 text-white shadow-sm">
+                            Most Popular
+                        </span>
+                        {% endif %}
+                        <div class="space-y-6">
+                            <div>
+                                <span class="px-2.5 py-1 rounded bg-teal-50 font-bold text-xs text-teal-700">Reseller WHM</span>
+                                <h3 class="font-extrabold text-slate-900 text-xl mt-2">{{ pkg.name }}</h3>
+                                {% if pkg.subtitle %}
+                                <p class="text-xs font-bold text-teal-700 mt-1">{{ pkg.subtitle }}</p>
+                                {% else %}
+                                <p class="text-xs text-slate-500">Full White-Label Reseller Hosting</p>
+                                {% endif %}
+                            </div>
+                            <div class="space-y-1">
+                                {% if pkg.regular_price %}
+                                <div class="text-xs font-bold text-slate-400 line-through">Regular: {{ CURRENCY_SYMBOL }}{{ pkg.regular_price|currency_val:CURRENT_CURRENCY }}</div>
+                                {% endif %}
+                                {% if pkg.monthly_price and pkg.monthly_price > 0 %}
+                                <div class="price-monthly-display flex items-baseline gap-1">
+                                    <span class="text-4xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
+                                    <span class="text-xs font-medium text-slate-500">/ month</span>
+                                </div>
+                                <div class="price-annual-display hidden items-baseline gap-1">
+                                    <span class="text-4xl font-black text-emerald-600 font-mono">{{ CURRENCY_SYMBOL }}{% if pkg.annual_price and pkg.annual_price > 0 %}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}{% else %}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}{% endif %}</span>
+                                    <span class="text-xs font-medium text-slate-500">/ year</span>
+                                </div>
+                                {% else %}
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-4xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}</span>
+                                    <span class="text-xs font-medium text-slate-500">/ year (Yearly Only)</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <ul class="text-xs text-slate-600 space-y-3 pt-4 border-t border-slate-100 font-medium">
+                                {% for feat in pkg.get_features %}
+                                <li class="flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-teal-600"></i>
+                                    <span>{{ feat }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="pt-6">
+                            <a href="{% url 'cart_domain' %}?package={{ pkg.id }}&billing_cycle={% if pkg.monthly_price and pkg.monthly_price > 0 %}monthly{% else %}annual{% endif %}"
+                               data-base-href="{% url 'cart_domain' %}?package={{ pkg.id }}"
+                               data-has-monthly="{% if pkg.monthly_price and pkg.monthly_price > 0 %}1{% else %}0{% endif %}"
+                               class="pkg-order-btn w-full block py-3.5 text-center text-xs font-bold rounded-2xl {% if pkg.is_featured %}bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/30{% else %}bg-slate-900 hover:bg-slate-800 text-white{% endif %} transition">Order Plan</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
                 <!-- Reseller Tier 1 -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
                     <div class="space-y-6">
@@ -131,6 +202,7 @@
                         <a href="{% url 'cart_domain' %}" class="w-full block py-3.5 text-center text-xs font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition">Order Plan</a>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
 
