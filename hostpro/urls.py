@@ -9,8 +9,8 @@ Routes:
   - Django Admin: Staff fallback management (/admin/)
 """
 from functools import wraps
-from django.contrib import admin
-from django.contrib import messages
+
+from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import include, path
 from drf_spectacular.views import (
@@ -20,6 +20,11 @@ from drf_spectacular.views import (
 )
 from rest_framework.permissions import IsAdminUser
 
+from billing.views import (
+    initiate_online_payment_view,
+    payment_complete_return_view,
+    payment_webhook_view,
+)
 from core.admin_views import (
     admin_action_handler_view,
     admin_check_registrar_balance_view,
@@ -43,10 +48,13 @@ def admin_only_view(view_func):
             return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponse
+
 from core.cart_views import (
-    ajax_domain_check_view,
-    ajax_domain_bulk_search_view,
     ajax_domain_ai_generate_view,
+    ajax_domain_bulk_search_view,
+    ajax_domain_check_view,
     cart_checkout_view,
     cart_clear_view,
     cart_complete_order_view,
@@ -70,6 +78,7 @@ from core.page_views import (
     hosting_vps_view,
     our_datacenter_view,
 )
+from core.sitemaps import StaticViewSitemap
 from core.views import (
     dashboard_view,
     landing_page_view,
@@ -84,10 +93,6 @@ from core.views import (
     service_sso_view,
     set_currency_view,
 )
-
-from django.contrib.sitemaps.views import sitemap
-from django.http import HttpResponse
-from core.sitemaps import StaticViewSitemap
 
 sitemaps = {
     'static': StaticViewSitemap,
@@ -150,6 +155,9 @@ urlpatterns = [
     path('dashboard/', dashboard_view, name='dashboard'),
     path('hosting/order/', order_hosting_view, name='order_hosting'),
     path('billing/invoices/<uuid:invoice_id>/pay/', pay_invoice_view, name='pay_invoice'),
+    path('billing/invoices/<uuid:invoice_id>/pay-online/', initiate_online_payment_view, name='initiate_online_payment'),
+    path('payments/webhook/', payment_webhook_view, name='payment-webhook'),
+    path('payments/complete/', payment_complete_return_view, name='payment-complete'),
 
     # ── Dedicated Product & Marketing Pages ───────────────────────────────────
     path('about-us/', about_us_view, name='about_us'),

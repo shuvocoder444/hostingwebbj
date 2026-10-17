@@ -243,6 +243,11 @@ FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='OGtjeXFEUZevmNXtD
 RENEWAL_INVOICE_DAYS_BEFORE = config('RENEWAL_INVOICE_DAYS_BEFORE', default=7, cast=int)
 AUTO_SUSPEND_GRACE_DAYS = config('AUTO_SUSPEND_GRACE_DAYS', default=3, cast=int)
 
+# WebKoders Payment Gateway
+GATEWAY_BASE_URL = config('GATEWAY_BASE_URL', default='https://payment.webkoders.com')
+GATEWAY_API_KEY = config('GATEWAY_API_KEY', default='mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c')
+GATEWAY_API_SECRET = config('GATEWAY_API_SECRET', default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc')
+
 # ─── Security Headers & Hardening ───────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_BROWSER_XSS_FILTER = True

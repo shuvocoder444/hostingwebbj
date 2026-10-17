@@ -412,10 +412,16 @@
  </div>
  <div>
  {% if inv.status == 'unpaid' or inv.status == 'overdue' %}
+ <div class="flex items-center gap-1.5">
+ <a href="/billing/invoices/{{ inv.id }}/pay-online/"
+ class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition inline-flex items-center gap-1">
+ <i class="fa-solid fa-bolt text-[10px] text-amber-300"></i> Pay Online
+ </a>
  <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total }}')"
- class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition">
- Pay Now
- </button>
+									class="px-2 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 text-xs font-bold transition inline-flex items-center gap-1">
+									<i class="fa-brands fa-bitcoin text-[10px]"></i> Crypto
+								</button>
+ </div>
  {% else %}
  <span class="text-xs text-slate-400 font-medium">Completed</span>
  {% endif %}
@@ -703,6 +709,11 @@
  </td>
  <td class="px-6 py-4 text-right">
  {% if inv.status == 'unpaid' or inv.status == 'overdue' %}
+ <div class="flex items-center justify-end gap-2">
+ <a href="/billing/invoices/{{ inv.id }}/pay-online/"
+ class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
+ <i class="fa-solid fa-bolt text-[10px] text-amber-300"></i> Pay Online
+ </a>
  {% with pending_txn=inv.transactions.first %}
  {% if pending_txn and pending_txn.status == 'pending' %}
  <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total }}')"
@@ -711,11 +722,12 @@
  </button>
  {% else %}
  <button onclick="openPaymentModal('{{ inv.id }}', '{{ inv.invoice_number }}', '{{ inv.total }}')"
- class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
- <i class="fa-solid fa-money-bill-wave text-[10px]"></i> Pay / Submit TrxID
- </button>
+									class="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 font-bold text-xs shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
+									<i class="fa-brands fa-bitcoin text-[10px]"></i> Direct Crypto
+								</button>
  {% endif %}
  {% endwith %}
+ </div>
  {% else %}
  <span class="text-xs text-slate-400 font-medium">
  Paid on {{ inv.paid_at|date:"M d, Y" }}
@@ -1011,115 +1023,141 @@
 
 <!-- 3. PAY INVOICE / SUBMIT TRXID MODAL -->
 <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs hidden">
- <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full border border-slate-200 shadow-2xl relative max-h-[92vh] overflow-y-auto">
- <button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 cursor-pointer">
- <i class="fa-solid fa-xmark text-lg"></i>
- </button>
+	<div class="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full border border-slate-200 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+		<button onclick="closePaymentModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 cursor-pointer">
+			<i class="fa-solid fa-xmark text-lg"></i>
+		</button>
 
- <div class="text-center mb-5">
- <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center text-xl mb-2.5">
- <i class="fa-solid fa-receipt"></i>
- </div>
- <h3 class="text-lg font-bold text-slate-900">Payment Submission / পেমেন্ট সাবমিট</h3>
- <p class="text-xs text-slate-500 mt-0.5">Invoice <span id="pay-modal-invoice-num" class="font-bold text-slate-800 font-mono"></span></p>
- <div class="text-2xl font-black text-slate-900 mt-2 font-mono">
- ৳<span id="pay-modal-amount">0.00</span> <span class="text-xs font-semibold text-slate-500">BDT</span>
- </div>
- </div>
+		<div class="text-center mb-5">
+			<div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center text-xl mb-2.5">
+				<i class="fa-solid fa-receipt"></i>
+			</div>
+			<h3 class="text-lg font-bold text-slate-900">Invoice Payment / পেমেন্ট পরিশোধ</h3>
+			<p class="text-xs text-slate-500 mt-0.5">Invoice <span id="pay-modal-invoice-num" class="font-bold text-slate-800 font-mono"></span></p>
+			<div class="text-2xl font-black text-slate-900 mt-2 font-mono">
+				৳<span id="pay-modal-amount">0.00</span> <span class="text-xs font-semibold text-slate-500">BDT</span>
+			</div>
+		</div>
 
- <form id="payment-form" method="POST" action="" class="space-y-4">
- {% csrf_token %}
- 
- <!-- Payment Channel Selection -->
- <div>
- <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Select Payment Method (পদ্ধতি নির্বাচন করুন)</label>
- <div class="grid grid-cols-2 gap-2">
- <!-- bKash -->
- <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-pink-300 cursor-pointer transition has-checked:border-pink-500 has-checked:bg-pink-50/50">
- <input type="radio" name="gateway" value="bkash" checked class="text-pink-600 focus:ring-0">
- <div>
- <div class="text-xs font-bold text-slate-900">bKash (বিকাশ)</div>
- <div class="text-[10px] text-slate-400">Send Money / Payment</div>
- </div>
- </label>
+		<!-- 1. WebKoders Instant Online Gateway -->
+		<div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 border border-emerald-300">
+			<div class="text-[11px] font-bold text-emerald-800 mb-2 flex items-center gap-1.5">
+				<i class="fa-solid fa-circle-check text-emerald-600"></i> অটোমেটিক ইনস্ট্যান্ট পেমেন্ট (Recommended):
+			</div>
+			<a id="btn-pay-online-modal" href="#"
+				class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 group cursor-pointer">
+				<i class="fa-solid fa-bolt text-amber-300 text-sm group-hover:scale-110 transition-transform"></i>
+				<span>⚡ Pay Online Instantly (bKash / Nagad / Rocket / Cards)</span>
+			</a>
+			<p class="text-[10px] text-slate-500 mt-2 text-center">WebKoders অটোমেটিক গেটওয়ে — পেমেন্ট সাথে সাথে ভেরিফাই হয়ে সার্ভিস সক্রিয় হবে।</p>
+		</div>
 
- <!-- Nagad -->
- <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-orange-300 cursor-pointer transition has-checked:border-orange-500 has-checked:bg-orange-50/50">
- <input type="radio" name="gateway" value="nagad" class="text-orange-600 focus:ring-0">
- <div>
- <div class="text-xs font-bold text-slate-900">Nagad (নগদ)</div>
- <div class="text-[10px] text-slate-400">Send Money / Payment</div>
- </div>
- </label>
+		<div class="relative flex py-2 items-center mb-4">
+			<div class="flex-grow border-t border-slate-200"></div>
+			<span class="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">অথবা Direct Crypto & Binance Pay</span>
+			<div class="flex-grow border-t border-slate-200"></div>
+		</div>
 
- <!-- Rocket -->
- <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-purple-300 cursor-pointer transition has-checked:border-purple-500 has-checked:bg-purple-50/50">
- <input type="radio" name="gateway" value="rocket" class="text-purple-600 focus:ring-0">
- <div>
- <div class="text-xs font-bold text-slate-900">Rocket (রকেট)</div>
- <div class="text-[10px] text-slate-400">DBBL Mobile Banking</div>
- </div>
- </label>
+		<!-- 2. Direct Crypto & Binance Pay Info & Submission -->
+		<form id="payment-form" method="POST" action="" class="space-y-4">
+			{% csrf_token %}
+			<input type="hidden" name="gateway" value="crypto">
 
- <!-- Bank / Card -->
- <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-blue-300 cursor-pointer transition has-checked:border-blue-500 has-checked:bg-blue-50/50">
- <input type="radio" name="gateway" value="manual" class="text-blue-600 focus:ring-0">
- <div>
- <div class="text-xs font-bold text-slate-900">Bank / Card Transfer</div>
- <div class="text-[10px] text-slate-400">Direct Deposit / Transfer</div>
- </div>
- </label>
- </div>
- </div>
+			<!-- Crypto Wallet Info Cards -->
+			<div class="space-y-2.5 bg-amber-50/50 border border-amber-200 rounded-2xl p-3.5">
+				<div class="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
+					<i class="fa-brands fa-bitcoin text-amber-600"></i> ক্রিপ্টো ওয়ালেট ও Binance Pay আইডি:
+				</div>
 
- <!-- Payment Instructions Box -->
- <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-[11px] text-amber-900 leading-relaxed space-y-1">
- <div class="font-bold flex items-center gap-1.5 text-amber-800">
- <i class="fa-solid fa-circle-info"></i> পেমেন্ট করার নির্দেশিকা:
- </div>
- <p>বিকাশ/নগদ/রকেটে ইনভয়েসের সমপরিমাণ টাকা পাঠানোর পর নিচের ফর্মে আপনার <strong>প্রেরক নম্বর</strong> এবং ফিরতি মেসেজে পাওয়া <strong>Transaction ID (TrxID)</strong> দিয়ে সাবমিট করুন।</p>
- </div>
+				{% if SITE_SETTINGS.crypto_usdt_trc20 %}
+				<div class="p-2.5 rounded-xl bg-white border border-amber-200/80">
+					<div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+						<span>USDT (TRC-20):</span>
+						<button type="button" onclick="navigator.clipboard.writeText('{{ SITE_SETTINGS.crypto_usdt_trc20 }}'); alert('Copied TRC-20 Address!');" class="text-amber-600 hover:underline cursor-pointer text-[10px]">
+							<i class="fa-regular fa-copy"></i> Copy
+						</button>
+					</div>
+					<div class="text-[10px] font-mono text-slate-800 break-all bg-slate-50 p-1.5 rounded border border-slate-200 select-all">
+						{{ SITE_SETTINGS.crypto_usdt_trc20 }}
+					</div>
+				</div>
+				{% endif %}
 
- <!-- Sender Number -->
- <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">
- Sender Phone / Account Number (প্রেরক নম্বর) <span class="text-rose-500">*</span>
- </label>
- <input type="text" name="sender_number" required placeholder="e.g. 01712345678 বা ব্যাংক অ্যাকাউন্ট নম্বর"
- class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-brand-500">
- </div>
+				{% if SITE_SETTINGS.crypto_usdt_bep20 %}
+				<div class="p-2.5 rounded-xl bg-white border border-amber-200/80">
+					<div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+						<span>USDT (BEP-20 / BSC):</span>
+						<button type="button" onclick="navigator.clipboard.writeText('{{ SITE_SETTINGS.crypto_usdt_bep20 }}'); alert('Copied BEP-20 Address!');" class="text-amber-600 hover:underline cursor-pointer text-[10px]">
+							<i class="fa-regular fa-copy"></i> Copy
+						</button>
+					</div>
+					<div class="text-[10px] font-mono text-slate-800 break-all bg-slate-50 p-1.5 rounded border border-slate-200 select-all">
+						{{ SITE_SETTINGS.crypto_usdt_bep20 }}
+					</div>
+				</div>
+				{% endif %}
 
- <!-- Transaction ID (TrxID) -->
- <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">
- Transaction ID (TrxID) / Reference <span class="text-rose-500">*</span>
- </label>
- <input type="text" name="trx_id" required placeholder="e.g. 9H7X8KL9 বা ডিপোজিট রেফারেন্স"
- class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold uppercase focus:outline-none focus:ring-2 focus:ring-brand-500">
- </div>
+				{% if SITE_SETTINGS.crypto_binance_pay_id %}
+				<div class="p-2.5 rounded-xl bg-white border border-amber-200/80">
+					<div class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+						<span>Binance Pay ID:</span>
+						<button type="button" onclick="navigator.clipboard.writeText('{{ SITE_SETTINGS.crypto_binance_pay_id }}'); alert('Copied Binance Pay ID!');" class="text-amber-600 hover:underline cursor-pointer text-[10px]">
+							<i class="fa-regular fa-copy"></i> Copy
+						</button>
+					</div>
+					<div class="text-xs font-mono font-bold text-slate-800 bg-slate-50 p-1.5 rounded border border-slate-200 select-all">
+						{{ SITE_SETTINGS.crypto_binance_pay_id }}
+					</div>
+				</div>
+				{% endif %}
 
- <!-- Optional Note -->
- <div>
- <label class="block text-xs font-bold text-slate-700 mb-1">Additional Notes (ঐচ্ছিক নোট)</label>
- <input type="text" name="notes" placeholder="e.g. Paid from personal bKash account"
- class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:border-brand-500">
- </div>
+				{% if not SITE_SETTINGS.crypto_usdt_trc20 and not SITE_SETTINGS.crypto_usdt_bep20 and not SITE_SETTINGS.crypto_binance_pay_id %}
+				<div class="text-xs text-amber-800">
+					ক্রিপ্টো অ্যাড্রেসের জন্য অনুগ্রহ করে আমাদের লাইভ সাপোর্ট বা WhatsApp-এ যোগাযোগ করুন।
+				</div>
+				{% endif %}
+			</div>
 
- <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[10px] text-slate-500 leading-relaxed">
- <i class="fa-solid fa-shield-halved text-brand-600 mr-1"></i>
- পেমেন্ট সাবমিট করার পর অ্যাডমিন কর্তৃক যাচাই (Verification) সম্পন্ন হলেই আপনার হোস্টিং অ্যাকাউন্ট ও ডোমেইন স্বয়ংক্রিয়ভাবে সক্রিয় হবে।
- </div>
+			<!-- Sender Wallet / Binance Pay ID -->
+			<div>
+				<label class="block text-xs font-bold text-slate-700 mb-1">
+					Your Sender Wallet Address / Binance Pay ID <span class="text-rose-500">*</span>
+				</label>
+				<input type="text" name="sender_number" required placeholder="e.g. Your Binance Pay ID or Sender Address"
+					class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-amber-500">
+			</div>
 
- <div class="pt-2 flex gap-3">
- <button type="button" onclick="closePaymentModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
- Cancel
- </button>
- <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
- <i class="fa-solid fa-paper-plane"></i> Submit Payment Info
- </button>
- </div>
- </form>
- </div>
+			<!-- Transaction Hash (TxHash) -->
+			<div>
+				<label class="block text-xs font-bold text-slate-700 mb-1">
+					Transaction Hash (TxHash) / Order ID <span class="text-rose-500">*</span>
+				</label>
+				<input type="text" name="trx_id" required placeholder="e.g. 0xabc... or Binance Order ID"
+					class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold uppercase focus:outline-none focus:ring-2 focus:ring-amber-500">
+			</div>
+
+			<!-- Optional Note -->
+			<div>
+				<label class="block text-xs font-bold text-slate-700 mb-1">Additional Notes (ঐচ্ছিক)</label>
+				<input type="text" name="notes" placeholder="e.g. Paid 10 USDT via Binance Pay"
+					class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:border-amber-500">
+			</div>
+
+			<div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[10px] text-slate-500 leading-relaxed">
+				<i class="fa-solid fa-shield-halved text-amber-600 mr-1"></i>
+				ক্রিপ্টো পেমেন্ট সাবমিট করার পর অ্যাডমিন কর্তৃক যাচাই সম্পন্ন হলেই আপনার ইনভয়েস পেইড এবং সার্ভিস সক্রিয় হবে।
+			</div>
+
+			<div class="pt-2 flex gap-3">
+				<button type="button" onclick="closePaymentModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+					Cancel
+				</button>
+				<button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+					<i class="fa-solid fa-paper-plane"></i> Submit Crypto Payment
+				</button>
+			</div>
+		</form>
+	</div>
 </div>
 
 {% endblock %}
@@ -1300,6 +1338,10 @@
  document.getElementById('pay-modal-invoice-num').textContent = '#' + invoiceNum;
  document.getElementById('pay-modal-amount').textContent = amount;
  document.getElementById('payment-form').action = '/billing/invoices/' + invoiceId + '/pay/';
+ const btnOnline = document.getElementById('btn-pay-online-modal');
+ if (btnOnline) {
+ btnOnline.href = '/billing/invoices/' + invoiceId + '/pay-online/';
+ }
  document.getElementById('payment-modal').classList.remove('hidden');
  }
 

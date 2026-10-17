@@ -101,6 +101,26 @@ class SiteSetting(models.Model):
     twitter_url = models.URLField(max_length=255, blank=True, default='')
     telegram_url = models.URLField(max_length=255, blank=True, default='')
 
+    # ── WebKoders Payment Gateway Settings ──
+    webkoders_base_url = models.CharField(
+        max_length=255,
+        default='https://payment.webkoders.com',
+        blank=True,
+        help_text='WebKoders Gateway Base URL'
+    )
+    webkoders_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        default='mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c',
+        help_text='WebKoders API Key (Merchant API Key)'
+    )
+    webkoders_api_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc',
+        help_text='WebKoders API Secret Key (Used for HMAC-SHA256 signature verification)'
+    )
+
     # ── International & Crypto Payment Gateway Settings ──
     cryptomus_merchant_id = models.CharField(
         max_length=100,
@@ -159,11 +179,14 @@ class SiteSetting(models.Model):
         if cached:
             return cached
         try:
-            setting = cls.objects.first()
+            # Prefer row with logo_url configured, or most recently updated row
+            setting = cls.objects.exclude(logo_url='').order_by('-updated_at').first() or cls.objects.order_by('-updated_at').first()
             if not setting:
                 setting = cls.objects.create(
                     company_name='VeloHoster',
                     site_title='VeloHoster — High Performance Cloud Web Hosting & Domains',
+                    logo_url='/static/img/logo.png',
+                    favicon_url='/static/img/favicon.png',
                     whatsapp_number='8801700000000',
                 )
             cache.set(cache_key, setting, 300)
@@ -177,9 +200,9 @@ class SiteSetting(models.Model):
                 meta_description = 'Premium high-speed cloud web hosting, cPanel, BDIX, LiteSpeed, and domain registration with automated provisioning and instant Bangladeshi payment gateways.'
                 meta_keywords = 'web hosting, bdix hosting, cpanel hosting, spaceship domain, bdwebs, buy domain bangladesh'
                 show_hero_section = True
-                logo_url = ''
-                favicon_url = ''
-                thumbnail_url = ''
+                logo_url = '/static/img/logo.png'
+                favicon_url = '/static/img/favicon.png'
+                thumbnail_url = '/static/img/og_thumbnail.png'
                 whatsapp_number = '8801700000000'
                 support_email = 'support@velohoster.com'
                 support_phone = '+880 1700-000000'
@@ -190,6 +213,9 @@ class SiteSetting(models.Model):
                 instagram_url = ''
                 twitter_url = ''
                 telegram_url = ''
+                webkoders_base_url = 'https://payment.webkoders.com'
+                webkoders_api_key = 'mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c'
+                webkoders_api_secret = 'mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc'
                 bdt_per_usd = 120.00
             return FallbackSetting()
 

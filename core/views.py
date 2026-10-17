@@ -445,7 +445,7 @@ def order_hosting_view(request):
             request,
             f"Order placed successfully! Hosting account for '{domain}' created. "
             f"Invoice #{invoice.invoice_number} (৳{invoice.total} BDT) is ready for payment. "
-            f"Please submit your payment details (bKash/Nagad/Rocket/Bank) below to activate your service."
+            f"Please complete payment via WebKoders Pay or Direct Crypto below to activate your service."
         )
         return redirect(f"/dashboard/?tab=invoices&pay_invoice={invoice.id}")
 
@@ -469,7 +469,9 @@ def pay_invoice_view(request, invoice_id):
         messages.info(request, f"Invoice #{invoice.invoice_number} is already settled.")
         return redirect('dashboard')
 
-    gateway = request.POST.get('gateway', 'bkash').lower()
+    gateway = request.POST.get('gateway', 'direct_crypto').strip().lower()
+    if gateway == 'crypto':
+        gateway = 'direct_crypto'
     sender_number = request.POST.get('sender_number', '').strip()
     trx_id = request.POST.get('trx_id', '').strip()
     notes = request.POST.get('notes', '').strip()
@@ -479,7 +481,7 @@ def pay_invoice_view(request, invoice_id):
     # If paying via account wallet credit
     if gateway == 'credit':
         if not profile or profile.credit_balance < invoice.total:
-            messages.error(request, "Insufficient wallet credit balance. Please submit payment via bKash, Nagad, Rocket or Bank.")
+            messages.error(request, "Insufficient wallet credit balance. Please submit payment via WebKoders Pay or Direct Crypto.")
             return redirect('/dashboard/?tab=invoices')
         # Deduct wallet credit & submit for admin instant approval
         profile.credit_balance -= invoice.total

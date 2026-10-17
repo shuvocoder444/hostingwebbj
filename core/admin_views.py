@@ -1981,14 +1981,25 @@ def admin_action_handler_view(request, action_type):
                     dest.writelines(f.chunks())
             site.thumbnail_url = f"/static/img/{filename}"
 
-        # International & Crypto Payment Gateways
-        site.cryptomus_merchant_id = request.POST.get('cryptomus_merchant_id', site.cryptomus_merchant_id).strip()
-        site.cryptomus_payment_api_key = request.POST.get('cryptomus_payment_api_key', site.cryptomus_payment_api_key).strip()
+        # WebKoders Payment Gateway
+        site.webkoders_base_url = request.POST.get('webkoders_base_url', site.webkoders_base_url).strip() or 'https://payment.webkoders.com'
+        site.webkoders_api_key = request.POST.get('webkoders_api_key', site.webkoders_api_key).strip()
+        site.webkoders_api_secret = request.POST.get('webkoders_api_secret', site.webkoders_api_secret).strip()
+
+        # Direct Crypto & Binance Pay Settings
         site.usdt_trc20_wallet = request.POST.get('usdt_trc20_wallet', site.usdt_trc20_wallet).strip()
         site.usdt_bep20_wallet = request.POST.get('usdt_bep20_wallet', site.usdt_bep20_wallet).strip()
         site.binance_pay_id = request.POST.get('binance_pay_id', site.binance_pay_id).strip()
 
+        rate_val = request.POST.get('bdt_per_usd')
+        if rate_val:
+            try:
+                from decimal import Decimal
+                site.bdt_per_usd = Decimal(str(rate_val).strip())
+            except Exception:
+                pass
+
         site.save()
-        messages.success(request, "Website Branding, SEO Meta Tags, WhatsApp Number & Crypto Payment Settings saved successfully!")
+        messages.success(request, "Website Settings, WebKoders Payment Gateway & Direct Crypto Settings saved successfully!")
 
     return redirect_to_admin_tab(action_type, request)

@@ -9,18 +9,27 @@ IPN Security policy:
   3. Process the payment in an atomic transaction.
   4. Return 200 quickly — heavy work is delegated to Celery tasks.
 """
+import hashlib
+import hmac
+import json
 import logging
 from decimal import Decimal
 
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from drf_spectacular.utils import extend_schema
 
-from .models import Invoice
+from .models import Invoice, Gateway
 from .serializers import InvoiceSerializer, InvoiceDetailSerializer
 from .services import PaymentService
 from .gateway_factory import get_payment_gateway, BKashGateway
@@ -277,3 +286,166 @@ class CryptomusIPNView(APIView):
                 return Response({'status': 'error', 'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'status': 'ignored', 'payment_status': status_str}, status=status.HTTP_200_OK)
+
+
+# ─── WebKoders Payment Gateway Webhook & Views ───────────────────────────────
+
+@csrf_exempt
+@require_POST
+def payment_webhook_view(request):
+    """
+    Webhook handler for WebKoders Payment Gateway (https://payment.webkoders.com).
+    Verifies HMAC-SHA256 signature in X-Signature header before trusting payload.
+    When event is 'payment.completed', confirms payment and triggers auto-provisioning!
+    """
+    secret = ''
+    try:
+        from core.models import SiteSetting
+        site = SiteSetting.get_settings()
+        secret = (site.webkoders_api_secret or getattr(settings, 'GATEWAY_API_SECRET', '')).strip()
+    except Exception:
+        secret = getattr(settings, 'GATEWAY_API_SECRET', '').strip()
+
+    if not secret:
+        logger.error("GATEWAY_API_SECRET is not configured on server.")
+        return HttpResponse("Server misconfiguration", status=500)
+
+    # 1. Verify HMAC-SHA256 signature over raw request body
+    expected = hmac.new(
+        secret.encode('utf-8'),
+        request.body,
+        hashlib.sha256,
+    ).hexdigest()
+
+    received = request.headers.get("X-Signature", "") or request.META.get("HTTP_X_SIGNATURE", "")
+    if not received or not hmac.compare_digest(expected, received):
+        logger.warning("WebKoders webhook signature mismatch. Expected: %s, Received: %s", expected, received)
+        return HttpResponse("Invalid signature", status=400)
+
+    # 2. Parse JSON payload
+    try:
+        event = json.loads(request.body.decode('utf-8'))
+    except Exception as exc:
+        logger.error("Invalid JSON body in payment webhook: %s", exc)
+        return HttpResponse("Invalid JSON", status=400)
+
+    # 3. Only process 'payment.completed' event
+    if event.get("event") != "payment.completed":
+        logger.info("WebKoders webhook received non-completion event: %s", event.get("event"))
+        return HttpResponse(status=200)
+
+    # 4. Resolve Invoice
+    order_id = str(event.get("order_id", "")).strip()
+    metadata = event.get("metadata") or {}
+    local_id = metadata.get("invoice_id") or metadata.get("local_order_id") or order_id
+
+    invoice = None
+    try:
+        invoice = Invoice.objects.filter(id=local_id).first()
+    except Exception:
+        pass
+
+    if not invoice and order_id:
+        try:
+            invoice = Invoice.objects.filter(id=order_id).first()
+        except Exception:
+            pass
+
+    if not invoice and order_id:
+        invoice = Invoice.objects.filter(invoice_number__iexact=order_id).first()
+
+    if not invoice:
+        logger.error("WebKoders webhook: Invoice not found for order_id=%s, local_id=%s", order_id, local_id)
+        return HttpResponse("Invoice not found", status=404)
+
+    # 5. Check idempotency — if already paid, return 200 immediately
+    if invoice.status == Invoice.Status.PAID:
+        logger.info("Invoice #%s is already marked PAID. Webhook duplicate ignored.", invoice.invoice_number)
+        return HttpResponse(status=200)
+
+    # 6. Verify amount
+    raw_amount = event.get("amount")
+    try:
+        paid_amount = Decimal(str(raw_amount))
+    except Exception:
+        paid_amount = invoice.total
+
+    if paid_amount < invoice.total:
+        logger.error("WebKoders webhook: Underpaid invoice #%s. Expected: %s, Received: %s", invoice.invoice_number, invoice.total, paid_amount)
+        return HttpResponse("Amount mismatch", status=400)
+
+    # 7. Extract transaction ID and confirm payment
+    trx_id = event.get("transaction_id") or event.get("trx_id") or event.get("reference_id") or event.get("invoice_id") or f"WK-{order_id}"
+
+    try:
+        PaymentService.confirm_payment(
+            invoice_id=str(invoice.id),
+            gateway=Gateway.WEBKODERS if hasattr(Gateway, 'WEBKODERS') else 'webkoders',
+            gateway_transaction_id=str(trx_id),
+            amount=invoice.total,
+            gateway_response=event,
+        )
+        logger.info("WebKoders payment confirmed & auto-provisioning triggered for Invoice #%s (TrxID: %s)", invoice.invoice_number, trx_id)
+    except Exception as exc:
+        logger.exception("WebKoders payment confirmation failed for invoice #%s: %s", invoice.invoice_number, exc)
+        return HttpResponse(f"Error processing payment: {exc}", status=500)
+
+    return HttpResponse(status=200)
+
+
+def payment_complete_return_view(request):
+    """
+    Landing page when customer returns from WebKoders payment gateway.
+    """
+    order_id = request.GET.get('order_id') or request.GET.get('invoice_id')
+    invoice = None
+    if order_id:
+        try:
+            invoice = Invoice.objects.filter(id=order_id).first()
+        except Exception:
+            pass
+        if not invoice:
+            invoice = Invoice.objects.filter(invoice_number__iexact=order_id).first()
+
+    if invoice and invoice.status == Invoice.Status.PAID:
+        messages.success(
+            request,
+            f"🎉 Payment successful! Invoice #{invoice.invoice_number} has been settled and your service is now active."
+        )
+        return redirect('dashboard')
+    else:
+        messages.info(
+            request,
+            "Thank you! Your payment is being verified by the gateway. Your invoice status will update automatically momentarily."
+        )
+        return redirect('/dashboard/?tab=invoices')
+
+
+@login_required(login_url='login')
+def initiate_online_payment_view(request, invoice_id):
+    """
+    Directly initiates WebKoders Gateway checkout for an invoice and redirects customer to payment gateway.
+    """
+    invoice = get_object_or_404(Invoice, id=invoice_id, user=request.user)
+    if invoice.status == Invoice.Status.PAID:
+        messages.info(request, f"Invoice #{invoice.invoice_number} is already paid.")
+        return redirect('/dashboard/?tab=invoices')
+
+    try:
+        gw = get_payment_gateway('webkoders')
+        callback_url = request.build_absolute_uri('/payments/webhook/')
+        return_url = request.build_absolute_uri(f'/payments/complete/?order_id={invoice.id}')
+        res = gw.initiate_payment(
+            invoice=invoice,
+            customer=request.user,
+            callback_url=callback_url,
+            return_url=return_url,
+        )
+        if res and res.get('payment_url'):
+            return redirect(res['payment_url'])
+        messages.error(request, "Failed to obtain payment URL from gateway.")
+    except Exception as exc:
+        logger.exception("Error initiating online payment: %s", exc)
+        messages.error(request, f"Could not initiate online payment: {exc!s}")
+
+    return redirect(f"/dashboard/?tab=invoices&pay_invoice={invoice.id}")

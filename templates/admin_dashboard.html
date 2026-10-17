@@ -1932,52 +1932,60 @@
 
  </div>
 
-            <!-- Section 6: International & Crypto Payment Gateways (Cryptomus, Direct USDT & Binance Pay) -->
+            <!-- Section 6: Payment Gateways (WebKoders Pay & Direct Crypto) -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
-                            <i class="fa-brands fa-bitcoin"></i>
+                            <i class="fa-solid fa-credit-card"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900">International &amp; Crypto Payment Gateways</h3>
-                            <p class="text-[11px] text-slate-500">Configure automated Cryptomus (Cards/Crypto IPN) and Direct USDT/Binance Pay addresses</p>
+                            <h3 class="text-sm font-bold text-slate-900">Payment Gateway Configuration (পেমেন্ট গেটওয়ে সেটিংস)</h3>
+                            <p class="text-[11px] text-slate-500">Configure WebKoders Pay (bKash, Nagad, Rocket, Cards) &amp; Direct Crypto (USDT, Binance Pay)</p>
                         </div>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        <i class="fa-solid fa-bolt"></i> Instant Provisioning
+                        <i class="fa-solid fa-bolt"></i> Instant Provisioning Active
                     </span>
                 </div>
                 <div class="p-6 space-y-6">
                     
-                    <!-- Cryptomus Hosted Gateway -->
-                    <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-4">
-                        <div class="flex items-center justify-between pb-2 border-b border-indigo-100/80">
+                    <!-- 1. WebKoders Automated Gateway -->
+                    <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-emerald-200/80">
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved text-indigo-600"></i>
-                                <span class="text-xs font-bold text-slate-900">1. Cryptomus API (Automated Hosted Checkout &amp; Webhook IPN)</span>
+                                <i class="fa-solid fa-bolt text-emerald-600"></i>
+                                <span class="text-xs font-bold text-slate-900">1. WebKoders Pay (অটোমেটেড গেটওয়ে: বিকাশ, নগদ, রকেট ও ভিসা/মাস্টারকার্ড)</span>
                             </div>
-                            <span class="text-[10px] text-indigo-600 font-mono font-bold">https://cryptomus.com</span>
+                            <span class="text-[10px] text-emerald-700 font-mono font-bold bg-white px-2 py-0.5 rounded border border-emerald-200">payment.webkoders.com</span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Cryptomus Merchant ID (UUID)</label>
-                                <input type="text" name="cryptomus_merchant_id" value="{{ site_settings.cryptomus_merchant_id }}" placeholder="e.g. b8f7d98a-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <p class="text-[11px] text-slate-400 mt-1">Found in Cryptomus Dashboard &gt; Merchants &gt; Settings.</p>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Gateway Base URL</label>
+                                <input type="text" name="webkoders_base_url" value="{{ site_settings.webkoders_base_url|default:'https://payment.webkoders.com' }}" placeholder="https://payment.webkoders.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Default: https://payment.webkoders.com</p>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Cryptomus Payment API Key</label>
-                                <input type="password" name="cryptomus_payment_api_key" value="{{ site_settings.cryptomus_payment_api_key }}" placeholder="Paste your Cryptomus Payment API Key" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <p class="text-[11px] text-slate-400 mt-1">Used to sign payment requests and verify IPN Webhook callbacks.</p>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Merchant API Key</label>
+                                <input type="text" name="webkoders_api_key" value="{{ site_settings.webkoders_api_key }}" placeholder="mfs_live_xxxxxxxxxxxxxxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Found in Merchant Dashboard &gt; API Settings</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Merchant API Secret</label>
+                                <input type="password" name="webkoders_api_secret" value="{{ site_settings.webkoders_api_secret }}" placeholder="mfs_sec_xxxxxxxxxxxxxxxxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Used to verify HMAC-SHA256 signature on Webhook</p>
                             </div>
                         </div>
-                        <div class="p-3 bg-white rounded-lg border border-indigo-100 text-[11px] text-slate-600 space-y-1">
-                            <div class="font-bold text-indigo-900 flex items-center gap-1.5">
-                                <i class="fa-solid fa-link"></i> Webhook IPN URL for Cryptomus Dashboard:
+                        <div class="p-3 bg-white rounded-lg border border-emerald-200 text-[11px] text-slate-600 space-y-1">
+                            <div class="font-bold text-emerald-900 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-link"></i> Webhook Callback URL:</span>
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}/payments/webhook/'); alert('Webhook URL Copied!');" class="px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold cursor-pointer">Copy URL</button>
                             </div>
-                            <code class="font-mono text-[11px] text-indigo-700 bg-slate-100 px-2 py-1 rounded select-all block">{{ request.scheme }}://{{ request.get_host }}/api/v1/billing/ipn/cryptomus/</code>
+                            <code class="font-mono text-[11px] text-emerald-700 bg-slate-100 px-2 py-1 rounded select-all block">{{ request.scheme }}://{{ request.get_host }}/payments/webhook/</code>
+                            <p class="text-[10px] text-slate-500 mt-0.5">Note: WebKoders gateway sends <code>payment.completed</code> webhook to this URL to automatically mark invoices as paid and provision accounts.</p>
                         </div>
                     </div>
+
 
                     <!-- Direct Crypto Wallets -->
                     <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-4">

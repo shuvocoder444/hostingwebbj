@@ -29,23 +29,38 @@ class InvoiceNumberGenerator:
     @staticmethod
     def generate() -> str:
         """
-        Generate next invoice number using DB MAX() + 1.
-        Atomic to prevent race conditions under concurrent requests.
+        Generate next unique invoice number.
+        Finds the highest existing numeric suffix (e.g. INV-00001 -> 1), increments it,
+        and guarantees uniqueness by checking against existing records.
 
         Format: INV-00001, INV-00002, ...
         """
-        from django.db.models import Max
+        import re
 
         with db_transaction.atomic():
-            max_num = Invoice.objects.aggregate(Max('invoice_number'))['invoice_number__max']
-            if max_num:
-                try:
-                    next_num = int(max_num.split('-')[1]) + 1
-                except (IndexError, ValueError):
-                    next_num = 1
-            else:
-                next_num = 1
-            return f'INV-{next_num:05d}'  # Zero-pad to 5 digits: INV-00001
+            existing_numbers = list(Invoice.objects.values_list('invoice_number', flat=True))
+            max_seq = 0
+            for num in existing_numbers:
+                if not num:
+                    continue
+                match = re.search(r'INV-(\d+)$', str(num).strip(), re.IGNORECASE)
+                if match:
+                    try:
+                        val = int(match.group(1))
+                        if val > max_seq:
+                            max_seq = val
+                    except ValueError:
+                        pass
+
+            next_seq = max_seq + 1
+            candidate = f'INV-{next_seq:05d}'
+
+            # Absolute collision-safety loop
+            while Invoice.objects.filter(invoice_number=candidate).exists():
+                next_seq += 1
+                candidate = f'INV-{next_seq:05d}'
+
+            return candidate
 
 
 class InvoiceService:

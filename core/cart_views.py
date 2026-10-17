@@ -662,8 +662,9 @@ def cart_complete_order_view(request):
     package_id = request.POST.get('package_id')
     domain = request.POST.get('domain', '').strip().lower()
     domain_option = request.POST.get('domain_option', 'register')
-    billing_cycle = request.POST.get('billing_cycle', 'annual').lower()
-    gateway_choice = request.POST.get('payment_gateway', 'bkash').lower()
+    gateway_choice = request.POST.get('payment_gateway', 'webkoders').strip().lower()
+    if gateway_choice == 'crypto':
+        gateway_choice = 'direct_crypto'
     sender_number = request.POST.get('sender_number', '').strip()
     trx_id = request.POST.get('trx_id', '').strip()
     notes = request.POST.get('notes', '').strip()
@@ -895,7 +896,7 @@ def cart_complete_order_view(request):
                 Transaction.objects.create(
                     invoice=invoice,
                     user=current_user,
-                    gateway=gateway_choice if gateway_choice in dict(Gateway.choices) else Gateway.BKASH,
+                    gateway=gateway_choice if gateway_choice in dict(Gateway.choices) else Gateway.DIRECT_CRYPTO,
                     status=Transaction.Status.PENDING,
                     gateway_transaction_id=trx_id,
                     amount=invoice.total,
@@ -907,27 +908,29 @@ def cart_complete_order_view(request):
                     }
                 )
 
-        # ── AUTO-REDIRECT TO CRYPTOMUS HOSTED CHECKOUT ──
+        # ── AUTO-REDIRECT TO ONLINE PAYMENT GATEWAYS ──
         # Clear cart from session upon order completion
         clear_cart_session(request)
 
-        if gateway_choice == 'cryptomus':
+        if gateway_choice in ('webkoders', 'online'):
             try:
                 from billing.gateway_factory import get_payment_gateway
-                gateway_obj = get_payment_gateway('cryptomus')
-                ipn_callback_url = request.build_absolute_uri('/api/v1/billing/ipn/cryptomus/')
+                gateway_obj = get_payment_gateway('webkoders')
+                callback_url = request.build_absolute_uri('/payments/webhook/')
+                return_url = request.build_absolute_uri(f'/payments/complete/?order_id={invoice.id}')
                 res = gateway_obj.initiate_payment(
                     invoice=invoice,
                     customer=current_user,
-                    callback_url=ipn_callback_url,
+                    callback_url=callback_url,
+                    return_url=return_url,
                 )
                 if res and res.get('payment_url'):
                     return redirect(res['payment_url'])
             except Exception as exc:
-                logger.warning("Cryptomus initiation notice: %s", exc)
+                logger.warning("WebKoders initiation notice: %s", exc)
                 messages.warning(
                     request,
-                    f"Invoice #{invoice.invoice_number} created. Cryptomus gateway notice: {exc!s}. Please check your invoice in dashboard."
+                    f"Invoice #{invoice.invoice_number} created. Online payment gateway notice: {exc!s}. You can pay directly from your client dashboard."
                 )
                 return redirect(f"/dashboard/?tab=invoices&pay_invoice={invoice.id}")
 

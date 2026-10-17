@@ -49,8 +49,8 @@ def global_brand_context(request):
     meta_keys = getattr(site, 'meta_keywords', '') or 'web hosting bangladesh, bdix hosting, cpanel hosting, cheap domain registration, buy domain bd, nvme web hosting, fast cloud hosting, velohoster, domain hosting bd, best hosting provider'
     tagline = getattr(site, 'tagline', '') or 'Ultra-Fast NVMe Cloud Web Hosting'
 
-    logo_url = getattr(site, 'logo_url', '') or '/static/images/cpanel.webp'
-    favicon_url = getattr(site, 'favicon_url', '') or '/static/images/17373262.png'
+    logo_url = getattr(site, 'logo_url', '') or '/static/img/logo.png'
+    favicon_url = getattr(site, 'favicon_url', '') or '/static/img/favicon.png'
     thumbnail_url = getattr(site, 'thumbnail_url', '')
 
     # Absolute HTTPS URLs for Social Media Open Graph previews (WhatsApp, Facebook, Twitter, Telegram, LinkedIn)

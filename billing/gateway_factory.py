@@ -15,6 +15,8 @@ Security:
   - All raw IPN data is stored in Transaction.gateway_response for audit.
 """
 
+import hashlib
+import hmac
 import logging
 from abc import ABC, abstractmethod
 from decimal import Decimal
@@ -396,9 +398,118 @@ class CryptomusGateway(BasePaymentGateway):
             raise PaymentGatewayError(f"Cryptomus status check failed: {exc}")
 
 
+# ─── WebKoders Gateway (MFS & Card Checkout) ─────────────────────────────────
+
+class WebKodersGateway(BasePaymentGateway):
+    """
+    WebKoders Payment Gateway.
+    URL: https://payment.webkoders.com
+    API: POST /api/v1/checkout/create/
+    Header: X-API-KEY: {GATEWAY_API_KEY}
+    Webhook Signature: HMAC-SHA256 with GATEWAY_API_SECRET in X-Signature header.
+    """
+
+    def __init__(self):
+        try:
+            from core.models import SiteSetting
+            site = SiteSetting.get_settings()
+            self.base_url = (site.webkoders_base_url or getattr(settings, 'GATEWAY_BASE_URL', 'https://payment.webkoders.com')).rstrip('/')
+            self.api_key = (site.webkoders_api_key or getattr(settings, 'GATEWAY_API_KEY', '')).strip()
+            self.api_secret = (site.webkoders_api_secret or getattr(settings, 'GATEWAY_API_SECRET', '')).strip()
+        except Exception:
+            self.base_url = getattr(settings, 'GATEWAY_BASE_URL', 'https://payment.webkoders.com').rstrip('/')
+            self.api_key = getattr(settings, 'GATEWAY_API_KEY', '').strip()
+            self.api_secret = getattr(settings, 'GATEWAY_API_SECRET', '').strip()
+
+    def initiate_payment(self, invoice: Invoice, customer, callback_url: str, return_url: Optional[str] = None) -> dict:
+        """
+        Creates a checkout session on WebKoders Gateway.
+        Returns dict with 'payment_url' key for client redirect.
+        """
+        customer_name = customer.get_full_name() if hasattr(customer, 'get_full_name') and customer.get_full_name() else getattr(customer, 'email', 'Customer')
+        
+        customer_phone = ''
+        if hasattr(customer, 'profile') and customer.profile and getattr(customer.profile, 'phone', None):
+            customer_phone = customer.profile.phone
+        elif getattr(customer, 'phone', None):
+            customer_phone = customer.phone
+
+        payload = {
+            "amount": str(invoice.total),
+            "currency": getattr(invoice, 'currency', 'BDT') or 'BDT',
+            "order_id": str(invoice.id),
+            "customer_name": customer_name,
+            "customer_email": getattr(customer, 'email', None),
+            "customer_phone": customer_phone or '01700000000',
+            "callback_url": callback_url,
+            "metadata": {
+                "invoice_id": str(invoice.id),
+                "invoice_number": str(invoice.invoice_number),
+                "local_order_id": str(invoice.id),
+            },
+        }
+        if return_url:
+            payload["return_url"] = return_url
+
+        headers = {
+            "X-API-KEY": self.api_key,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            url = f"{self.base_url}/api/v1/checkout/create/"
+            response = requests.post(url, headers=headers, json=payload, timeout=20)
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as exc:
+            logger.error("WebKoders checkout creation failed: %s", exc)
+            raise PaymentGatewayError(f"WebKoders checkout session creation failed: {exc}")
+
+        checkout_url = data.get("checkout_url")
+        if not checkout_url:
+            raise PaymentGatewayError(f"WebKoders gateway did not return checkout_url: {data}")
+
+        return {
+            "payment_url": checkout_url,
+            "invoice_id": data.get("invoice_id"),
+            "reference_id": data.get("reference_id"),
+            "gateway": "webkoders",
+        }
+
+    def verify_ipn(self, request_body: bytes, request_headers: dict) -> bool:
+        """
+        Verify the HMAC-SHA256 signature from X-Signature header using GATEWAY_API_SECRET.
+        """
+        if not self.api_secret:
+            raise InvalidIPNSignature("GATEWAY_API_SECRET is missing on server.")
+
+        expected = hmac.new(
+            self.api_secret.encode('utf-8'),
+            request_body,
+            hashlib.sha256,
+        ).hexdigest()
+
+        received = request_headers.get("X-Signature") or request_headers.get("HTTP_X_SIGNATURE") or request_headers.get("x-signature") or ""
+        if not received or not hmac.compare_digest(expected, received):
+            raise InvalidIPNSignature("WebKoders webhook signature verification failed.")
+
+        return True
+
+    def get_payment_status(self, payment_id: str) -> dict:
+        url = f"{self.base_url}/api/v1/checkout/{payment_id}/status/"
+        headers = {"X-API-KEY": self.api_key}
+        try:
+            res = requests.get(url, headers=headers, timeout=15)
+            return res.json()
+        except Exception as exc:
+            return {"error": str(exc)}
+
+
 # ─── Gateway Factory ──────────────────────────────────────────────────────────
 
 _GATEWAY_REGISTRY: dict[str, type[BasePaymentGateway]] = {
+    'webkoders': WebKodersGateway,
+    'online': WebKodersGateway,
     'bkash': BKashGateway,
     'sslcommerz': SSLCommerzGateway,
     'cryptomus': CryptomusGateway,
