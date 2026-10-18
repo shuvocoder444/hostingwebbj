@@ -62,9 +62,13 @@ def _invalidate_hosting_cache(instance, **kwargs):
 
 
 def _invalidate_package_cache(instance, **kwargs):
-    """Invalidate the global package list cache when any package changes."""
-    invalidate_cache(make_cache_key('hosting_packages'), 'velohoster_active_packages_list')
-    logger.debug("Hosting packages cache invalidated.")
+    """Invalidate the global package and category list cache when any package or category changes."""
+    invalidate_cache(
+        make_cache_key('hosting_packages'),
+        'velohoster_active_packages_list',
+        'velohoster_active_categories_list'
+    )
+    logger.debug("Hosting packages and categories cache invalidated.")
 
 
 def _invalidate_tld_cache(instance, **kwargs):
@@ -78,7 +82,7 @@ def connect_hosting_signals():
     Connect hosting and domains model signals.
     Called from hosting.apps.HostingConfig.ready().
     """
-    from hosting.models import HostingAccount, HostingPackage
+    from hosting.models import HostingAccount, HostingPackage, PackageCategory
     from domains.models import TLDPricing
 
     post_save.connect(_invalidate_hosting_cache, sender=HostingAccount)
@@ -87,7 +91,10 @@ def connect_hosting_signals():
     post_save.connect(_invalidate_package_cache, sender=HostingPackage)
     post_delete.connect(_invalidate_package_cache, sender=HostingPackage)
 
+    post_save.connect(_invalidate_package_cache, sender=PackageCategory)
+    post_delete.connect(_invalidate_package_cache, sender=PackageCategory)
+
     post_save.connect(_invalidate_tld_cache, sender=TLDPricing)
     post_delete.connect(_invalidate_tld_cache, sender=TLDPricing)
 
-    logger.info("Hosting and Domain cache invalidation signals connected.")
+    logger.info("Hosting, Category and Domain cache invalidation signals connected.")

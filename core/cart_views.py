@@ -22,7 +22,13 @@ from accounts.models import ClientProfile
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction
 from billing.services import InvoiceNumberGenerator
 from core.security import rate_limit
-from core.views import get_cached_packages, get_cached_tld_prices
+from core.views import (
+    get_cached_package_categories,
+    get_cached_packages,
+    get_cached_tld_prices,
+    get_home_packages,
+    get_packages_for_page,
+)
 from domains.models import Domain, DomainRegistrar
 from domains.services import DomainService
 from hosting.models import HostingAccount, HostingPackage
@@ -400,11 +406,22 @@ def cart_domain_view(request):
             update_cart_session(request, package_id=str(package.id) if package else 'none', domain=transfer_domain, domain_option='transfer', epp=epp_code)
             return redirect(f"/cart/configure/?{pkg_param}&domain={transfer_domain}&domain_option=transfer&epp={epp_code}")
 
-    packages = get_cached_packages()
+    # Dynamic package retrieval for Cart / Domain search page
+    cart_packages = get_packages_for_page('cart')
+    if not cart_packages:
+        cart_packages = get_home_packages()
+
+    cart_packages = sorted(
+        [p for p in cart_packages if p.is_active],
+        key=lambda p: (p.sort_order, p.monthly_price or p.annual_price or Decimal('0.00'))
+    )
+
+    categories = get_cached_package_categories()
 
     context = {
         'package': package,
-        'packages': packages,
+        'packages': cart_packages,
+        'categories': categories,
         'tld_prices': tld_prices,
         'step': 1,
         'initial_domain': initial_domain,
@@ -486,7 +503,11 @@ def cart_configure_view(request):
             domain_price = tld_obj.register_price if tld_obj else Decimal('1350.00')
 
     # Suggested hosting packages for domain-only buyers
-    suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00')))[:3]
+    suggested_candidates = get_packages_for_page('cart') or get_home_packages()
+    suggested_packages = sorted(
+        [p for p in suggested_candidates if p.is_active],
+        key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00'))
+    )[:3]
 
     context = {
         'package': package,

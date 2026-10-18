@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}
 {% if is_domain_only %}
@@ -149,45 +150,62 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                     <!-- Suggested Hosting Packages Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                         {% for sp in suggested_packages %}
-                        <div class="bg-white rounded-2xl p-5 border border-slate-200 hover:border-blue-400 hover:shadow-md flex flex-col justify-between transition duration-200 group">
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 hover:border-blue-400 hover:shadow-md flex flex-col justify-between transition duration-200 group relative">
+                            {% if sp.badge_text %}
+                            <span class="absolute -top-2.5 right-4 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-2xs">
+                                {{ sp.badge_text }}
+                            </span>
+                            {% elif sp.is_featured or forloop.counter == 2 %}
+                            <span class="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[9px] font-extrabold uppercase border border-blue-200">
+                                Recommended
+                            </span>
+                            {% endif %}
+
                             <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <strong class="text-base font-extrabold text-slate-900">{{ sp.name }}</strong>
-                                    {% if sp.is_featured or forloop.counter == 2 %}
-                                    <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[9px] font-extrabold uppercase border border-blue-200">Recommended</span>
+                                <div class="mb-2">
+                                    <strong class="text-base font-extrabold text-slate-900 block">{{ sp.name }}</strong>
+                                    {% if sp.subtitle %}
+                                    <span class="text-[10px] text-blue-600 font-bold block">{{ sp.subtitle }}</span>
                                     {% endif %}
                                 </div>
                                 
                                 <div class="mb-3">
                                     {% if sp.monthly_price and sp.monthly_price > 0 %}
-                                    <span class="text-2xl font-black text-slate-900">৳{{ sp.monthly_price|floatformat:0 }}</span>
+                                    <span class="text-2xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ sp.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
                                     <span class="text-[11px] text-slate-500 font-medium">/ mo</span>
                                     {% else %}
-                                    <span class="text-2xl font-black text-slate-900">৳{{ sp.annual_price|floatformat:0 }}</span>
+                                    <span class="text-2xl font-black text-slate-900 font-mono">{{ CURRENCY_SYMBOL }}{{ sp.annual_price|currency_val:CURRENT_CURRENCY }}</span>
                                     <span class="text-[11px] text-slate-500 font-medium">/ yr</span>
                                     {% endif %}
                                 </div>
 
                                 <ul class="space-y-1.5 text-[11px] text-slate-600 mb-4">
+                                    {% for feat in sp.get_features|slice:":3" %}
                                     <li class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-500 text-[10px]"></i>
+                                        <i class="fa-solid fa-check text-emerald-500 text-[10px] shrink-0"></i>
+                                        <span class="truncate">{{ feat }}</span>
+                                    </li>
+                                    {% empty %}
+                                    <li class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check text-emerald-500 text-[10px] shrink-0"></i>
                                         <span><strong>{{ sp.disk_quota_mb }} MB</strong> NVMe SSD</span>
                                     </li>
                                     <li class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-500 text-[10px]"></i>
+                                        <i class="fa-solid fa-check text-emerald-500 text-[10px] shrink-0"></i>
                                         <span>{% if sp.bandwidth_mb == 0 %}Unlimited{% else %}{{ sp.bandwidth_mb }} MB{% endif %} Traffic</span>
                                     </li>
                                     <li class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-500 text-[10px]"></i>
+                                        <i class="fa-solid fa-check text-emerald-500 text-[10px] shrink-0"></i>
                                         <span>Free AutoSSL + cPanel</span>
                                     </li>
+                                    {% endfor %}
                                 </ul>
                             </div>
 
                             <a href="{% url 'cart_configure' %}?package={{ sp.id }}&domain={{ domain }}&domain_option=register&tld={{ tld }}"
                                 class="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-cart-plus text-[10px]"></i>
-                                <span>Add to Order (+৳{% if sp.monthly_price and sp.monthly_price > 0 %}{{ sp.monthly_price|floatformat:0 }}{% else %}{{ sp.annual_price|floatformat:0 }}{% endif %})</span>
+                                <span>Add to Order (+{{ CURRENCY_SYMBOL }}{% if sp.monthly_price and sp.monthly_price > 0 %}{{ sp.monthly_price|currency_val:CURRENT_CURRENCY }}{% else %}{{ sp.annual_price|currency_val:CURRENT_CURRENCY }}{% endif %})</span>
                             </a>
                         </div>
                         {% endfor %}

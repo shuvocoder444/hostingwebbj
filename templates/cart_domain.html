@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}
 {% if package %}
@@ -444,10 +445,27 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                 {% endif %}
             </div>
 
+            <!-- Dynamic Category Navigation Tabs -->
+            {% if categories %}
+            <div class="flex items-center justify-start gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-100">
+                <button type="button" onclick="filterCartHostingCategory('all')" id="cart-cat-tab-all"
+                    class="cart-cat-tab px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs whitespace-nowrap cursor-pointer bg-blue-600 text-white">
+                    All Plans
+                </button>
+                {% for cat in categories %}
+                <button type="button" onclick="filterCartHostingCategory('{{ cat.slug }}')" id="cart-cat-tab-{{ cat.slug }}"
+                    class="cart-cat-tab px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs whitespace-nowrap cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700">
+                    {{ cat.name }}
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <!-- Packages Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="cart-packages-grid">
                 {% for pkg in packages %}
-                <div class="relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 bg-white
+                <div data-categories="{% for c in pkg.get_all_categories %}{{ c.slug }} {% endfor %}"
+                    class="cart-pkg-card relative rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 bg-white
                     {% if package and package.id == pkg.id %}
                     border-2 border-emerald-500 bg-emerald-50/20 shadow-md ring-2 ring-emerald-500/20
                     {% elif pkg.is_featured or forloop.counter == 2 %}
@@ -456,12 +474,19 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                     border border-slate-200 hover:border-slate-300 hover:shadow-sm
                     {% endif %}">
 
+                    <!-- Top Badges -->
+                    {% if pkg.badge_text %}
+                    <div class="absolute -top-3 left-4 px-3 py-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1 z-10">
+                        <i class="fa-solid fa-tag text-[9px]"></i> {{ pkg.badge_text }}
+                    </div>
+                    {% endif %}
+
                     {% if package and package.id == pkg.id %}
-                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1">
+                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1 z-10">
                         <i class="fa-solid fa-check text-[9px]"></i> Attached to Cart
                     </div>
                     {% elif pkg.is_featured or forloop.counter == 2 %}
-                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1">
+                    <div class="absolute -top-3 right-4 px-3 py-0.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1 z-10">
                         <i class="fa-solid fa-crown text-[9px] text-yellow-300"></i> Most Popular
                     </div>
                     {% endif %}
@@ -471,37 +496,62 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                         <div class="flex items-start justify-between gap-2 mb-3">
                             <div>
                                 <h4 class="text-base font-bold text-slate-900">{{ pkg.name }}</h4>
+                                {% if pkg.subtitle %}
+                                <span class="text-[11px] text-blue-600 font-extrabold uppercase tracking-wider block mt-0.5">{{ pkg.subtitle }}</span>
+                                {% else %}
                                 <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block mt-0.5">NVMe Cloud Hosting</span>
+                                {% endif %}
                             </div>
                             <div class="text-right">
+                                {% if pkg.regular_price %}
+                                <div class="text-[11px] font-bold text-slate-400 line-through">
+                                    {{ CURRENCY_SYMBOL }}{{ pkg.regular_price|currency_val:CURRENT_CURRENCY }}
+                                </div>
+                                {% endif %}
                                 {% if pkg.monthly_price and pkg.monthly_price > 0 %}
-                                <div class="text-xl font-black text-slate-900">৳{{ pkg.monthly_price|floatformat:0 }}</div>
+                                <div class="text-xl font-black text-slate-900 font-mono">
+                                    {{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}
+                                </div>
                                 <span class="text-[10px] text-slate-400 font-medium">/ month</span>
+                                {% if pkg.annual_price and pkg.annual_price > 0 %}
+                                <span class="text-[9px] text-emerald-600 font-bold block">
+                                    ({{ CURRENCY_SYMBOL }}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}/yr)
+                                </span>
+                                {% endif %}
                                 {% else %}
-                                <div class="text-xl font-black text-slate-900">৳{{ pkg.annual_price|floatformat:0 }}</div>
+                                <div class="text-xl font-black text-slate-900 font-mono">
+                                    {{ CURRENCY_SYMBOL }}{{ pkg.annual_price|currency_val:CURRENT_CURRENCY }}
+                                </div>
                                 <span class="text-[10px] text-slate-400 font-medium">/ year</span>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <!-- Specs list -->
+                        <!-- Specs list from get_features -->
                         <div class="space-y-2 py-3 border-y border-slate-100 text-xs text-slate-600">
+                            {% for feat in pkg.get_features|slice:":4" %}
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-hard-drive text-blue-600 text-[11px] w-4 text-center"></i>
+                                <i class="fa-solid fa-circle-check text-emerald-600 text-[11px] w-4 text-center shrink-0"></i>
+                                <span class="truncate">{{ feat }}</span>
+                            </div>
+                            {% empty %}
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-hard-drive text-blue-600 text-[11px] w-4 text-center shrink-0"></i>
                                 <span><strong>{{ pkg.disk_quota_mb }} MB</strong> NVMe SSD Storage</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-gauge-high text-cyan-600 text-[11px] w-4 text-center"></i>
+                                <i class="fa-solid fa-gauge-high text-cyan-600 text-[11px] w-4 text-center shrink-0"></i>
                                 <span>{% if pkg.bandwidth_mb == 0 %}<strong>Unlimited</strong> Traffic{% else %}<strong>{{ pkg.bandwidth_mb }} MB</strong> Bandwidth{% endif %}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved text-emerald-600 text-[11px] w-4 text-center"></i>
+                                <i class="fa-solid fa-shield-halved text-emerald-600 text-[11px] w-4 text-center shrink-0"></i>
                                 <span>Free AutoSSL &amp; cPanel Panel</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-bolt text-amber-500 text-[11px] w-4 text-center"></i>
+                                <i class="fa-solid fa-bolt text-amber-500 text-[11px] w-4 text-center shrink-0"></i>
                                 <span>LiteSpeed Enterprise Cache</span>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
 
@@ -535,6 +585,28 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
 let currentPackageParam = "{% if package %}&package={{ package.id }}{% else %}&package=none{% endif %}";
 let globalMultiResults = [];
 let globalAiResults = [];
+
+function filterCartHostingCategory(slug) {
+    document.querySelectorAll('.cart-cat-tab').forEach(btn => {
+        btn.className = "cart-cat-tab px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs whitespace-nowrap cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700";
+    });
+    const activeTab = document.getElementById('cart-cat-tab-' + slug);
+    if (activeTab) {
+        activeTab.className = "cart-cat-tab px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs whitespace-nowrap cursor-pointer bg-blue-600 text-white";
+    }
+    document.querySelectorAll('.cart-pkg-card').forEach(card => {
+        if (slug === 'all') {
+            card.classList.remove('hidden');
+        } else {
+            const cats = card.getAttribute('data-categories') || '';
+            if (cats.includes(slug)) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+    });
+}
 
 function switchDomainTab(tabKey) {
     ['register', 'existing', 'transfer'].forEach(key => {

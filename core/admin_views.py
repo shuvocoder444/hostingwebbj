@@ -902,6 +902,8 @@ def admin_action_handler_view(request, action_type):
             sort_order=sort_order,
             is_active=is_active,
         )
+        from django.core.cache import cache
+        cache.clear()
         messages.success(request, f"Hosting Category '{name}' created successfully!")
 
     # ── 4a2. EDIT PACKAGE CATEGORY ────────────────────────────────────────────
@@ -916,6 +918,8 @@ def admin_action_handler_view(request, action_type):
         cat.sort_order = int(request.POST.get('sort_order', cat.sort_order) or 0)
         cat.is_active = request.POST.get('is_active') in ('on', '1', 'true')
         cat.save()
+        from django.core.cache import cache
+        cache.clear()
         messages.success(request, f"Hosting Category '{cat.name}' updated successfully.")
 
     # ── 4a3. DELETE PACKAGE CATEGORY ──────────────────────────────────────────
@@ -925,6 +929,8 @@ def admin_action_handler_view(request, action_type):
         c_name = cat.name
         HostingPackage.objects.filter(category=cat).update(category=None)
         cat.delete()
+        from django.core.cache import cache
+        cache.clear()
         messages.success(request, f"Hosting Category '{c_name}' deleted. Associated packages unlinked.")
 
     # ── 4b. ADD HOSTING PACKAGE (HOSTPRO + OPTIONAL TWO-WAY WHM CREATE) ───────
@@ -1017,6 +1023,8 @@ def admin_action_handler_view(request, action_type):
         if category_ids:
             pkg.categories.set(category_ids)
 
+        from django.core.cache import cache
+        cache.clear()
         messages.success(request, f"Hosting Package '{name}' saved and linked to WHM plan '{panel_package_name}' on server '{server.name}'!")
 
     # ── 4c. EDIT HOSTING PACKAGE ──────────────────────────────────────────────
@@ -1082,6 +1090,8 @@ def admin_action_handler_view(request, action_type):
         pkg.is_featured = request.POST.get('is_featured') in ('on', '1', 'true')
         pkg.is_active = request.POST.get('is_active') in ('on', '1', 'true')
         pkg.save()
+        from django.core.cache import cache
+        cache.clear()
         messages.success(request, f"Hosting Package '{pkg.name}' updated successfully.")
 
     # ── 4d. DELETE HOSTING PACKAGE (OPTIONAL WHM REMOVAL) ─────────────────────
@@ -1102,6 +1112,8 @@ def admin_action_handler_view(request, action_type):
                 except Exception as exc:
                     messages.warning(request, f"WHM package removal note: {exc!s}")
             pkg.delete()
+            from django.core.cache import cache
+            cache.clear()
             messages.success(request, f"Hosting Package '{pkg_name}' deleted.")
 
     # ── 5a. CREATE / PROVISION MANUAL HOSTING ACCOUNT ─────────────────────────
