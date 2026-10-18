@@ -432,8 +432,10 @@ def initiate_online_payment_view(request, invoice_id):
         return redirect('/dashboard/?tab=invoices')
 
     try:
+        from core.models import SiteSetting
+        site_set = SiteSetting.get_settings()
         gw = get_payment_gateway('webkoders')
-        callback_url = request.build_absolute_uri('/payments/webhook/')
+        callback_url = getattr(site_set, 'webkoders_webhook_url', None) or request.build_absolute_uri('/payments/webhook/')
         return_url = request.build_absolute_uri(f'/payments/complete/?order_id={invoice.id}')
         res = gw.initiate_payment(
             invoice=invoice,

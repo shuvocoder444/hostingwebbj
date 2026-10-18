@@ -793,12 +793,53 @@ def admin_action_handler_view(request, action_type):
                         existing.save(update_fields=['disk_quota_mb', 'bandwidth_mb', 'is_active', 'updated_at'])
                         total_updated += 1
                     else:
-                        base_title = pkg_name.replace('_', ' ').replace('-', ' ').title()
+                        # Clean WHM reseller username prefix (e.g. resellerperfect_)
+                        import re
+                        clean_title = re.sub(r'^' + re.escape(srv.api_username) + r'_', '', pkg_name, flags=re.IGNORECASE).strip()
+                        base_title = clean_title.replace('_', ' ').replace('-', ' ').title()
+
                         candidate_name = base_title
                         if HostingPackage.objects.filter(name=candidate_name).exists():
                             candidate_name = f"{base_title} ({srv.name})"
 
-                        HostingPackage.objects.create(
+                        # Smart category & target page matching
+                        matched_cats = []
+                        target_pages = ['home']
+                        lower_name = base_title.lower()
+                        if 'premium' in lower_name:
+                            c = PackageCategory.objects.filter(slug='premium-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['home', 'premium']
+                        elif 'domain' in lower_name or 'offer' in lower_name:
+                            c = PackageCategory.objects.filter(slug='domain-hosting-offer').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['home']
+                        elif 'bdix' in lower_name:
+                            c = PackageCategory.objects.filter(slug='bdix-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['bdix']
+                        elif 'usa' in lower_name:
+                            c = PackageCategory.objects.filter(slug='usa-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['usa']
+                        elif 'singapore' in lower_name:
+                            c = PackageCategory.objects.filter(slug='singapore-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['singapore']
+                        elif 'germany' in lower_name:
+                            c = PackageCategory.objects.filter(slug='germany-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['germany']
+                        elif 'finland' in lower_name:
+                            c = PackageCategory.objects.filter(slug='finland-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['finland']
+                        elif 'vps' in lower_name:
+                            c = PackageCategory.objects.filter(slug='vps-hosting').first()
+                            if c: matched_cats.append(c)
+                            target_pages = ['vps']
+
+                        new_pkg = HostingPackage.objects.create(
                             name=candidate_name,
                             server=srv,
                             panel_package_name=pkg_name,
@@ -808,12 +849,21 @@ def admin_action_handler_view(request, action_type):
                             bandwidth_mb=p.get('bandwidth_mb', 51200),
                             is_featured=False,
                             is_active=True,
+                            target_pages=target_pages,
                         )
+                        if matched_cats:
+                            new_pkg.category = matched_cats[0]
+                            new_pkg.save(update_fields=['category'])
+                            new_pkg.categories.set(matched_cats)
                         total_created += 1
                     total_synced += 1
             except Exception as exc:
                 logger.exception("Error syncing packages for server %s: %s", srv.name, exc)
                 errors.append(f"{srv.name}: {exc!s}")
+
+        # Invalidate packages cache
+        from django.core.cache import cache
+        cache.clear()
 
         if total_synced > 0:
             msg = f"WHM Sync Complete: {total_synced} packages processed ({total_created} new imported, {total_updated} updated)!"
@@ -1985,6 +2035,7 @@ def admin_action_handler_view(request, action_type):
         site.webkoders_base_url = request.POST.get('webkoders_base_url', site.webkoders_base_url).strip() or 'https://payment.webkoders.com'
         site.webkoders_api_key = request.POST.get('webkoders_api_key', site.webkoders_api_key).strip()
         site.webkoders_api_secret = request.POST.get('webkoders_api_secret', site.webkoders_api_secret).strip()
+        site.webkoders_webhook_url = request.POST.get('webkoders_webhook_url', getattr(site, 'webkoders_webhook_url', '')).strip() or 'https://velohoster.com/payments/webhook/'
 
         # Direct Crypto & Binance Pay Settings
         site.usdt_trc20_wallet = request.POST.get('usdt_trc20_wallet', site.usdt_trc20_wallet).strip()

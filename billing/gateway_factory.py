@@ -416,12 +416,14 @@ class WebKodersGateway(BasePaymentGateway):
             self.base_url = (site.webkoders_base_url or getattr(settings, 'GATEWAY_BASE_URL', 'https://payment.webkoders.com')).rstrip('/')
             self.api_key = (site.webkoders_api_key or getattr(settings, 'GATEWAY_API_KEY', '')).strip()
             self.api_secret = (site.webkoders_api_secret or getattr(settings, 'GATEWAY_API_SECRET', '')).strip()
+            self.webhook_url = (getattr(site, 'webkoders_webhook_url', '') or getattr(settings, 'GATEWAY_WEBHOOK_URL', '')).strip()
         except Exception:
             self.base_url = getattr(settings, 'GATEWAY_BASE_URL', 'https://payment.webkoders.com').rstrip('/')
             self.api_key = getattr(settings, 'GATEWAY_API_KEY', '').strip()
             self.api_secret = getattr(settings, 'GATEWAY_API_SECRET', '').strip()
+            self.webhook_url = getattr(settings, 'GATEWAY_WEBHOOK_URL', '').strip()
 
-    def initiate_payment(self, invoice: Invoice, customer, callback_url: str, return_url: Optional[str] = None) -> dict:
+    def initiate_payment(self, invoice: Invoice, customer, callback_url: Optional[str] = None, return_url: Optional[str] = None) -> dict:
         """
         Creates a checkout session on WebKoders Gateway.
         Returns dict with 'payment_url' key for client redirect.
@@ -434,6 +436,15 @@ class WebKodersGateway(BasePaymentGateway):
         elif getattr(customer, 'phone', None):
             customer_phone = customer.phone
 
+        # Prioritize merchant configured webhook URL from Admin Settings
+        effective_callback = self.webhook_url or callback_url
+        if not effective_callback or any(x in str(effective_callback) for x in ('testserver', 'localhost', '127.0.0.1')):
+            effective_callback = 'https://velohoster.com/payments/webhook/'
+
+        # Ensure valid public return URL
+        if return_url and any(x in str(return_url) for x in ('testserver', 'localhost', '127.0.0.1')):
+            return_url = f'https://velohoster.com/payments/complete/?order_id={invoice.id}'
+
         payload = {
             "amount": str(invoice.total),
             "currency": getattr(invoice, 'currency', 'BDT') or 'BDT',
@@ -441,7 +452,7 @@ class WebKodersGateway(BasePaymentGateway):
             "customer_name": customer_name,
             "customer_email": getattr(customer, 'email', None),
             "customer_phone": customer_phone or '01700000000',
-            "callback_url": callback_url,
+            "callback_url": effective_callback,
             "metadata": {
                 "invoice_id": str(invoice.id),
                 "invoice_number": str(invoice.invoice_number),
@@ -461,9 +472,13 @@ class WebKodersGateway(BasePaymentGateway):
             response = requests.post(url, headers=headers, json=payload, timeout=20)
             response.raise_for_status()
             data = response.json()
+        except requests.HTTPError as exc:
+            err_body = exc.response.text if hasattr(exc, 'response') and exc.response is not None else str(exc)
+            logger.error("WebKoders checkout creation failed HTTP %s: %s", exc.response.status_code if exc.response is not None else 'unknown', err_body)
+            raise PaymentGatewayError(f"WebKoders checkout failed: {err_body}")
         except requests.RequestException as exc:
-            logger.error("WebKoders checkout creation failed: %s", exc)
-            raise PaymentGatewayError(f"WebKoders checkout session creation failed: {exc}")
+            logger.error("WebKoders checkout network error: %s", exc)
+            raise PaymentGatewayError(f"WebKoders checkout network error: {exc}")
 
         checkout_url = data.get("checkout_url")
         if not checkout_url:

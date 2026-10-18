@@ -120,6 +120,12 @@ class SiteSetting(models.Model):
         default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc',
         help_text='WebKoders API Secret Key (Used for HMAC-SHA256 signature verification)'
     )
+    webkoders_webhook_url = models.CharField(
+        max_length=255,
+        blank=True,
+        default='https://velohoster.com/payments/webhook/',
+        help_text='WebKoders Webhook / Callback URL for payment IPN notifications'
+    )
 
     # ── International & Crypto Payment Gateway Settings ──
     cryptomus_merchant_id = models.CharField(
@@ -216,6 +222,7 @@ class SiteSetting(models.Model):
                 webkoders_base_url = 'https://payment.webkoders.com'
                 webkoders_api_key = 'mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c'
                 webkoders_api_secret = 'mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc'
+                webkoders_webhook_url = 'https://velohoster.com/payments/webhook/'
                 bdt_per_usd = 120.00
             return FallbackSetting()
 

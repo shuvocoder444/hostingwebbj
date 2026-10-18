@@ -659,9 +659,15 @@ def cart_complete_order_view(request):
       4. Creates Invoice (status = UNPAID) with line items.
       5. Automatically logs user in and redirects to invoice payment.
     """
-    package_id = request.POST.get('package_id')
-    domain = request.POST.get('domain', '').strip().lower()
-    domain_option = request.POST.get('domain_option', 'register')
+    cart = get_cart_session(request)
+
+    package_id = request.POST.get('package_id') or cart.get('package_id')
+    domain = request.POST.get('domain', '').strip().lower() or cart.get('domain', '')
+    domain_option = request.POST.get('domain_option') or cart.get('domain_option', 'register')
+    billing_cycle = request.POST.get('billing_cycle') or cart.get('billing_cycle', 'annual')
+    billing_cycle = (billing_cycle or 'annual').lower()
+    server_location = request.POST.get('server_location') or cart.get('server_location', 'germany')
+    server_location = (server_location or 'germany').lower()
     gateway_choice = request.POST.get('payment_gateway', 'webkoders').strip().lower()
     if gateway_choice == 'crypto':
         gateway_choice = 'direct_crypto'
@@ -735,11 +741,13 @@ def cart_complete_order_view(request):
                         password=password,
                         role=User.Role.CLIENT,
                     )
-                    ClientProfile.objects.create(
+                    ClientProfile.objects.update_or_create(
                         user=new_user,
-                        phone=phone,
-                        company_name=company,
-                        country='BD',
+                        defaults={
+                            'phone': phone,
+                            'company_name': company,
+                            'country': 'BD',
+                        }
                     )
                     login(request, new_user, backend='django.contrib.auth.backends.ModelBackend')
                     current_user = new_user
@@ -914,9 +922,11 @@ def cart_complete_order_view(request):
 
         if gateway_choice in ('webkoders', 'online'):
             try:
+                from core.models import SiteSetting
                 from billing.gateway_factory import get_payment_gateway
+                site_set = SiteSetting.get_settings()
                 gateway_obj = get_payment_gateway('webkoders')
-                callback_url = request.build_absolute_uri('/payments/webhook/')
+                callback_url = getattr(site_set, 'webkoders_webhook_url', None) or request.build_absolute_uri('/payments/webhook/')
                 return_url = request.build_absolute_uri(f'/payments/complete/?order_id={invoice.id}')
                 res = gateway_obj.initiate_payment(
                     invoice=invoice,

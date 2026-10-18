@@ -1976,13 +1976,42 @@
                                 <p class="text-[11px] text-slate-400 mt-1">Used to verify HMAC-SHA256 signature on Webhook</p>
                             </div>
                         </div>
-                        <div class="p-3 bg-white rounded-lg border border-emerald-200 text-[11px] text-slate-600 space-y-1">
-                            <div class="font-bold text-emerald-900 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-link"></i> Webhook Callback URL:</span>
-                                <button type="button" onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}/payments/webhook/'); alert('Webhook URL Copied!');" class="px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold cursor-pointer">Copy URL</button>
+                        <!-- Webhook URL Configuration Input (Merchant Controllable) -->
+                        <div class="p-4 bg-white rounded-xl border border-emerald-300 shadow-xs space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-link text-emerald-600"></i>
+                                        Webhook Callback URL (আইপিএন / ইনস্ট্যান্ট পেমেন্ট নোটিফিকেশন ইউআরএল)
+                                    </label>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">
+                                        মার্চেন্ট গেটওয়েতে এই ইউআরএল-এ পেমেন্ট সম্পন্ন হওয়ার সিগন্যাল (<code>payment.completed</code>) পাঠানো হবে।
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="document.getElementById('input_webhook_url').value='{{ request.scheme }}://{{ request.get_host }}/payments/webhook/';"
+                                        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition flex items-center gap-1 cursor-pointer" title="Reset to current domain URL">
+                                        <i class="fa-solid fa-rotate-left"></i> Current Domain
+                                    </button>
+                                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('input_webhook_url').value); alert('Webhook URL Copied to clipboard!');"
+                                        class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition flex items-center gap-1 cursor-pointer">
+                                        <i class="fa-solid fa-copy"></i> Copy Webhook
+                                    </button>
+                                </div>
                             </div>
-                            <code class="font-mono text-[11px] text-emerald-700 bg-slate-100 px-2 py-1 rounded select-all block">{{ request.scheme }}://{{ request.get_host }}/payments/webhook/</code>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Note: WebKoders gateway sends <code>payment.completed</code> webhook to this URL to automatically mark invoices as paid and provision accounts.</p>
+                            <div class="relative">
+                                <input type="url" id="input_webhook_url" name="webkoders_webhook_url"
+                                    value="{{ site_settings.webkoders_webhook_url|default:'https://velohoster.com/payments/webhook/' }}"
+                                    placeholder="https://velohoster.com/payments/webhook/"
+                                    class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold text-slate-900 bg-emerald-50/20 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <span class="absolute right-3 top-2.5 text-xs text-emerald-600 font-bold">
+                                    <i class="fa-solid fa-shield-check"></i>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+                                <i class="fa-solid fa-circle-info text-emerald-600"></i>
+                                <span>Default: <code>https://velohoster.com/payments/webhook/</code> — আপনি প্রয়োজন অনুযায়ী কাস্টম ডোমেইন বা পাথ পরিবর্তন করতে পারেন।</span>
+                            </div>
                         </div>
                     </div>
 
