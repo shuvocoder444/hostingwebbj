@@ -1101,20 +1101,21 @@ def admin_action_handler_view(request, action_type):
         pkg_name = pkg.name
         delete_from_whm = request.POST.get('delete_from_whm') in ('on', '1', 'true')
 
-        if pkg.accounts.filter(status=HostingAccount.Status.ACTIVE).exists():
-            messages.error(request, f"Cannot delete package '{pkg_name}' because active client accounts are using it.")
-        else:
-            if delete_from_whm:
-                try:
-                    driver = get_driver(pkg.server)
-                    driver.delete_package(pkg.panel_package_name)
-                    messages.info(request, f"Removed plan '{pkg.panel_package_name}' from WHM server.")
-                except Exception as exc:
-                    messages.warning(request, f"WHM package removal note: {exc!s}")
-            pkg.delete()
-            from django.core.cache import cache
-            cache.clear()
-            messages.success(request, f"Hosting Package '{pkg_name}' deleted.")
+        # Safely detach any existing accounts before deletion
+        pkg.accounts.all().update(package=None)
+
+        if delete_from_whm:
+            try:
+                driver = get_driver(pkg.server)
+                driver.delete_package(pkg.panel_package_name)
+                messages.info(request, f"Removed plan '{pkg.panel_package_name}' from WHM server.")
+            except Exception as exc:
+                messages.warning(request, f"WHM package removal note: {exc!s}")
+
+        pkg.delete()
+        from django.core.cache import cache
+        cache.clear()
+        messages.success(request, f"Hosting Package '{pkg_name}' deleted successfully.")
 
     # ── 5a. CREATE / PROVISION MANUAL HOSTING ACCOUNT ─────────────────────────
     elif action_type == 'create_hosting_account':

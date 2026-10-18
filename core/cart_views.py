@@ -413,7 +413,7 @@ def cart_domain_view(request):
 
     cart_packages = sorted(
         [p for p in cart_packages if p.is_active],
-        key=lambda p: (p.sort_order, p.monthly_price or p.annual_price or Decimal('0.00'))
+        key=lambda p: (p.sort_order, str(p.id))
     )
 
     categories = get_cached_package_categories()
@@ -506,7 +506,7 @@ def cart_configure_view(request):
     suggested_candidates = get_packages_for_page('cart') or get_home_packages()
     suggested_packages = sorted(
         [p for p in suggested_candidates if p.is_active],
-        key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00'))
+        key=lambda p: (p.sort_order, str(p.id))
     )[:3]
 
     context = {

@@ -63,27 +63,30 @@ def get_packages_for_page(page_name: str):
     Returns active packages assigned to a specific target page.
     A package is displayed on page_name if page_name is included in the package's
     target_pages list, or if the package belongs to a category associated with page_name.
+    Explicitly sorted by admin sort_order.
     """
     all_active = get_cached_packages()
     page_name = (page_name or '').lower().strip()
-    return [p for p in all_active if p.shows_on_page(page_name)]
+    matched = [p for p in all_active if p.shows_on_page(page_name)]
+    return sorted(matched, key=lambda p: (p.sort_order, str(p.id)))
 
 
 def get_home_packages():
     """
     Returns packages designated for the home page:
     Matches packages where 'home' is in target_pages, or tagged with home categories.
+    Explicitly sorted by admin sort_order.
     """
     all_active = get_cached_packages()
     home_pkgs = [p for p in all_active if 'home' in p.get_target_pages_list()]
     if home_pkgs:
-        return home_pkgs
+        return sorted(home_pkgs, key=lambda p: (p.sort_order, str(p.id)))
     home_slugs = {'domain-hosting-offer', 'premium-hosting'}
     fallback = [
         p for p in all_active
         if any(c.slug in home_slugs for c in p.get_all_categories())
     ]
-    return fallback if fallback else all_active
+    return sorted(fallback if fallback else all_active, key=lambda p: (p.sort_order, str(p.id)))
 
 
 def get_home_categories():

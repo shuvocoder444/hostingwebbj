@@ -308,7 +308,9 @@ class HostingAccount(models.Model):
     )
     package = models.ForeignKey(
         HostingPackage,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='accounts',
     )
     server = models.ForeignKey(
