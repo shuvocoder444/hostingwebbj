@@ -96,6 +96,7 @@ def admin_dashboard_view(request):
 
     AVAILABLE_TARGET_PAGES = [
         ('home', 'Home Page'),
+        ('cart', 'Cart / Domain Search Page'),
         ('usa', 'USA Hosting Page'),
         ('singapore', 'Singapore Hosting Page'),
         ('germany', 'Germany Hosting Page'),

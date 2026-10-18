@@ -117,6 +117,7 @@ class HostingPackage(models.Model):
     class TargetPage(models.TextChoices):
         ALL = 'all', 'All Pages'
         HOME = 'home', 'Home Page Only'
+        CART = 'cart', 'Cart / Domain Search Page'
         BDIX = 'bdix', 'BDIX Hosting Page'
         SINGAPORE = 'singapore', 'Singapore Hosting Page'
         USA = 'usa', 'USA Hosting Page'
@@ -176,12 +177,12 @@ class HostingPackage(models.Model):
         return []
 
     def get_target_pages_list(self) -> list:
-        """Return list of target page codes (e.g. ['home', 'bdix', 'usa'])."""
+        """Return list of target page codes (e.g. ['home', 'bdix', 'usa', 'cart'])."""
         if self.target_pages and isinstance(self.target_pages, list) and len(self.target_pages) > 0:
             return self.target_pages
         if self.target_page:
             if self.target_page == 'all':
-                return ['usa', 'singapore', 'germany', 'finland', 'bdix', 'vps', 'turbo', 'premium', 'reseller']
+                return ['usa', 'singapore', 'germany', 'finland', 'bdix', 'vps', 'turbo', 'premium', 'reseller', 'cart', 'home']
             return [self.target_page]
         return []
 
