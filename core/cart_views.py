@@ -416,7 +416,8 @@ def cart_domain_view(request):
         key=lambda p: (p.sort_order, str(p.id))
     )
 
-    categories = get_cached_package_categories()
+    cart_cat_ids = {c.id for p in cart_packages for c in p.get_all_categories()}
+    categories = [c for c in get_cached_package_categories() if c.id in cart_cat_ids]
 
     context = {
         'package': package,
