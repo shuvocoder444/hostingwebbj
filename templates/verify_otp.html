@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email — {{ COMPANY_NAME|default:'VeloHoster' }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[85vh] flex items-center justify-center px-4 py-12 relative">
+    <div class="max-w-md w-full">
+        <!-- Brand Logo -->
+        <div class="text-center mb-6">
+            <div class="flex justify-center mb-3">
+                <a href="{% url 'landing' %}">
+                    {% include 'partials/brand_logo.html' %}
+                </a>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-2">
+                <i class="fa-solid fa-shield-halved text-blue-600"></i> Two-Step Email Security
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Verify Your Email</h2>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                We sent a 6-digit verification code to<br>
+                <strong class="text-slate-900 font-mono text-sm">{{ email }}</strong>
+            </p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card">
+            
+            <!-- OTP Submission Form -->
+            <form method="POST" action="{% url 'verify_otp' %}" id="otp-form" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="otp" id="full-otp-input" value="">
+
+                <div>
+                    <label class="block text-center text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">
+                        Enter 6-Digit Verification Code
+                    </label>
+
+                    <!-- 6 Digit Input Boxes -->
+                    <div class="flex justify-center items-center gap-2 sm:gap-3" id="otp-container">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" data-index="1"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs" autofocus>
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="2"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="3"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="4"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="5"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="6"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                    </div>
+                </div>
+
+                <!-- Verify Button -->
+                <button type="submit" id="btn-submit-otp"
+                    class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/25 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-circle-check"></i> Verify &amp; Activate Account
+                </button>
+            </form>
+
+            <!-- Cooldown Timer & Resend Section -->
+            <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col items-center gap-3 text-center">
+                <div id="cooldown-area" class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                    <i class="fa-regular fa-clock text-blue-600"></i>
+                    <span>Resend verification code in</span>
+                    <span id="cooldown-timer" class="font-bold text-blue-600 font-mono text-sm">60</span>s
+                </div>
+
+                <form method="POST" action="{% url 'resend_otp' %}" id="resend-form" class="inline-block">
+                    {% csrf_token %}
+                    <button type="submit" id="btn-resend-otp" disabled
+                        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 transition cursor-not-allowed flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code
+                    </button>
+                </form>
+
+                <div class="text-xs text-slate-500 mt-2">
+                    Mistake in your email?
+                    <a href="{% url 'register' %}?edit=1" class="font-bold text-blue-600 hover:text-blue-700 ml-1">Change Email / Details</a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Help Info -->
+        <div class="mt-6 text-center text-xs text-slate-400">
+            Didn't receive the email? Check your <strong>Spam/Junk</strong> folder, or wait for the countdown to request a new code.
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputs = document.querySelectorAll('.otp-digit');
+    const fullInput = document.getElementById('full-otp-input');
+    const form = document.getElementById('otp-form');
+    const resendBtn = document.getElementById('btn-resend-otp');
+    const timerSpan = document.getElementById('cooldown-timer');
+    const cooldownArea = document.getElementById('cooldown-area');
+
+    // 1. Focus on first input
+    if (inputs.length > 0) {
+        inputs[0].focus();
+    }
+
+    // 2. Handle digit input and auto-focus next
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function (e) {
+            const val = this.value.replace(/[^0-9]/g, '');
+            this.value = val ? val[0] : '';
+
+            updateFullOTP();
+
+            if (this.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+
+            // Auto-submit when all 6 digits entered
+            if (fullInput.value.length === 6) {
+                form.submit();
+            }
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && !this.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        // Handle Paste (e.g. user copies '123456')
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').trim();
+            if (pasteData) {
+                for (let i = 0; i < inputs.length; i++) {
+                    if (pasteData[i]) {
+                        inputs[i].value = pasteData[i];
+                    }
+                }
+                updateFullOTP();
+                const lastFilled = Math.min(pasteData.length, inputs.length) - 1;
+                if (lastFilled >= 0 && lastFilled < inputs.length - 1) {
+                    inputs[lastFilled + 1].focus();
+                }
+                if (fullInput.value.length === 6) {
+                    form.submit();
+                }
+            }
+        });
+    });
+
+    function updateFullOTP() {
+        let code = '';
+        inputs.forEach(input => {
+            code += input.value;
+        });
+        fullInput.value = code;
+    }
+
+    form.addEventListener('submit', function (e) {
+        updateFullOTP();
+        if (fullInput.value.length !== 6) {
+            e.preventDefault();
+            alert('Please enter the complete 6-digit verification code.');
+        }
+    });
+
+    // 3. Cooldown Timer Countdown (60s)
+    let countdown = 60;
+    const interval = setInterval(function () {
+        countdown--;
+        if (countdown > 0) {
+            timerSpan.textContent = countdown;
+        } else {
+            clearInterval(interval);
+            cooldownArea.classList.add('hidden');
+            resendBtn.disabled = false;
+            resendBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5 shadow-sm";
+        }
+    }, 1000);
+});
+</script>
+{% endblock %}

@@ -769,6 +769,7 @@ def cart_complete_order_view(request):
                             'phone': phone,
                             'company_name': company,
                             'country': 'BD',
+                            'is_email_verified': True,
                         }
                     )
                     login(request, new_user, backend='django.contrib.auth.backends.ModelBackend')

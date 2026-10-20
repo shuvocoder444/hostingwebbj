@@ -2054,7 +2054,96 @@
             </div>
  </div>
 
- <!-- Sticky Bottom Save Bar -->
+ 
+            <!-- Section 7: Email OTP & SMTP Settings -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Email OTP &amp; SMTP Configuration (ইমেইল ওটিপি ও সার্ভার সেটিংস)</h3>
+                            <p class="text-[11px] text-slate-500">Manage 6-digit email OTP security during account creation and custom SMTP server</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        <i class="fa-solid fa-shield-halved"></i> Two-Step Verification
+                    </span>
+                </div>
+                <div class="p-6 space-y-6">
+                    
+                    <!-- 1. Registration Email OTP Toggle -->
+                    <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-user-check text-blue-600"></i>
+                                Require Email OTP During Account Registration
+                            </span>
+                            <p class="text-[11px] text-slate-500">
+                                একাউন্ট খোলার সময় গ্রাহকের ইমেইলে ৬ ডিজিটের ওটিপি কোড যাবে। সঠিক ওটিপি দিলে একাউন্ট সচল হবে।
+                            </p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" name="require_email_otp" value="1" class="sr-only peer" {% if site_settings.require_email_otp %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <!-- 2. SMTP Host & Credentials -->
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                            <span class="text-xs font-bold text-slate-800">SMTP Server Configuration (ঐচ্ছিক - কাস্টম মেইল সার্ভার)</span>
+                            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                <i class="fa-solid fa-check"></i> Server Mail Engine Active
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Host</label>
+                                <input type="text" name="smtp_host" value="{{ site_settings.smtp_host }}" placeholder="s4765.use1.stableserver.net or smtp.gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">Leave empty for server default</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Port</label>
+                                <input type="number" name="smtp_port" value="{{ site_settings.smtp_port|default:587 }}" placeholder="587" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">587 for TLS, 465 for SSL</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Sender From Email</label>
+                                <input type="text" name="smtp_from_email" value="{{ site_settings.smtp_from_email|default:'VeloHoster <noreply@velohoster.com>' }}" placeholder="VeloHoster <noreply@velohoster.com>" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <p class="text-[11px] text-slate-400 mt-1">From address displayed to user</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Username (Optional)</label>
+                                <input type="text" name="smtp_user" value="{{ site_settings.smtp_user }}" placeholder="noreply@velohoster.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">SMTP Password (Optional)</label>
+                                <input type="password" name="smtp_password" value="{{ site_settings.smtp_password }}" placeholder="••••••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-6 pt-2">
+                            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="smtp_use_tls" value="1" {% if site_settings.smtp_use_tls %}checked{% endif %} class="rounded text-blue-600 focus:ring-blue-500">
+                                <span>Use STARTTLS (Port 587)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                                <input type="checkbox" name="smtp_use_ssl" value="1" {% if site_settings.smtp_use_ssl %}checked{% endif %} class="rounded text-blue-600 focus:ring-blue-500">
+                                <span>Use SSL (Port 465)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        <!-- Sticky Bottom Save Bar -->
  <div class="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-xl flex items-center justify-between gap-4">
  <div class="text-xs text-slate-500 flex items-center gap-2">
  <i class="fa-solid fa-circle-info text-indigo-500"></i>

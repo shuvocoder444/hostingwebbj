@@ -15,15 +15,20 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.db import transaction as db_transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import ClientProfile
+from accounts.models import ClientProfile, EmailOTP
+from accounts.otp_service import OTPService
 from billing.models import Invoice, Transaction
 from billing.services import InvoiceService
+from core.models import SiteSetting
 from core.security import rate_limit
+
 from hosting.models import BillingCycle, HostingAccount, HostingPackage, PackageCategory
 from hosting.services import ProvisioningService
 
@@ -217,10 +222,15 @@ def login_view(request):
 def register_view(request):
     """
     User registration view.
-    Creates new Client User + ClientProfile, then auto-logs in.
+    Validates form, sends 6-digit Email OTP verification code, and redirects to verification page.
     """
     if request.user.is_authenticated:
         return redirect('dashboard')
+
+    # If returning to edit details from OTP page
+    if request.method == 'GET' and request.GET.get('edit') == '1':
+        pending = request.session.get('pending_registration', {})
+        return render(request, 'register.html', pending)
 
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
@@ -243,38 +253,193 @@ def register_view(request):
             messages.error(request, 'Password must be at least 8 characters long.')
             return render(request, 'register.html', request.POST)
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email__iexact=email).exists():
             messages.error(request, 'An account with this email already exists. Please log in.')
             return render(request, 'register.html', request.POST)
 
-        try:
-            user = User.objects.create_user(
+        site = SiteSetting.get_settings()
+        require_otp = getattr(site, 'require_email_otp', True)
+
+        if require_otp:
+            # Store registration data in session
+            request.session['pending_registration'] = {
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'phone': phone,
+                'company_name': company_name,
+                'password': password,
+                'next': request.GET.get('next') or request.POST.get('next', ''),
+            }
+            request.session.modified = True
+
+            # Send OTP
+            success, msg = OTPService.generate_and_send_otp(
                 email=email,
-                password=password,
                 first_name=first_name,
-                last_name=last_name,
-                role=User.Role.CLIENT,
-            )
-            # Create client profile
-            ClientProfile.objects.create(
-                user=user,
-                phone=phone,
-                company_name=company_name,
-                credit_balance=Decimal('0.00'),
-                currency='BDT',
+                purpose=EmailOTP.Purpose.REGISTRATION,
+                request=request
             )
 
+            if not success:
+                messages.error(request, msg)
+                return render(request, 'register.html', request.POST)
+
+            messages.info(request, f'A 6-digit verification code has been sent to {email}.')
+            return redirect('verify_otp')
+
+        else:
+            # Fallback if OTP is disabled in admin
+            try:
+                with db_transaction.atomic():
+                    user = User.objects.create_user(
+                        email=email,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        role=User.Role.CLIENT,
+                    )
+                    ClientProfile.objects.create(
+                        user=user,
+                        phone=phone,
+                        company_name=company_name,
+                        credit_balance=Decimal('0.00'),
+                        currency='BDT',
+                        is_email_verified=False,
+                    )
+
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
+                login(request, user)
+                company_name_display = getattr(site, 'company_name', 'VeloHoster')
+                messages.success(request, f'Account created successfully! Welcome to {company_name_display}, {user.first_name}.')
+                return redirect('dashboard')
+
+            except Exception as exc:
+                logger.error("Registration error: %s", exc)
+                messages.error(request, f'Registration failed: {exc!s}')
+                return render(request, 'register.html', request.POST)
+
+    return render(request, 'register.html')
+
+
+def verify_otp_view(request):
+    """
+    OTP Verification View.
+    Validates the 6-digit code sent to the client's email before finalizing account creation.
+    """
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    pending = request.session.get('pending_registration')
+    if not pending or not pending.get('email'):
+        messages.warning(request, "Please fill out the registration form first.")
+        return redirect('register')
+
+    email = pending['email']
+    first_name = pending.get('first_name', '')
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp', '').strip()
+        if not otp_code:
+            digits = [request.POST.get(f'digit_{i}', '') for i in range(1, 7)]
+            otp_code = ''.join(digits).strip()
+
+        success, err_msg = OTPService.verify_otp(
+            email=email,
+            otp_code=otp_code,
+            purpose=EmailOTP.Purpose.REGISTRATION
+        )
+
+        if not success:
+            messages.error(request, err_msg)
+            return render(request, 'verify_otp.html', {
+                'email': email,
+                'first_name': first_name,
+            })
+
+        # OTP verified! Create user account atomically
+        try:
+            with db_transaction.atomic():
+                if User.objects.filter(email__iexact=email).exists():
+                    messages.error(request, "An account with this email already exists. Please log in.")
+                    request.session.pop('pending_registration', None)
+                    return redirect('login')
+
+                user = User.objects.create_user(
+                    email=email,
+                    password=pending['password'],
+                    first_name=first_name,
+                    last_name=pending.get('last_name', ''),
+                    role=User.Role.CLIENT,
+                )
+                ClientProfile.objects.create(
+                    user=user,
+                    phone=pending.get('phone', ''),
+                    company_name=pending.get('company_name', ''),
+                    credit_balance=Decimal('0.00'),
+                    currency='BDT',
+                    is_email_verified=True,
+                )
+
+            # Log the user in
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-            messages.success(request, f'Account created successfully! Welcome to HostPro, {user.first_name}.')
+
+            next_url = pending.get('next')
+            request.session.pop('pending_registration', None)
+            request.session.modified = True
+
+            site = SiteSetting.get_settings()
+            company_name_display = getattr(site, 'company_name', 'VeloHoster')
+            messages.success(request, f'Welcome to {company_name_display}, {user.first_name}! Your email is verified and your account is ready.')
+
+            if next_url and next_url.startswith('/'):
+                return redirect(next_url)
             return redirect('dashboard')
 
         except Exception as exc:
-            logger.error("Registration error: %s", exc)
+            logger.error("Error creating user after OTP verification: %s", exc)
             messages.error(request, f'Registration failed: {exc!s}')
-            return render(request, 'register.html', request.POST)
+            return render(request, 'verify_otp.html', {'email': email, 'first_name': first_name})
 
-    return render(request, 'register.html')
+    return render(request, 'verify_otp.html', {
+        'email': email,
+        'first_name': first_name,
+    })
+
+
+@require_http_methods(['POST'])
+def resend_otp_view(request):
+    """
+    Resends OTP code with rate-limit and 60-second cooldown protection.
+    """
+    pending = request.session.get('pending_registration')
+    if not pending or not pending.get('email'):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('format') == 'json':
+            return JsonResponse({'success': False, 'message': 'No pending registration found.'}, status=400)
+        messages.error(request, "No pending registration found.")
+        return redirect('register')
+
+    email = pending['email']
+    first_name = pending.get('first_name', '')
+
+    success, msg = OTPService.generate_and_send_otp(
+        email=email,
+        first_name=first_name,
+        purpose=EmailOTP.Purpose.REGISTRATION,
+        request=request
+    )
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('format') == 'json':
+        return JsonResponse({'success': success, 'message': msg})
+
+    if success:
+        messages.success(request, f'A fresh verification code was sent to {email}.')
+    else:
+        messages.error(request, msg)
+
+    return redirect('verify_otp')
+
 
 
 def logout_view(request):

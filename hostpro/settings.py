@@ -229,12 +229,13 @@ WHATSAPP_DISPLAY_NUMBER = config('WHATSAPP_DISPLAY_NUMBER', default='+880 1700-0
 
 # ─── Email ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_HOST = config('EMAIL_HOST', default='s4765.use1.stableserver.net')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@hostpro.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='VeloHoster <noreply@velohoster.com>')
+
 
 # ─── Encryption ───────────────────────────────────────────────────────────────
 FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='OGtjeXFEUZevmNXtDSR_SwQb0_W_N38B5yu1uoQ4cBQ=')

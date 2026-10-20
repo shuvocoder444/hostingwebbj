@@ -2056,6 +2056,19 @@ def admin_action_handler_view(request, action_type):
         site.usdt_bep20_wallet = request.POST.get('usdt_bep20_wallet', site.usdt_bep20_wallet).strip()
         site.binance_pay_id = request.POST.get('binance_pay_id', site.binance_pay_id).strip()
 
+        # Email OTP & SMTP Settings
+        if 'require_email_otp' in request.POST:
+            site.require_email_otp = request.POST.get('require_email_otp') in ('true', '1', 'on')
+        site.smtp_host = request.POST.get('smtp_host', getattr(site, 'smtp_host', '')).strip()
+        site.smtp_port = int(request.POST.get('smtp_port', getattr(site, 'smtp_port', 587)) or 587)
+        site.smtp_user = request.POST.get('smtp_user', getattr(site, 'smtp_user', '')).strip()
+        site.smtp_password = request.POST.get('smtp_password', getattr(site, 'smtp_password', '')).strip()
+        if 'smtp_use_tls' in request.POST:
+            site.smtp_use_tls = request.POST.get('smtp_use_tls') in ('true', '1', 'on')
+        if 'smtp_use_ssl' in request.POST:
+            site.smtp_use_ssl = request.POST.get('smtp_use_ssl') in ('true', '1', 'on')
+        site.smtp_from_email = request.POST.get('smtp_from_email', getattr(site, 'smtp_from_email', '')).strip() or 'VeloHoster <noreply@velohoster.com>'
+
         rate_val = request.POST.get('bdt_per_usd')
         if rate_val:
             try:
@@ -2065,6 +2078,23 @@ def admin_action_handler_view(request, action_type):
                 pass
 
         site.save()
-        messages.success(request, "Website Settings, WebKoders Payment Gateway & Direct Crypto Settings saved successfully!")
+        messages.success(request, "Website Settings, Email OTP & Payment Gateway Settings saved successfully!")
+
+    # ── 10. SEND TEST EMAIL ───
+    elif action_type == 'send_test_email':
+        target_email = request.POST.get('test_email', '').strip() or request.user.email
+        from accounts.otp_service import OTPService
+        success, msg = OTPService.send_otp_email(
+            to_email=target_email,
+            otp_code='987654',
+            first_name=request.user.first_name or 'Admin',
+            purpose='registration'
+        )
+        if success:
+            messages.success(request, f"Test OTP email sent successfully to {target_email}! Please check inbox or spam.")
+        else:
+            messages.error(request, f"Failed to send test email to {target_email}: {msg}")
+        return redirect_to_admin_tab('save_site_settings', request)
+
 
     return redirect_to_admin_tab(action_type, request)

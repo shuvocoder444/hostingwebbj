@@ -115,9 +115,46 @@ class ClientProfile(models.Model):
         help_text='Available credit balance in platform currency (BDT).'
     )
     currency = models.CharField(max_length=3, default='BDT')
+    is_email_verified = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Client Profile'
 
     def __str__(self) -> str:
         return f'Profile of {self.user.email}'
+
+
+class EmailOTP(models.Model):
+    """
+    Stores 6-digit one-time passwords for email verification, registration, and security.
+    """
+    class Purpose(models.TextChoices):
+        REGISTRATION = 'registration', 'Registration'
+        PASSWORD_RESET = 'password_reset', 'Password Reset'
+        CHECKOUT = 'checkout', 'Checkout Verification'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(db_index=True)
+    otp_code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=30, choices=Purpose.choices, default=Purpose.REGISTRATION)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    is_used = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Email OTP'
+        verbose_name_plural = 'Email OTPs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['email', 'purpose', 'is_used']),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.email} - {self.otp_code} ({self.purpose})'
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() > self.expires_at
+

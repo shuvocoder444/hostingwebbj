@@ -167,6 +167,48 @@ class SiteSetting(models.Model):
         help_text='Conversion Rate: How many BDT per 1 USD (e.g. 120.00)'
     )
 
+    # ── Email & SMTP Settings ──
+    require_email_otp = models.BooleanField(
+        default=True,
+        help_text='Require 6-digit Email OTP verification when registering new accounts.'
+    )
+    smtp_host = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Custom SMTP Server Host (e.g. smtp.gmail.com or leave blank to use server mail).'
+    )
+    smtp_port = models.IntegerField(
+        default=587,
+        help_text='SMTP Port (587 for TLS, 465 for SSL).'
+    )
+    smtp_user = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='SMTP Username / Email (e.g. noreply@velohoster.com).'
+    )
+    smtp_password = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='SMTP Password.'
+    )
+    smtp_use_tls = models.BooleanField(
+        default=True,
+        help_text='Use STARTTLS (Port 587).'
+    )
+    smtp_use_ssl = models.BooleanField(
+        default=False,
+        help_text='Use SSL (Port 465).'
+    )
+    smtp_from_email = models.CharField(
+        max_length=255,
+        blank=True,
+        default='VeloHoster <noreply@velohoster.com>',
+        help_text='Sender Email Address displayed in inbox.'
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

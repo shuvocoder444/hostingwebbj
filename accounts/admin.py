@@ -1,6 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, ClientProfile
+from .models import User, ClientProfile, EmailOTP
+
+
+@admin.register(EmailOTP)
+class EmailOTPAdmin(admin.ModelAdmin):
+    list_display = ['email', 'otp_code', 'purpose', 'is_used', 'attempts', 'created_at', 'expires_at']
+    list_filter = ['purpose', 'is_used', 'created_at']
+    search_fields = ['email', 'otp_code']
+    readonly_fields = ['created_at', 'expires_at']
+
 
 
 class ClientProfileInline(admin.StackedInline):
