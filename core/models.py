@@ -22,7 +22,7 @@ class SiteSetting(models.Model):
     # ── Site Identity & SEO ──
     site_title = models.CharField(
         max_length=200,
-        default='VeloHoster — High Performance Cloud Web Hosting & Domains',
+        default='VeloHoster — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud',
         help_text='Main website title shown in search engines and social share previews.'
     )
     company_name = models.CharField(
@@ -36,11 +36,11 @@ class SiteSetting(models.Model):
         blank=True
     )
     meta_description = models.TextField(
-        default='Premium high-speed cloud web hosting, cPanel, BDIX, LiteSpeed, and domain registration with automated provisioning and instant Bangladeshi payment gateways (bKash, Nagad, SSLCommerz).',
+        default='Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.',
         help_text='Meta description for Google SEO and social share previews (Facebook, WhatsApp, Twitter).'
     )
     meta_keywords = models.TextField(
-        default='web hosting, bdix hosting, cpanel hosting, spaceship domain, bdwebs, buy domain bangladesh, bkash hosting, cheap hosting',
+        default='namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting',
         blank=True,
         help_text='Comma-separated SEO keywords and tags.'
     )
@@ -242,11 +242,11 @@ class SiteSetting(models.Model):
         except Exception:
             # Fallback mock object if migrations not run yet
             class FallbackSetting:
-                site_title = 'VeloHoster — High Performance Cloud Web Hosting & Domains'
+                site_title = 'VeloHoster — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud'
                 company_name = 'VeloHoster'
                 tagline = 'Next-Gen NVMe Cloud & BDIX Hosting Platform'
-                meta_description = 'Premium high-speed cloud web hosting, cPanel, BDIX, LiteSpeed, and domain registration with automated provisioning and instant Bangladeshi payment gateways.'
-                meta_keywords = 'web hosting, bdix hosting, cpanel hosting, spaceship domain, bdwebs, buy domain bangladesh'
+                meta_description = 'Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.'
+                meta_keywords = 'namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting'
                 show_hero_section = True
                 logo_url = '/static/img/logo.png'
                 favicon_url = '/static/img/favicon.png'

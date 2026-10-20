@@ -44,9 +44,9 @@ def global_brand_context(request):
         clean_wa = '88' + clean_wa
 
     company_name = getattr(site, 'company_name', '') or getattr(settings, 'COMPANY_NAME', 'VeloHoster')
-    site_title = getattr(site, 'site_title', '') or f"{company_name} — High Performance NVMe Cloud Web Hosting & Domains"
-    meta_desc = getattr(site, 'meta_description', '') or 'Fast, secure NVMe cPanel cloud web hosting in Bangladesh & globally. 99.99% uptime, BDIX low-latency connectivity, LiteSpeed Web Server, free SSL, and instant domain registration.'
-    meta_keys = getattr(site, 'meta_keywords', '') or 'web hosting bangladesh, bdix hosting, cpanel hosting, cheap domain registration, buy domain bd, nvme web hosting, fast cloud hosting, velohoster, domain hosting bd, best hosting provider'
+    site_title = getattr(site, 'site_title', '') or f"{company_name} — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud"
+    meta_desc = getattr(site, 'meta_description', '') or 'Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.'
+    meta_keys = getattr(site, 'meta_keywords', '') or 'namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting'
     tagline = getattr(site, 'tagline', '') or 'Ultra-Fast NVMe Cloud Web Hosting'
 
     logo_url = getattr(site, 'logo_url', '') or '/static/img/logo.png'
