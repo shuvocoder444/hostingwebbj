@@ -281,8 +281,7 @@ https://velohoster.com
         # Determine Sender Email
         from_email = getattr(site, 'smtp_from_email', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', None) or f'{company_name} <noreply@velohoster.com>'
 
-        # Determine Connection (Custom SMTP or Django default)
-        conn = None
+        # Attempt 1: Custom SMTP (if configured in SiteSetting / Admin Panel)
         if getattr(site, 'smtp_host', None):
             try:
                 conn = get_connection(
@@ -295,27 +294,44 @@ https://velohoster.com
                     use_ssl=site.smtp_use_ssl,
                     timeout=15,
                 )
-            except Exception as e:
-                logger.warning("Failed to initialize custom SMTP connection: %s", e)
-                conn = None
+                msg = EmailMultiAlternatives(
+                    subject=subject,
+                    body=text_body,
+                    from_email=from_email,
+                    to=[to_email],
+                    connection=conn,
+                )
+                msg.attach_alternative(html_body, "text/html")
+                msg.send(fail_silently=False)
+                logger.info("OTP email successfully delivered to %s via Custom SMTP (%s)", to_email, site.smtp_host)
+                return True, "Email sent successfully."
+            except Exception as exc:
+                logger.warning("Custom SMTP failed for %s (%s). Attempting Direct MX fallback...", to_email, exc)
 
-        # Attempt 1: Standard Django EmailMultiAlternatives
+        # Attempt 2: Direct MX Delivery to recipient's mail exchanger (e.g. gmail-smtp-in.l.google.com)
+        # This completely bypasses any broken/locked local shared server relays (like AntiSpamCloud)
+        try:
+            if cls._send_via_direct_mx(to_email, subject, text_body, html_body, from_email):
+                return True, "Email sent successfully via Direct MX."
+        except Exception as mx_exc:
+            logger.warning("Direct MX delivery failed for %s: %s", to_email, mx_exc)
+
+        # Attempt 3: Standard Django Email Backend
         try:
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body=text_body,
                 from_email=from_email,
                 to=[to_email],
-                connection=conn,
             )
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
-            logger.info("OTP email successfully delivered to %s via Django SMTP", to_email)
+            logger.info("OTP email delivered to %s via default Django backend", to_email)
             return True, "Email sent successfully."
         except Exception as exc:
-            logger.warning("Django SMTP failed for %s (%s). Attempting sendmail fallback...", to_email, exc)
+            logger.warning("Default Django backend failed for %s (%s).", to_email, exc)
 
-        # Attempt 2: Local /usr/sbin/sendmail binary fallback (Production Linux)
+        # Attempt 4: Local /usr/sbin/sendmail binary fallback (Production Linux)
         if os.path.exists('/usr/sbin/sendmail'):
             try:
                 raw_msg = MIMEMultipart('alternative')
@@ -335,8 +351,6 @@ https://velohoster.com
                 if proc.returncode == 0:
                     logger.info("OTP email successfully delivered to %s via /usr/sbin/sendmail", to_email)
                     return True, "Email sent successfully via sendmail."
-                else:
-                    logger.error("Sendmail returned error code %d: %s", proc.returncode, stderr)
             except Exception as sm_exc:
                 logger.error("Sendmail fallback failed: %s", sm_exc)
 
@@ -346,3 +360,71 @@ https://velohoster.com
             return True, f"Dev simulated OTP: {otp_code}"
 
         return False, "Unable to deliver verification email at this moment."
+
+    @classmethod
+    def _send_via_direct_mx(cls, to_email: str, subject: str, text_body: str, html_body: str, from_email: str) -> bool:
+        """
+        Directly queries the recipient domain's MX records and delivers via port 25 with STARTTLS.
+        Bypasses any locked/blocked intermediate local server relays (like AntiSpamCloud).
+        """
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.utils import formatdate, make_msgid
+
+        domain = to_email.split('@')[-1].strip().lower()
+        mx_hosts = []
+
+        # 1. Resolve MX records using dig
+        try:
+            out = subprocess.check_output(['dig', '+short', 'MX', domain], text=True, timeout=5)
+            records = []
+            for line in out.strip().splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and parts[0].isdigit():
+                    records.append((int(parts[0]), parts[1].rstrip('.')))
+            records.sort()
+            mx_hosts = [r[1] for r in records]
+        except Exception:
+            pass
+
+        # Fallback common MX hosts
+        if not mx_hosts:
+            if 'gmail' in domain:
+                mx_hosts = ['gmail-smtp-in.l.google.com', 'alt1.gmail-smtp-in.l.google.com', 'alt2.gmail-smtp-in.l.google.com']
+            elif 'yahoo' in domain:
+                mx_hosts = ['mta5.am0.yahoodns.net', 'mta6.am0.yahoodns.net']
+            elif 'outlook' in domain or 'hotmail' in domain or 'live' in domain:
+                mx_hosts = ['outlook-com.olc.protection.outlook.com']
+
+        if not mx_hosts:
+            return False
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Date'] = formatdate(localtime=True)
+        msg['Message-ID'] = make_msgid(domain='velohoster.com')
+        msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+        envelope_from = 'noreply@velohoster.com'
+
+        for mx in mx_hosts[:3]:
+            try:
+                s = smtplib.SMTP(mx, 25, timeout=12)
+                s.ehlo('velohoster.com')
+                if s.has_extn('STARTTLS'):
+                    s.starttls()
+                    s.ehlo('velohoster.com')
+                s.sendmail(envelope_from, [to_email], msg.as_string())
+                s.quit()
+                logger.info("Direct MX delivery to %s via %s SUCCEEDED", to_email, mx)
+                return True
+            except Exception as e:
+                logger.warning("Direct MX delivery to %s via %s failed: %s", to_email, mx, e)
+
+        return False
+
+

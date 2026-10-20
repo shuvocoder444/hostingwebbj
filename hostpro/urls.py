@@ -60,6 +60,9 @@ from core.cart_views import (
     cart_complete_order_view,
     cart_configure_view,
     cart_domain_view,
+    cart_ajax_send_otp_view,
+    cart_ajax_verify_otp_view,
+    cart_verify_checkout_otp_view,
 )
 from core.page_views import (
     about_us_view,
@@ -210,6 +213,9 @@ urlpatterns = [
     path('cart/configure/', cart_configure_view, name='cart_configure'),
     path('cart/checkout/', cart_checkout_view, name='cart_checkout'),
     path('cart/complete/', cart_complete_order_view, name='cart_complete_order'),
+    path('cart/ajax/send-otp/', cart_ajax_send_otp_view, name='cart_ajax_send_otp'),
+    path('cart/ajax/verify-otp/', cart_ajax_verify_otp_view, name='cart_ajax_verify_otp'),
+    path('cart/verify-order/', cart_verify_checkout_otp_view, name='cart_verify_checkout_otp'),
     path('api/v1/domains/ajax-check/', ajax_domain_check_view, name='ajax_domain_check'),
     path('cart/ajax/domain-check/', ajax_domain_check_view, name='cart_ajax_domain_check'),
     path('api/v1/domains/bulk-search/', ajax_domain_bulk_search_view, name='ajax_domain_bulk_search'),

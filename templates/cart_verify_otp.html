@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email & Complete Order — {{ COMPANY_NAME|default:'VeloHoster' }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[85vh] flex items-center justify-center px-4 py-12 relative">
+    <div class="max-w-lg w-full">
+        <!-- Brand Logo -->
+        <div class="text-center mb-6">
+            <div class="flex justify-center mb-3">
+                <a href="{% url 'landing' %}">
+                    {% include 'partials/brand_logo.html' %}
+                </a>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-2">
+                <i class="fa-solid fa-cart-shopping text-blue-600"></i> Order Verification Step
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Confirm Your Order</h2>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                To activate your account and proceed to payment, please enter the 6-digit code sent to<br>
+                <strong class="text-slate-900 font-mono text-sm">{{ email }}</strong>
+            </p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-card space-y-6">
+            
+            <!-- Order Snapshot -->
+            {% if domain or package %}
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between gap-3">
+                <div>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Pending Order</span>
+                    <strong class="text-sm font-bold text-slate-900 block mt-0.5">
+                        {% if package %}{{ package.name }}{% endif %}
+                        {% if package and domain %} + {% endif %}
+                        {% if domain %}{{ domain }}{% endif %}
+                    </strong>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px]">
+                    <i class="fa-solid fa-clock"></i> Awaiting Verification
+                </span>
+            </div>
+            {% endif %}
+
+            <!-- OTP Submission Form -->
+            <form method="POST" action="{% url 'cart_verify_checkout_otp' %}" id="checkout-otp-form" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="otp" id="full-otp-input" value="">
+
+                <div>
+                    <label class="block text-center text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">
+                        Enter 6-Digit Verification Code
+                    </label>
+
+                    <!-- 6 Digit Input Boxes -->
+                    <div class="flex justify-center items-center gap-2 sm:gap-3" id="otp-container">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" data-index="1"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs" autofocus>
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="2"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="3"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="4"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="5"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" data-index="6"
+                            class="otp-digit w-11 h-14 sm:w-12 sm:h-16 text-center text-2xl font-black font-mono bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition text-slate-900 shadow-2xs">
+                    </div>
+                </div>
+
+                <!-- Verify & Complete Button -->
+                <button type="submit" id="btn-submit-otp"
+                    class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/25 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-lock"></i> Verify Code &amp; Proceed to Payment
+                </button>
+            </form>
+
+            <!-- Cooldown Timer & Resend Section -->
+            <div class="pt-4 border-t border-slate-100 flex flex-col items-center gap-3 text-center">
+                <div id="cooldown-area" class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                    <i class="fa-regular fa-clock text-blue-600"></i>
+                    <span>Resend code in</span>
+                    <span id="cooldown-timer" class="font-bold text-blue-600 font-mono text-sm">60</span>s
+                </div>
+
+                <button type="button" id="btn-resend-checkout-otp" onclick="handleResendCheckoutOTP()" disabled
+                    class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 transition cursor-not-allowed flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code
+                </button>
+
+                <div class="text-xs text-slate-500 mt-2">
+                    Need to modify your order or email?
+                    <a href="{% url 'cart_checkout' %}" class="font-bold text-blue-600 hover:text-blue-700 ml-1">Return to Checkout</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-6 text-center text-xs text-slate-400">
+            Check your <strong>Spam/Junk</strong> folder if the code doesn't arrive in 1-2 minutes.
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputs = document.querySelectorAll('.otp-digit');
+    const fullInput = document.getElementById('full-otp-input');
+    const form = document.getElementById('checkout-otp-form');
+    const resendBtn = document.getElementById('btn-resend-checkout-otp');
+    const timerSpan = document.getElementById('cooldown-timer');
+    const cooldownArea = document.getElementById('cooldown-area');
+
+    if (inputs.length > 0) inputs[0].focus();
+
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function () {
+            const val = this.value.replace(/[^0-9]/g, '');
+            this.value = val ? val[0] : '';
+            updateFullOTP();
+            if (this.value && index < inputs.length - 1) inputs[index + 1].focus();
+            if (fullInput.value.length === 6) form.submit();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && !this.value && index > 0) inputs[index - 1].focus();
+        });
+
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').trim();
+            if (pasteData) {
+                for (let i = 0; i < inputs.length; i++) {
+                    if (pasteData[i]) inputs[i].value = pasteData[i];
+                }
+                updateFullOTP();
+                if (fullInput.value.length === 6) form.submit();
+            }
+        });
+    });
+
+    function updateFullOTP() {
+        let code = '';
+        inputs.forEach(inp => { code += inp.value; });
+        fullInput.value = code;
+    }
+
+    form.addEventListener('submit', function (e) {
+        updateFullOTP();
+        if (fullInput.value.length !== 6) {
+            e.preventDefault();
+            alert('Please enter the 6-digit verification code.');
+        }
+    });
+
+    let countdown = 60;
+    const interval = setInterval(function () {
+        countdown--;
+        if (countdown > 0) {
+            timerSpan.textContent = countdown;
+        } else {
+            clearInterval(interval);
+            cooldownArea.classList.add('hidden');
+            resendBtn.disabled = false;
+            resendBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5 shadow-sm";
+        }
+    }, 1000);
+});
+
+async function handleResendCheckoutOTP() {
+    const btn = document.getElementById('btn-resend-checkout-otp');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('email', '{{ email }}');
+    formData.append('first_name', '{{ first_name }}');
+
+    try {
+        const res = await fetch("{% url 'cart_ajax_send_otp' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        }).then(r => r.json());
+
+        if (res.success) {
+            alert(res.message || 'Verification code resent!');
+            window.location.reload();
+        } else {
+            alert(res.message || 'Failed to resend code.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code';
+        }
+    } catch (e) {
+        alert('Connection error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code';
+    }
+}
+</script>
+{% endblock %}

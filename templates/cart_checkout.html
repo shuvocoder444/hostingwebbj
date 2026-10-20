@@ -201,8 +201,13 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address <span class="text-rose-500">*</span></label>
-                                    <input type="email" name="email" placeholder="your.email@domain.com"
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address <span class="text-rose-500">*</span></label>
+                                        <button type="button" id="btn-send-checkout-otp" onclick="sendCheckoutOTP()" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer">
+                                            <i class="fa-solid fa-paper-plane text-[10px]"></i> Send OTP to Email
+                                        </button>
+                                    </div>
+                                    <input type="email" id="input_reg_email" name="email" required placeholder="your.email@domain.com"
                                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
                                 </div>
                                 <div>
@@ -210,6 +215,26 @@
                                     <input type="tel" name="phone" placeholder="+880 1700-000000"
                                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500 font-mono">
                                 </div>
+                            </div>
+
+                            <!-- Inline Checkout OTP Verification Box -->
+                            <div id="checkout-otp-panel" class="hidden p-4 rounded-2xl bg-blue-50/70 border-2 border-blue-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-check text-blue-600"></i>
+                                        Verify Email With 6-Digit Code
+                                    </span>
+                                    <span id="checkout-otp-timer" class="text-[11px] font-mono font-bold text-blue-600"></span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="input_checkout_otp" name="checkout_otp" maxlength="6" placeholder="Enter 6-digit code"
+                                        class="flex-1 px-4 py-2 bg-white border border-blue-300 rounded-xl text-slate-900 font-mono text-sm tracking-widest font-black focus:outline-none focus:border-blue-600 text-center">
+                                    <button type="button" id="btn-verify-checkout-otp" onclick="verifyCheckoutOTP()"
+                                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+                                        <i class="fa-solid fa-check"></i> Verify Code
+                                    </button>
+                                </div>
+                                <div id="checkout-otp-status" class="text-[11px] text-slate-600"></div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -239,6 +264,11 @@
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company / Organization (Optional)</label>
                                 <input type="text" name="company_name" placeholder="e.g. My Business Ltd"
                                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-brand-500">
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 flex items-center gap-2.5">
+                                <i class="fa-solid fa-envelope-circle-check text-base text-blue-600 shrink-0"></i>
+                                <span>A 6-digit verification code will be sent to your Gmail/email to verify and activate your client account.</span>
                             </div>
                         </div>
 
@@ -728,6 +758,114 @@ function selectPaymentGateway(gateway) {
 document.addEventListener('DOMContentLoaded', () => {
     selectPaymentGateway('webkoders');
 });
+
+async function sendCheckoutOTP() {
+    const emailInput = document.getElementById('input_reg_email');
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+    const firstName = document.querySelector('input[name="first_name"]') ? document.querySelector('input[name="first_name"]').value.trim() : '';
+    const btn = document.getElementById('btn-send-checkout-otp');
+    const panel = document.getElementById('checkout-otp-panel');
+    const statusDiv = document.getElementById('checkout-otp-status');
+
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address first.');
+        if (emailInput) emailInput.focus();
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('first_name', firstName);
+
+    try {
+        const res = await fetch("{% url 'cart_ajax_send_otp' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        }).then(r => r.json());
+
+        if (res.success) {
+            panel.classList.remove('hidden');
+            statusDiv.innerHTML = `<span class="text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check"></i> 6-digit verification code sent to <strong>${email}</strong>. Check inbox/spam!</span>`;
+            document.getElementById('input_checkout_otp').focus();
+            startCheckoutTimer(60);
+        } else {
+            alert(res.message || 'Failed to send verification code.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[10px]"></i> Send OTP to Email';
+        }
+    } catch (e) {
+        alert('Connection error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane text-[10px]"></i> Send OTP to Email';
+    }
+}
+
+async function verifyCheckoutOTP() {
+    const email = document.getElementById('input_reg_email').value.trim().toLowerCase();
+    const otp = document.getElementById('input_checkout_otp').value.trim();
+    const verifyBtn = document.getElementById('btn-verify-checkout-otp');
+    const statusDiv = document.getElementById('checkout-otp-status');
+
+    if (!otp || otp.length !== 6) {
+        alert('Please enter the 6-digit verification code.');
+        return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('otp', otp);
+
+    try {
+        const res = await fetch("{% url 'cart_ajax_verify_otp' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        }).then(r => r.json());
+
+        if (res.success) {
+            statusDiv.innerHTML = `<div class="p-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-600 text-base"></i> Email Verified Successfully (${email})</div>`;
+            document.getElementById('checkout-otp-panel').className = "p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-300";
+            document.getElementById('btn-send-checkout-otp').innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> Verified</span>';
+            document.getElementById('btn-send-checkout-otp').disabled = true;
+            document.getElementById('input_checkout_otp').classList.add('hidden');
+            verifyBtn.classList.add('hidden');
+        } else {
+            alert(res.message || 'Incorrect verification code.');
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Verify Code';
+        }
+    } catch (e) {
+        alert('Verification error. Please try again.');
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Verify Code';
+    }
+}
+
+function startCheckoutTimer(seconds) {
+    const timerSpan = document.getElementById('checkout-otp-timer');
+    const btn = document.getElementById('btn-send-checkout-otp');
+    let timeLeft = seconds;
+    const interval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+            timerSpan.textContent = `Resend in ${timeLeft}s`;
+        } else {
+            clearInterval(interval);
+            timerSpan.textContent = '';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right text-[10px]"></i> Resend OTP';
+        }
+    }, 1000);
+}
 </script>
 
 

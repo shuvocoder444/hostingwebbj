@@ -18,9 +18,11 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from accounts.models import ClientProfile
+from accounts.models import ClientProfile, EmailOTP
+from accounts.otp_service import OTPService
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction
 from billing.services import InvoiceNumberGenerator
+from core.models import SiteSetting
 from core.security import rate_limit
 from core.views import (
     get_cached_package_categories,
@@ -271,6 +273,58 @@ def ajax_domain_ai_generate_view(request):
         'count': len(ai_results),
         'results': ai_results,
     })
+
+
+@require_http_methods(['GET', 'POST'])
+def cart_ajax_send_otp_view(request):
+    """
+    AJAX endpoint to send verification OTP to a customer during checkout.
+    """
+    email = (request.POST.get('email') or request.GET.get('email', '')).strip().lower()
+    first_name = (request.POST.get('first_name') or request.GET.get('first_name', '')).strip()
+
+    if not email or '@' not in email:
+        return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+
+    if User.objects.filter(email__iexact=email).exists():
+        return JsonResponse({
+            'success': False,
+            'is_existing': True,
+            'message': f"An account with email '{email}' already exists. Please switch to the 'Existing Customer' tab to log in."
+        }, status=400)
+
+    success, msg = OTPService.generate_and_send_otp(
+        email=email,
+        first_name=first_name,
+        purpose=EmailOTP.Purpose.CHECKOUT,
+        request=request
+    )
+    return JsonResponse({'success': success, 'message': msg})
+
+
+@require_http_methods(['POST'])
+def cart_ajax_verify_otp_view(request):
+    """
+    AJAX endpoint to verify checkout OTP code.
+    """
+    email = (request.POST.get('email') or '').strip().lower()
+    otp_code = (request.POST.get('otp') or request.POST.get('otp_code', '')).strip()
+
+    if not email or not otp_code:
+        return JsonResponse({'success': False, 'message': 'Email and 6-digit verification code are required.'}, status=400)
+
+    success, msg = OTPService.verify_otp(
+        email=email,
+        otp_code=otp_code,
+        purpose=EmailOTP.Purpose.CHECKOUT
+    )
+    if success:
+        request.session['checkout_verified_email'] = email
+        request.session.modified = True
+        return JsonResponse({'success': True, 'message': 'Email address verified successfully!'})
+
+    return JsonResponse({'success': False, 'message': msg}, status=400)
+
 
 
 
@@ -671,6 +725,69 @@ def cart_checkout_view(request):
 
 # ─── STEP 4: ORDER COMPLETION & ATOMIC PROVISIONING TRIGGER ───────────────────
 
+def cart_verify_checkout_otp_view(request):
+    """
+    Dedicated verification page for guest orders when OTP was required.
+    """
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    order_data = request.session.get('pending_checkout_order')
+    if not order_data or not order_data.get('email'):
+        messages.warning(request, "No pending order found. Please checkout again.")
+        return redirect('cart_domain')
+
+    email = order_data.get('email', '').strip().lower()
+    first_name = order_data.get('first_name', '')
+    package_id = order_data.get('package_id')
+    package = safe_get_package(package_id)
+    domain = order_data.get('domain', '')
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp', '').strip()
+        if not otp_code:
+            digits = [request.POST.get(f'digit_{i}', '') for i in range(1, 7)]
+            otp_code = ''.join(digits).strip()
+
+        success, err_msg = OTPService.verify_otp(
+            email=email,
+            otp_code=otp_code,
+            purpose=EmailOTP.Purpose.CHECKOUT
+        )
+
+        if not success:
+            messages.error(request, err_msg)
+            return render(request, 'cart_verify_otp.html', {
+                'email': email,
+                'first_name': first_name,
+                'package': package,
+                'domain': domain,
+            })
+
+        # OTP verified! Mark verified in session
+        request.session['checkout_verified_email'] = email
+        request.session.modified = True
+
+        # Synthesize POST request and complete order
+        from django.http import QueryDict
+        new_post = QueryDict('', mutable=True)
+        for k, v in order_data.items():
+            new_post[k] = v
+        request.POST = new_post
+
+        request.session.pop('pending_checkout_order', None)
+        request.session.modified = True
+
+        return cart_complete_order_view(request)
+
+    return render(request, 'cart_verify_otp.html', {
+        'email': email,
+        'first_name': first_name,
+        'package': package,
+        'domain': domain,
+    })
+
+
 @require_http_methods(['POST'])
 def cart_complete_order_view(request):
     """
@@ -755,6 +872,39 @@ def cart_complete_order_view(request):
                     messages.error(request, f"An account with email '{email}' already exists. Please log in.")
                     return redirect(redirect_err_url)
 
+                site = SiteSetting.get_settings()
+                require_otp = getattr(site, 'require_email_otp', True)
+
+                # Check if email is already verified in this session
+                is_verified = (request.session.get('checkout_verified_email') == email)
+
+                # Check if user submitted an OTP with this form
+                provided_otp = request.POST.get('checkout_otp', '').strip()
+                if not is_verified and provided_otp:
+                    v_ok, _ = OTPService.verify_otp(email, provided_otp, purpose=EmailOTP.Purpose.CHECKOUT)
+                    if v_ok:
+                        is_verified = True
+                        request.session['checkout_verified_email'] = email
+                        request.session.modified = True
+
+                if require_otp and not is_verified:
+                    # Save entire order in session and send OTP
+                    request.session['pending_checkout_order'] = request.POST.dict()
+                    request.session.modified = True
+
+                    success, msg = OTPService.generate_and_send_otp(
+                        email=email,
+                        first_name=first_name,
+                        purpose=EmailOTP.Purpose.CHECKOUT,
+                        request=request
+                    )
+                    if not success:
+                        messages.error(request, msg)
+                        return redirect(redirect_err_url)
+
+                    messages.info(request, f"A 6-digit verification code has been sent to {email}. Please enter it below to complete your order.")
+                    return redirect('cart_verify_checkout_otp')
+
                 with db_transaction.atomic():
                     new_user = User.objects.create_user(
                         email=email,
@@ -774,6 +924,7 @@ def cart_complete_order_view(request):
                     )
                     login(request, new_user, backend='django.contrib.auth.backends.ModelBackend')
                     current_user = new_user
+
 
         # 2. Compute Prices
         hosting_amount = Decimal('0.00')
