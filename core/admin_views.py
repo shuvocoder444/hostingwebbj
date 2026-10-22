@@ -11,11 +11,18 @@ Provides comprehensive, unified management for:
 - Clients & Wallet Credit Management
 """
 import logging
+import os
+import re
+import secrets
+import time
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
+from django.conf import settings as dj_settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -627,10 +634,28 @@ def admin_action_handler_view(request, action_type):
     elif action_type == 'edit_tld':
         tld_id = request.POST.get('tld_id')
         tld_obj = get_object_or_404(TLDPricing, id=tld_id)
-        tld_obj.register_price = Decimal(request.POST.get('register_price', str(tld_obj.register_price)))
-        tld_obj.renew_price = Decimal(request.POST.get('renew_price', str(tld_obj.renew_price)))
-        tld_obj.transfer_price = Decimal(request.POST.get('transfer_price', str(tld_obj.transfer_price)))
-        tld_obj.is_active = request.POST.get('is_active') == 'on' or request.POST.get('is_active') == 'true'
+
+        reg_val = request.POST.get('register_price', '').strip()
+        renew_val = request.POST.get('renew_price', '').strip()
+        trans_val = request.POST.get('transfer_price', '').strip()
+
+        if reg_val:
+            try:
+                tld_obj.register_price = Decimal(reg_val)
+            except Exception:
+                pass
+        if renew_val:
+            try:
+                tld_obj.renew_price = Decimal(renew_val)
+            except Exception:
+                pass
+        if trans_val:
+            try:
+                tld_obj.transfer_price = Decimal(trans_val)
+            except Exception:
+                pass
+
+        tld_obj.is_active = request.POST.get('is_active') in ('on', 'true', '1')
 
         registrar_id = request.POST.get('registrar_id')
         if registrar_id:
@@ -642,6 +667,7 @@ def admin_action_handler_view(request, action_type):
                     tld_obj.registrar = reg_obj
 
         tld_obj.save()
+        cache.clear()
         messages.success(request, f"TLD '{tld_obj.tld}' pricing updated (Provider: {tld_obj.registrar.name if tld_obj.registrar else 'Default'}).")
 
     # ── 3c. DELETE TLD PRICING ────────────────────────────────────────────────
@@ -795,7 +821,6 @@ def admin_action_handler_view(request, action_type):
                         total_updated += 1
                     else:
                         # Clean WHM reseller username prefix (e.g. resellerperfect_)
-                        import re
                         clean_title = re.sub(r'^' + re.escape(srv.api_username) + r'_', '', pkg_name, flags=re.IGNORECASE).strip()
                         base_title = clean_title.replace('_', ' ').replace('-', ' ').title()
 
@@ -863,7 +888,6 @@ def admin_action_handler_view(request, action_type):
                 errors.append(f"{srv.name}: {exc!s}")
 
         # Invalidate packages cache
-        from django.core.cache import cache
         cache.clear()
 
         if total_synced > 0:
@@ -902,7 +926,6 @@ def admin_action_handler_view(request, action_type):
             sort_order=sort_order,
             is_active=is_active,
         )
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Category '{name}' created successfully!")
 
@@ -918,7 +941,6 @@ def admin_action_handler_view(request, action_type):
         cat.sort_order = int(request.POST.get('sort_order', cat.sort_order) or 0)
         cat.is_active = request.POST.get('is_active') in ('on', '1', 'true')
         cat.save()
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Category '{cat.name}' updated successfully.")
 
@@ -929,14 +951,12 @@ def admin_action_handler_view(request, action_type):
         c_name = cat.name
         HostingPackage.objects.filter(category=cat).update(category=None)
         cat.delete()
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Category '{c_name}' deleted. Associated packages unlinked.")
 
     # ── 4b. ADD HOSTING PACKAGE (HOSTPRO + OPTIONAL TWO-WAY WHM CREATE) ───────
     # ── 4b. CREATE HOSTING PACKAGE (OPTIONAL WHM SYNC) ────────────────────────
     elif action_type == 'add_package':
-        import re
         name = request.POST.get('name', '').strip()
         server_id = request.POST.get('server_id')
         panel_package_name = request.POST.get('package_name', '').strip() or request.POST.get('panel_package_name', '').strip() or request.POST.get('whm_package_name', '').strip()
@@ -1023,13 +1043,11 @@ def admin_action_handler_view(request, action_type):
         if category_ids:
             pkg.categories.set(category_ids)
 
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Package '{name}' saved and linked to WHM plan '{panel_package_name}' on server '{server.name}'!")
 
     # ── 4c. EDIT HOSTING PACKAGE ──────────────────────────────────────────────
     elif action_type == 'edit_package':
-        import re
         package_id = request.POST.get('package_id')
         pkg = get_object_or_404(HostingPackage, id=package_id)
         pkg.name = request.POST.get('name', pkg.name).strip()
@@ -1073,24 +1091,46 @@ def admin_action_handler_view(request, action_type):
         annual_val = request.POST.get('annual_price', '').strip()
 
         if monthly_val:
-            pkg.monthly_price = Decimal(monthly_val)
+            try:
+                pkg.monthly_price = Decimal(monthly_val)
+            except Exception:
+                pkg.monthly_price = Decimal('0.00')
         else:
             pkg.monthly_price = Decimal('0.00')
 
         if annual_val:
-            pkg.annual_price = Decimal(annual_val)
+            try:
+                pkg.annual_price = Decimal(annual_val)
+            except Exception:
+                pass
         elif pkg.monthly_price and pkg.monthly_price > 0:
             pkg.annual_price = pkg.monthly_price * 10
-        
-        reg_val = request.POST.get('regular_price', '').strip()
-        pkg.regular_price = Decimal(reg_val) if reg_val else None
 
-        pkg.disk_quota_mb = int(request.POST.get('disk_quota_mb', pkg.disk_quota_mb))
-        pkg.bandwidth_mb = int(request.POST.get('bandwidth_mb', pkg.bandwidth_mb))
+        reg_val = request.POST.get('regular_price', '').strip()
+        if reg_val:
+            try:
+                pkg.regular_price = Decimal(reg_val)
+            except Exception:
+                pkg.regular_price = None
+        else:
+            pkg.regular_price = None
+
+        disk_val = request.POST.get('disk_quota_mb', '').strip()
+        if disk_val:
+            try:
+                pkg.disk_quota_mb = int(disk_val)
+            except Exception:
+                pass
+        bw_val = request.POST.get('bandwidth_mb', '').strip()
+        if bw_val:
+            try:
+                pkg.bandwidth_mb = int(bw_val)
+            except Exception:
+                pass
+
         pkg.is_featured = request.POST.get('is_featured') in ('on', '1', 'true')
         pkg.is_active = request.POST.get('is_active') in ('on', '1', 'true')
         pkg.save()
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Package '{pkg.name}' updated successfully.")
 
@@ -1113,7 +1153,6 @@ def admin_action_handler_view(request, action_type):
                 messages.warning(request, f"WHM package removal note: {exc!s}")
 
         pkg.delete()
-        from django.core.cache import cache
         cache.clear()
         messages.success(request, f"Hosting Package '{pkg_name}' deleted successfully.")
 
@@ -1161,7 +1200,6 @@ def admin_action_handler_view(request, action_type):
         }
         today = timezone.now().date()
         if custom_next_due_str:
-            from datetime import datetime
             try:
                 due_date = datetime.strptime(custom_next_due_str, '%Y-%m-%d').date()
             except ValueError:
@@ -1249,7 +1287,6 @@ def admin_action_handler_view(request, action_type):
                 account.billing_cycle = billing_cycle
 
             if next_due_str:
-                from datetime import datetime
                 try:
                     account.next_due_date = datetime.strptime(next_due_str, '%Y-%m-%d').date()
                 except ValueError:
@@ -1275,7 +1312,6 @@ def admin_action_handler_view(request, action_type):
             account.save(update_fields=['status', 'provisioned_at', 'next_due_date'])
             try:
                 driver = get_driver(account.server)
-                import secrets
                 plain_pass = secrets.token_urlsafe(14)
                 driver.create_account(
                     domain=account.domain,
@@ -1549,7 +1585,6 @@ def admin_action_handler_view(request, action_type):
             except ValueError:
                 pass
 
-        from datetime import datetime
         if reg_date_str:
             try:
                 dom.registration_date = datetime.strptime(reg_date_str, '%Y-%m-%d').date()
@@ -1630,7 +1665,6 @@ def admin_action_handler_view(request, action_type):
                         exp_str = d.get('expiry_date') or d.get('expirydate') or d.get('expires_at') or d.get('nextduedate')
                         status_str = (d.get('status') or 'active').lower()
 
-                        from datetime import datetime
                         exp_date = None
                         if exp_str:
                             for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S', '%d-%m-%Y'):
@@ -1986,8 +2020,6 @@ def admin_action_handler_view(request, action_type):
             site.thumbnail_url = thumbnail_url_input
 
         # Handle Direct Image File Uploads with Cache-Busting Filenames
-        import os
-        import time
 
         from django.conf import settings as dj_settings
         static_img_dir = os.path.join(dj_settings.BASE_DIR, 'static', 'img')
@@ -2072,7 +2104,6 @@ def admin_action_handler_view(request, action_type):
         rate_val = request.POST.get('bdt_per_usd')
         if rate_val:
             try:
-                from decimal import Decimal
                 site.bdt_per_usd = Decimal(str(rate_val).strip())
             except Exception:
                 pass

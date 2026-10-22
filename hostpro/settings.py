@@ -291,16 +291,25 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'file_error': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'django_errors.log'),
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'verbose',
+            'level': 'ERROR',
+        },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file_error'],
         'level': 'INFO',
     },
     'loggers': {
-        'django': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
-        'hostpro': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
-        'billing': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
-        'hosting': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
+        'django': {'handlers': ['console', 'file_error'], 'level': 'WARNING', 'propagate': False},
+        'django.request': {'handlers': ['console', 'file_error'], 'level': 'ERROR', 'propagate': False},
+        'hostpro': {'handlers': ['console', 'file_error'], 'level': 'DEBUG', 'propagate': False},
+        'billing': {'handlers': ['console', 'file_error'], 'level': 'DEBUG', 'propagate': False},
+        'hosting': {'handlers': ['console', 'file_error'], 'level': 'DEBUG', 'propagate': False},
     },
 }
 
