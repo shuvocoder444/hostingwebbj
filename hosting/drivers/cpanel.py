@@ -93,7 +93,7 @@ class CPanelDriver(BaseServerDriver):
                 url,
                 params=all_params,
                 timeout=timeout,
-                verify=False,  # WHM commonly uses self-signed / hostname SSL
+                verify=True,
             )
             response.raise_for_status()
             return response.json()

@@ -195,8 +195,6 @@ def check_domain_live(domain_name: str) -> DomainLookupResult:
     # ── 3. ICANN RDAP Fallback Query ─────────────────────────────────────────
     try:
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
 
         rdap_url = f"https://rdap.org/domain/{clean_domain}"
         req = urllib.request.Request(

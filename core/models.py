@@ -22,7 +22,7 @@ class SiteSetting(models.Model):
     # ── Site Identity & SEO ──
     site_title = models.CharField(
         max_length=200,
-        default='VeloHoster — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud',
+        default='VeloHoster: NVMe Web Hosting and Domains in Bangladesh',
         help_text='Main website title shown in search engines and social share previews.'
     )
     company_name = models.CharField(
@@ -36,11 +36,11 @@ class SiteSetting(models.Model):
         blank=True
     )
     meta_description = models.TextField(
-        default='Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.',
+        default='NVMe web hosting and domain registration with cPanel, reliable support, and server locations in Bangladesh, Singapore, the USA, and Europe.',
         help_text='Meta description for Google SEO and social share previews (Facebook, WhatsApp, Twitter).'
     )
     meta_keywords = models.TextField(
-        default='namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting',
+        default='',
         blank=True,
         help_text='Comma-separated SEO keywords and tags.'
     )
@@ -111,13 +111,13 @@ class SiteSetting(models.Model):
     webkoders_api_key = models.CharField(
         max_length=255,
         blank=True,
-        default='mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c',
+        default='',
         help_text='WebKoders API Key (Merchant API Key)'
     )
     webkoders_api_secret = models.CharField(
         max_length=255,
         blank=True,
-        default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc',
+        default='',
         help_text='WebKoders API Secret Key (Used for HMAC-SHA256 signature verification)'
     )
     webkoders_webhook_url = models.CharField(
@@ -232,7 +232,7 @@ class SiteSetting(models.Model):
             if not setting:
                 setting = cls.objects.create(
                     company_name='VeloHoster',
-                    site_title='VeloHoster — High Performance Cloud Web Hosting & Domains',
+                    site_title='VeloHoster: NVMe Web Hosting and Domains in Bangladesh',
                     logo_url='/static/img/logo.png',
                     favicon_url='/static/img/favicon.png',
                     whatsapp_number='8801700000000',
@@ -242,11 +242,11 @@ class SiteSetting(models.Model):
         except Exception:
             # Fallback mock object if migrations not run yet
             class FallbackSetting:
-                site_title = 'VeloHoster — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud'
+                site_title = 'VeloHoster: NVMe Web Hosting and Domains in Bangladesh'
                 company_name = 'VeloHoster'
                 tagline = 'Next-Gen NVMe Cloud & BDIX Hosting Platform'
-                meta_description = 'Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.'
-                meta_keywords = 'namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting'
+                meta_description = 'NVMe web hosting and domain registration with cPanel, reliable support, and server locations in Bangladesh, Singapore, the USA, and Europe.'
+                meta_keywords = ''
                 show_hero_section = True
                 logo_url = '/static/img/logo.png'
                 favicon_url = '/static/img/favicon.png'
@@ -262,8 +262,8 @@ class SiteSetting(models.Model):
                 twitter_url = ''
                 telegram_url = ''
                 webkoders_base_url = 'https://payment.webkoders.com'
-                webkoders_api_key = 'mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c'
-                webkoders_api_secret = 'mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc'
+                webkoders_api_key = ''
+                webkoders_api_secret = ''
                 webkoders_webhook_url = 'https://velohoster.com/payments/webhook/'
                 bdt_per_usd = 120.00
             return FallbackSetting()

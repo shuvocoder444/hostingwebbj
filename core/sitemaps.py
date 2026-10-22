@@ -27,13 +27,10 @@ class StaticViewSitemap(Sitemap):
             'hosting_vps',
             'domain_register',
             'domain_transfer',
-            'cart_domain',
             'about_us',
             'our_datacenter',
             'contact_us',
             'blog',
-            'login',
-            'register',
         ]
 
     def location(self, item):
@@ -54,8 +51,3 @@ class StaticViewSitemap(Sitemap):
         elif 'hosting' in item or 'domain' in item:
             return 'weekly'
         return 'monthly'
-
-    def lastmod(self, item):
-        from django.utils import timezone
-        return timezone.now()
-

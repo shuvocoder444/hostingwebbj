@@ -15,6 +15,7 @@ staticfiles/
 # Environment & IDE
 .env
 .venv/
+node_modules/
 venv/
 ENV/
 .idea/

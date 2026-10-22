@@ -1,31 +1,21 @@
-# hostingwebbj
+# HostPro
 
-cd /home/webkoders/host.webkoders.com
-python3 manage.py makemigrations
-python3 manage.py migrate
-SHUVOshuvo123@
+Django application for hosting, domain registration, client accounts and billing.
 
+## Local setup
 
-Django Admin URL: https://host.webkoders.com/admin/
-Username / Email: shuvo@gmail.com (অথবা admin@hostpro.com
-Password: Admin@123456
+1. Create and activate a Python virtual environment.
+2. Install the Python dependencies with `pip install -r requirements.txt`.
+3. Copy `.env.example` to `.env` and set unique local secrets.
+4. Leave `DB_ENGINE=sqlite` for local development, then run `python manage.py migrate` and `python manage.py runserver`.
+5. Build the production CSS with `npm ci` and `npm run build:css`.
 
+## Production database
 
+Use PostgreSQL for production. Create a database and database user in the hosting control panel, grant that user access to the database, then set `DB_ENGINE=postgresql`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_HOST` in the server environment. Back up the existing SQLite database and migrate its data before switching the live application. Do not commit `.env` or paste production credentials into source files or documentation.
 
+Build `static/css/site.css` before deploying templates, then run Django's `collectstatic` step on the server.
 
+## Security notice
 
-ক্লায়েন্ট পোর্টাল লগইন ও ভিউ ভেরিফিকেশন:
-
-client@chinofy.com
-
-পাসওয়ার্ড: ClientPass123!
-ড্যাশবোর্ড ভিউ: শুধু chinofy.com ডোমেন দেখতে পাবে (কোনো হোস্টিং প্যাকেজ নেই)।
-
-contact@signsabove.net
-
-পাসওয়ার্ড: ClientPass123!
-ড্যাশবোর্ড ভিউ: signsabove.net ডোমেন + signsabove.net হোস্টিং অ্যাকাউন্ট দেখতে পাবে।
-
-Email: contact@perfectwelding.nl
-Password: Pass1234!@#$
-ড্যাশবোর্ড ভিউ: perfectwelding.nl হোস্টিং অ্যাকাউন্ট দেখতে পাবে (কোনো ডোমেন নেই)।
+Previous revisions of this README contained account credentials. Treat them as exposed: change those passwords and any related credentials, and remove the old values from repository history before sharing the repository.

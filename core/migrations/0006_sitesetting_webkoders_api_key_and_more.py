@@ -13,12 +13,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sitesetting',
             name='webkoders_api_key',
-            field=models.CharField(blank=True, default='mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c', help_text='WebKoders API Key (Merchant API Key)', max_length=255),
+            field=models.CharField(blank=True, default='', help_text='WebKoders API Key (Merchant API Key)', max_length=255),
         ),
         migrations.AddField(
             model_name='sitesetting',
             name='webkoders_api_secret',
-            field=models.CharField(blank=True, default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc', help_text='WebKoders API Secret Key (Used for HMAC-SHA256 signature verification)', max_length=255),
+            field=models.CharField(blank=True, default='', help_text='WebKoders API Secret Key (Used for HMAC-SHA256 signature verification)', max_length=255),
         ),
         migrations.AddField(
             model_name='sitesetting',

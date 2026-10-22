@@ -18,21 +18,16 @@ Usage:
     raw_token = server.get_api_token()
 """
 
-import base64
-import hashlib
 import logging
 from cryptography.fernet import Fernet, InvalidToken
 from decouple import config
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_KEY = "OGtjeXFEUZevmNXtDSR_SwQb0_W_N38B5yu1uoQ4cBQ="
-
-
 def _get_encryption_key() -> bytes:
     """
     Retrieves the 32-byte URL-safe base64 Fernet key.
-    Checks config('FIELD_ENCRYPTION_KEY'), django.conf.settings, and falls back to DEFAULT_KEY.
+    Requires the configured FIELD_ENCRYPTION_KEY. Never substitute a known key.
     """
     key = config("FIELD_ENCRYPTION_KEY", default="").strip()
     if key:
@@ -44,13 +39,10 @@ def _get_encryption_key() -> bytes:
         if key:
             return key.encode("utf-8")
 
-        secret = getattr(settings, "SECRET_KEY", "hostpro-secure-fallback-secret-key-334455")
-        digest = hashlib.sha256(f"hostpro-field-encryption:{secret}".encode("utf-8")).digest()
-        return base64.urlsafe_b64encode(digest)
-    except Exception:
-        pass
+    except Exception as exc:
+        raise RuntimeError("FIELD_ENCRYPTION_KEY is not configured.") from exc
 
-    return DEFAULT_KEY.encode("utf-8")
+    raise RuntimeError("FIELD_ENCRYPTION_KEY is not configured.")
 
 
 def _get_fernet() -> Fernet:
@@ -58,8 +50,8 @@ def _get_fernet() -> Fernet:
     try:
         return Fernet(key_bytes)
     except Exception as exc:
-        logger.warning("Invalid encryption key provided (%s). Falling back to default Fernet key.", exc)
-        return Fernet(DEFAULT_KEY.encode("utf-8"))
+        logger.exception("FIELD_ENCRYPTION_KEY is invalid.")
+        raise RuntimeError("FIELD_ENCRYPTION_KEY must be a valid Fernet key.") from exc
 
 
 # Fernet instance

@@ -13,7 +13,7 @@ from decouple import Csv, config
 # ─── Base ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-hostpro-live-key-xyz-77889900112233')
+SECRET_KEY = config('SECRET_KEY')
 
 # Use a safe boolean cast that won't fail on system env vars like DEBUG=release
 def _safe_bool(val):
@@ -23,16 +23,18 @@ def _safe_bool(val):
     return str(val).lower() in ('true', '1', 'yes')
 
 DEBUG = config('DEBUG', default=False, cast=_safe_bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='host.webkoders.com,195.250.26.201,127.0.0.1,localhost,testserver,*', cast=Csv())
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='host.webkoders.com,velohoster.com,www.velohoster.com,195.250.26.201,127.0.0.1,localhost,testserver',
+    cast=Csv(),
+)
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://host.webkoders.com',
-    'http://host.webkoders.com',
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-    'http://195.250.26.201',
-    'https://195.250.26.201',
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://host.webkoders.com,https://velohoster.com,https://www.velohoster.com,http://127.0.0.1:8000,http://localhost:8000',
+    cast=Csv(),
+)
+SITE_DOMAIN = config('SITE_DOMAIN', default='velohoster.com')
 
 
 # ─── Installed Apps ───────────────────────────────────────────────────────────
@@ -98,25 +100,33 @@ WSGI_APPLICATION = 'hostpro.wsgi.application'
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 
-# ─── Database (SQLite High-Performance Tuned & Memory-Mapped) ─────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'CONN_MAX_AGE': 300,  # Reuse database connections for 5 minutes
-        'OPTIONS': {
-            'timeout': 30,
-            'init_command': (
-                'PRAGMA journal_mode=WAL;'
-                'PRAGMA synchronous=NORMAL;'
-                'PRAGMA cache_size=-64000;'       # 64MB cache in RAM
-                'PRAGMA temp_store=MEMORY;'
-                'PRAGMA busy_timeout=30000;'
-                'PRAGMA mmap_size=268435456;'      # 256MB memory-mapped file I/O
-            ),
+# Database: PostgreSQL for production, SQLite for local development.
+DB_ENGINE = config('DB_ENGINE', default='sqlite')
+if DB_ENGINE == 'postgresql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+            'CONN_MAX_AGE': config('DB_CONN_MAX_AGE', default=60, cast=int),
+            'CONN_HEALTH_CHECKS': True,
+            'OPTIONS': {'connect_timeout': 5},
         },
     }
-}
+elif DB_ENGINE == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'CONN_MAX_AGE': 0,
+            'OPTIONS': {'timeout': 30},
+        },
+    }
+else:
+    raise ValueError("DB_ENGINE must be either 'sqlite' or 'postgresql'.")
 
 # ─── Cache Strategy (Redis with Seamless In-Memory Fallback) ─────────────────
 REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
@@ -238,7 +248,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='VeloHoster <noreply@v
 
 
 # ─── Encryption ───────────────────────────────────────────────────────────────
-FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='OGtjeXFEUZevmNXtDSR_SwQb0_W_N38B5yu1uoQ4cBQ=')
+FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY')
 
 # ─── Billing Settings ─────────────────────────────────────────────────────────
 RENEWAL_INVOICE_DAYS_BEFORE = config('RENEWAL_INVOICE_DAYS_BEFORE', default=7, cast=int)
@@ -246,8 +256,8 @@ AUTO_SUSPEND_GRACE_DAYS = config('AUTO_SUSPEND_GRACE_DAYS', default=3, cast=int)
 
 # WebKoders Payment Gateway
 GATEWAY_BASE_URL = config('GATEWAY_BASE_URL', default='https://payment.webkoders.com')
-GATEWAY_API_KEY = config('GATEWAY_API_KEY', default='mfs_live_1ed98dfb56d6e6d9e5b4e63414eb1a3c')
-GATEWAY_API_SECRET = config('GATEWAY_API_SECRET', default='mfs_sec_654365a041c5a55ccf5532d47d99c440395c1a6a81724acc')
+GATEWAY_API_KEY = config('GATEWAY_API_KEY', default='')
+GATEWAY_API_SECRET = config('GATEWAY_API_SECRET', default='')
 
 # ─── Security Headers & Hardening ───────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -259,9 +269,12 @@ CSRF_COOKIE_HTTPONLY = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=_safe_bool)
-    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=_safe_bool)
-    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=_safe_bool)
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=_safe_bool)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=_safe_bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=_safe_bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=_safe_bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=False, cast=_safe_bool)
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 LOGGING = {

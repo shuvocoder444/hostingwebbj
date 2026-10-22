@@ -44,9 +44,9 @@ def global_brand_context(request):
         clean_wa = '88' + clean_wa
 
     company_name = getattr(site, 'company_name', '') or getattr(settings, 'COMPANY_NAME', 'VeloHoster')
-    site_title = getattr(site, 'site_title', '') or f"{company_name} — Best Hosting in Bangladesh | Cheap Domain & BDIX NVMe Cloud"
-    meta_desc = getattr(site, 'meta_description', '') or 'Best web hosting in Bangladesh (bangladesher hosting) & cheap domain registration (kom dame domain). Ultra-fast BDIX, Singapore, USA & Germany NVMe cPanel hosting. Top Hostinger & Namecheap alternative with instant bKash, Nagad payment & 24/7 Bangla support.'
-    meta_keys = getattr(site, 'meta_keywords', '') or 'namecheap, hostinger, hostingbd, web hosting, domain, besthosing bangladesh, best hosting bangladesh, cheap domain, kom dame domain, bangladeseher hosting, bangladesher hosting, bdx hosting, bdix hosting, singapur hosting, singapore hosting, usa hosting, garmany hosting, germany hosting, erup hosting, europe hosting, cpanel hosting, buy domain bangladesh, bkash hosting'
+    site_title = getattr(site, 'site_title', '') or f"{company_name}: NVMe Web Hosting and Domains in Bangladesh"
+    meta_desc = getattr(site, 'meta_description', '') or 'NVMe web hosting and domain registration with cPanel, reliable support, and server locations in Bangladesh, Singapore, the USA, and Europe.'
+    meta_keys = getattr(site, 'meta_keywords', '') or ''
     tagline = getattr(site, 'tagline', '') or 'Ultra-Fast NVMe Cloud Web Hosting'
 
     logo_url = getattr(site, 'logo_url', '') or '/static/img/logo.png'
@@ -69,6 +69,12 @@ def global_brand_context(request):
         if h and '127.0.0.1' not in h and 'localhost' not in h:
             host = h
     og_page_url = f"https://{host}{current_path}"
+    private_prefixes = (
+        '/admin/', '/admin-dashboard/', '/api/', '/billing/', '/cart/',
+        '/dashboard/', '/login/', '/logout/', '/register/', '/resend-otp/',
+        '/services/', '/set-currency/', '/verify-otp/',
+    )
+    is_indexable = not current_path.startswith(private_prefixes)
 
     # ── Currency & Geolocation ──
     from .currency import get_current_currency, get_client_country, get_exchange_rate
@@ -103,10 +109,13 @@ def global_brand_context(request):
         'META_DESCRIPTION': meta_desc,
         'META_KEYWORDS': meta_keys,
         'LOGO_URL': logo_url,
+        'LOGO_ABSOLUTE_URL': make_absolute_https_url(request, logo_url),
         'FAVICON_URL': favicon_url,
         'THUMBNAIL_URL': thumbnail_url or '/static/img/og_thumbnail.png',
         'OG_IMAGE_URL': og_image_url,
         'OG_PAGE_URL': og_page_url,
+        'SITE_DOMAIN': settings.SITE_DOMAIN,
+        'IS_INDEXABLE': is_indexable,
         'WHATSAPP_NUMBER': clean_wa or '8801700000000',
         'WHATSAPP_DISPLAY_NUMBER': getattr(site, 'support_phone', '') or getattr(settings, 'WHATSAPP_DISPLAY_NUMBER', '+880 1700-000000'),
         'SUPPORT_EMAIL': getattr(site, 'support_email', 'support@velohoster.com'),
