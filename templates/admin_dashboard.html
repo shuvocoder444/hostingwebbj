@@ -978,132 +978,167 @@
  </div>
 
  <!-- Accounts Table -->
- <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
- <div class="overflow-x-auto">
- <table class="w-full text-left text-xs text-slate-600">
- <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
- <tr>
- <th class="px-6 py-4">Domain</th>
- <th class="px-6 py-4">Username</th>
- <th class="px-6 py-4">Client Email</th>
- <th class="px-6 py-4">WHM Server</th>
- <th class="px-6 py-4">Package Plan</th>
- <th class="px-6 py-4">Next Due / Expiry</th>
- <th class="px-6 py-4">Status</th>
- <th class="px-6 py-4 text-right">Server Actions</th>
- </tr>
- </thead>
- <tbody class="divide-y divide-slate-100">
- {% for acct in hosting_accounts %}
- <tr class="hover:bg-slate-50/70 transition">
- <td class="px-6 py-4">
- <a href="http://{{ acct.domain }}" target="_blank" class="font-bold text-slate-900 hover:text-brand-600 font-mono flex items-center gap-1.5">
- <span>{{ acct.domain }}</span>
- <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
- </a>
- </td>
- <td class="px-6 py-4 font-mono font-semibold text-slate-700">
- <span class="inline-flex items-center gap-1">
- <i class="fa-solid fa-user-gear text-slate-400 text-[11px]"></i>
- {{ acct.username }}
- </span>
- </td>
- <td class="px-6 py-4">
- <button type="button" onclick="openClientDetailsModal('{{ acct.user.id }}')" class="font-medium text-slate-700 hover:text-brand-600 hover:underline flex items-center gap-1 text-left cursor-pointer">
- <i class="fa-solid fa-circle-user text-slate-300 text-xs"></i>
- {{ acct.user.email }}
- </button>
- </td>
- <td class="px-6 py-4 font-medium text-slate-700">{{ acct.server.name }}</td>
- <td class="px-6 py-4">
- <span class="font-bold text-slate-900 block">{{ acct.package.name }}</span>
- <span class="text-[10px] font-mono text-slate-400">WHM: {{ acct.package.panel_package_name }}</span>
- </td>
- <td class="px-6 py-4">
- {% if acct.next_due_date %}
- <span class="font-bold text-slate-800 text-xs block font-mono">{{ acct.next_due_date|date:"M d, Y" }}</span>
- {% if acct.is_expiring_soon %}
- <span class="text-[10px] font-bold text-amber-600 inline-flex items-center gap-1 mt-0.5">
- <i class="fa-solid fa-clock"></i> {{ acct.days_until_due }} days left
- </span>
- {% else %}
- <span class="text-[10px] text-emerald-600 font-semibold block">Active</span>
- {% endif %}
- {% else %}
- <span class="text-xs text-slate-400">Not Set</span>
- {% endif %}
- </td>
- <td class="px-6 py-4">
- <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1
- {% if acct.status == 'active' %}bg-emerald-100 text-emerald-800
- {% elif acct.status == 'pending' %}bg-amber-100 text-amber-800
- {% elif acct.status == 'suspended' %}bg-rose-100 text-rose-800
- {% else %}bg-slate-100 text-slate-600{% endif %}">
- <span class="w-1.5 h-1.5 rounded-full {% if acct.status == 'active' %}bg-emerald-500{% elif acct.status == 'pending' %}bg-amber-500{% elif acct.status == 'suspended' %}bg-rose-500{% else %}bg-slate-400{% endif %}"></span>
- {{ acct.status }}
- </span>
- </td>
- <td class="px-6 py-4 text-right space-x-1">
- <!-- Edit Account & Expiry -->
- <button type="button" onclick="openEditHostingAccountModal('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}', '{{ acct.package.id }}', '{{ acct.billing_cycle }}', '{{ acct.next_due_date|date:"Y-m-d"|default:"" }}', '{{ acct.status }}', '{{ acct.amount|default:"" }}')"
- title="Edit Plan, Billing Cycle & Expiry Date"
- class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:bg-slate-50 hover:text-emerald-600 transition shadow-2xs">
- <i class="fa-solid fa-pen-to-square"></i> Edit
- </button>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                        <tr>
+                            <th class="px-4 py-3.5">Domain</th>
+                            <th class="px-4 py-3.5">Username</th>
+                            <th class="px-4 py-3.5">Client Email</th>
+                            <th class="px-4 py-3.5">WHM Server</th>
+                            <th class="px-4 py-3.5">Package</th>
+                            <th class="px-4 py-3.5">Expiry / Due</th>
+                            <th class="px-4 py-3.5">Status</th>
+                            <th class="px-4 py-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    {% for acct in hosting_accounts %}
+                        <tr onclick="openHostingDetailsModal('{{ acct.id }}')" class="hover:bg-blue-50/40 transition cursor-pointer group whitespace-nowrap">
+                            <!-- Domain -->
+                            <td class="px-4 py-3 align-middle font-medium">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-xs shrink-0 group-hover:bg-blue-600 group-hover:text-white transition shadow-2xs">
+                                        <i class="fa-solid fa-globe"></i>
+                                    </span>
+                                    <span class="font-bold text-slate-900 group-hover:text-brand-600 font-mono transition">{{ acct.domain }}</span>
+                                    <a href="http://{{ acct.domain }}" target="_blank" onclick="event.stopPropagation()" title="Visit Website" class="text-slate-400 hover:text-brand-600 p-0.5 text-[10px]">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    </a>
+                                </div>
+                            </td>
 
- <!-- Change Password -->
- <button type="button" onclick="openAccountPasswordModal('{{ acct.id }}', '{{ acct.username }}', '{{ acct.domain }}')"
- title="Change cPanel Password on WHM"
- class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:bg-slate-50 hover:text-brand-600 transition shadow-2xs">
- <i class="fa-solid fa-key"></i> Pass
- </button>
+                            <!-- Username -->
+                            <td class="px-4 py-3 align-middle font-mono font-bold text-slate-700">
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px]">
+                                    <i class="fa-solid fa-user-gear text-slate-400 text-[10px]"></i>
+                                    {{ acct.username }}
+                                </span>
+                            </td>
 
- <!-- Change Email -->
- <button type="button" onclick="openAccountEmailModal('{{ acct.id }}', '{{ acct.username }}', '{{ acct.user.email }}')"
- title="Change Contact Email on WHM"
- class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold text-[10px] hover:bg-slate-50 hover:text-indigo-600 transition shadow-2xs">
- <i class="fa-solid fa-envelope"></i> Email
- </button>
+                            <!-- Client Email -->
+                            <td class="px-4 py-3 align-middle">
+                                <button type="button" onclick="event.stopPropagation(); openClientDetailsModal('{{ acct.user.id }}')" title="View Client Profile" class="font-medium text-slate-700 hover:text-brand-600 hover:underline inline-flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
+                                    <span class="truncate max-w-[170px]">{{ acct.user.email }}</span>
+                                </button>
+                            </td>
 
- {% if acct.status == 'pending' %}
- <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block">
- {% csrf_token %}
- <input type="hidden" name="account_id" value="{{ acct.id }}">
- <input type="hidden" name="sub_action" value="provision">
- <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition shadow-xs">
- <i class="fa-solid fa-play"></i> Provision
- </button>
- </form>
- {% elif acct.status == 'active' %}
- <button type="button" onclick="openSuspendModal('{{ acct.id }}', '{{ acct.domain }}', '{{ acct.username }}')"
- title="Suspend Account on WHM"
- class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 font-bold text-[10px] hover:bg-amber-100 transition">
- <i class="fa-solid fa-pause"></i> Suspend
- </button>
- {% elif acct.status == 'suspended' %}
- <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block">
- {% csrf_token %}
- <input type="hidden" name="account_id" value="{{ acct.id }}">
- <input type="hidden" name="sub_action" value="unsuspend">
- <button type="submit" class="px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 font-bold text-[10px] hover:bg-emerald-100 transition">
- <i class="fa-solid fa-rotate-left"></i> Unsuspend
- </button>
- </form>
- {% endif %}
- <!-- Terminate Button -->
- <button type="button" onclick="confirmTerminateHostingAccount('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}')"
- title="Terminate Account on WHM" class="px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 font-bold text-[10px] hover:bg-rose-100 transition">
- <i class="fa-solid fa-ban"></i> Terminate
- </button>
+                            <!-- WHM Server -->
+                            <td class="px-4 py-3 align-middle">
+                                <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-[11px] inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-server text-slate-400 text-[10px]"></i>
+                                    {{ acct.server.name }}
+                                </span>
+                            </td>
 
- <!-- Delete Database Record Button -->
- <button type="button" onclick="confirmDeleteHostingAccount('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}')"
- title="Delete Account Record" class="px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 font-bold text-[10px] transition">
- <i class="fa-solid fa-trash"></i>
- </button>
- </td>
- </tr>
- {% empty %}
+                            <!-- Package -->
+                            <td class="px-4 py-3 align-middle">
+                                <span class="font-bold text-slate-900 truncate max-w-[160px] block" title="Package: {{ acct.package.name }} (WHM: {{ acct.package.panel_package_name }})">
+                                    {{ acct.package.name }}
+                                </span>
+                            </td>
+
+                            <!-- Expiry / Due -->
+                            <td class="px-4 py-3 align-middle">
+                                {% if acct.next_due_date %}
+                                    <span class="font-mono font-bold text-slate-800 text-xs">{{ acct.next_due_date|date:"M d, Y" }}</span>
+                                    {% if acct.is_expiring_soon %}
+                                        <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 inline-flex items-center gap-0.5">
+                                            <i class="fa-solid fa-clock text-[9px]"></i>{{ acct.days_until_due }}d
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-xs text-slate-400">Not Set</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-4 py-3 align-middle">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase inline-flex items-center gap-1
+                                    {% if acct.status == 'active' %}bg-emerald-100 text-emerald-800
+                                    {% elif acct.status == 'pending' %}bg-amber-100 text-amber-800
+                                    {% elif acct.status == 'suspended' %}bg-rose-100 text-rose-800
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    <span class="w-1.5 h-1.5 rounded-full {% if acct.status == 'active' %}bg-emerald-500{% elif acct.status == 'pending' %}bg-amber-500 animate-pulse{% elif acct.status == 'suspended' %}bg-rose-500{% else %}bg-slate-400{% endif %}"></span>
+                                    {{ acct.status }}
+                                </span>
+                            </td>
+
+                            <!-- Actions (Single Line!) -->
+                            <td class="px-4 py-3 text-right align-middle" onclick="event.stopPropagation()">
+                                <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                    <!-- View Details Modal Popup -->
+                                    <button type="button" onclick="openHostingDetailsModal('{{ acct.id }}')"
+                                        title="View Full Hosting Account Details"
+                                        class="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-circle-info"></i> Details
+                                    </button>
+
+                                    <!-- Edit Plan & Expiry -->
+                                    <button type="button" onclick="openEditHostingAccountModal('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}', '{{ acct.package.id }}', '{{ acct.billing_cycle }}', '{{ acct.next_due_date|date:"Y-m-d"|default:"" }}', '{{ acct.status }}', '{{ acct.amount|default:"" }}')"
+                                        title="Edit Plan, Billing Cycle & Expiry Date"
+                                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-emerald-600 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+
+                                    <!-- Status-specific Button: Provision or Suspend/Unsuspend -->
+                                    {% if acct.status == 'pending' %}
+                                    <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                        <input type="hidden" name="sub_action" value="provision">
+                                        <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition inline-flex items-center gap-1 shadow-xs cursor-pointer">
+                                            <i class="fa-solid fa-play"></i> Provision
+                                        </button>
+                                    </form>
+                                    {% elif acct.status == 'active' %}
+                                    <button type="button" onclick="openSuspendModal('{{ acct.id }}', '{{ acct.domain }}', '{{ acct.username }}')"
+                                        title="Suspend on WHM"
+                                        class="w-7 h-7 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-pause"></i>
+                                    </button>
+                                    {% elif acct.status == 'suspended' %}
+                                    <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="account_id" value="{{ acct.id }}">
+                                        <input type="hidden" name="sub_action" value="unsuspend">
+                                        <button type="submit" class="px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer">
+                                            <i class="fa-solid fa-rotate-left"></i> Unsuspend
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    <!-- Change Password -->
+                                    <button type="button" onclick="openAccountPasswordModal('{{ acct.id }}', '{{ acct.username }}', '{{ acct.domain }}')"
+                                        title="Change cPanel Password on WHM"
+                                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-brand-600 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-key"></i>
+                                    </button>
+
+                                    <!-- Change Contact Email -->
+                                    <button type="button" onclick="openAccountEmailModal('{{ acct.id }}', '{{ acct.username }}', '{{ acct.user.email }}')"
+                                        title="Change Contact Email on WHM"
+                                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </button>
+
+                                    <!-- Terminate Account -->
+                                    <button type="button" onclick="confirmTerminateHostingAccount('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}')"
+                                        title="Terminate Account on WHM" class="w-7 h-7 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+
+                                    <!-- Delete Record -->
+                                    <button type="button" onclick="confirmDeleteHostingAccount('{{ acct.id }}', '{{ acct.domain|escapejs }}', '{{ acct.username|escapejs }}')"
+                                        title="Delete Account Record" class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 transition inline-flex items-center justify-center text-xs shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
  <tr>
  <td colspan="8" class="px-6 py-10 text-center text-slate-400">
  <i class="fa-solid fa-server text-3xl text-slate-300 mb-2 block"></i>
@@ -1124,6 +1159,42 @@
  </table>
  </div>
  </div>
+        <!-- Hosting Accounts JSON Data for Instant Details Popup -->
+        <script id="hosting-accounts-data" type="application/json">
+        {
+            {% for acct in hosting_accounts %}
+            "{{ acct.id }}": {
+                "id": "{{ acct.id }}",
+                "domain": "{{ acct.domain|escapejs }}",
+                "username": "{{ acct.username|escapejs }}",
+                "userId": "{{ acct.user.id }}",
+                "userEmail": "{{ acct.user.email|escapejs }}",
+                "userName": "{{ acct.user.get_full_name|default:acct.user.email|escapejs }}",
+                "userPhone": "{{ acct.user.profile.phone|default:'—'|escapejs }}",
+                "serverName": "{{ acct.server.name|escapejs }}",
+                "serverHost": "{{ acct.server.hostname|escapejs }}",
+                "serverType": "{{ acct.server.server_type|upper }}",
+                "packageId": "{{ acct.package.id }}",
+                "packageName": "{{ acct.package.name|escapejs }}",
+                "packageWhm": "{{ acct.package.panel_package_name|escapejs }}",
+                "packageDisk": "{{ acct.package.disk_space_mb|default:'—' }} MB",
+                "packageBw": "{{ acct.package.bandwidth_mb|default:'—' }} MB",
+                "billingCycle": "{{ acct.get_billing_cycle_display|default:acct.billing_cycle|title }}",
+                "billingCycleVal": "{{ acct.billing_cycle }}",
+                "amount": "{{ acct.amount|default:'0.00' }}",
+                "status": "{{ acct.status }}",
+                "createdAt": "{{ acct.created_at|date:'M d, Y h:i A' }}",
+                "provisionedAt": "{{ acct.provisioned_at|date:'M d, Y h:i A'|default:'Pending' }}",
+                "nextDueDate": "{{ acct.next_due_date|date:'M d, Y'|default:'Not Set' }}",
+                "nextDueDateRaw": "{{ acct.next_due_date|date:'Y-m-d'|default:'' }}",
+                "daysUntilDue": "{{ acct.days_until_due|default:'' }}",
+                "isExpiringSoon": {{ acct.is_expiring_soon|yesno:'true,false' }},
+                "lastError": "{{ acct.last_error|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        }
+        </script>
+
  </div>
 
 
@@ -1391,87 +1462,107 @@
  </div>
 
  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
- <div class="overflow-x-auto">
- <table class="w-full text-left text-xs text-slate-600">
- <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
- <tr>
- <th class="px-6 py-4">Client Name</th>
- <th class="px-6 py-4">Email Address</th>
- <th class="px-6 py-4">Phone</th>
- <th class="px-6 py-4">Role</th>
- <th class="px-6 py-4">Wallet Balance</th>
- <th class="px-6 py-4">Joined Date</th>
- <th class="px-6 py-4 text-right">Actions</th>
- </tr>
- </thead>
- <tbody class="divide-y divide-slate-100">
- {% for c in clients %}
- <tr class="hover:bg-slate-50/70 transition">
- <td class="px-6 py-4">
- <button type="button" onclick="openClientDetailsModal('{{ c.id }}')" class="font-bold text-slate-900 hover:text-brand-600 text-left flex items-center gap-2.5 group transition cursor-pointer">
- <span class="w-8 h-8 rounded-xl bg-brand-50 text-brand-700 font-extrabold flex items-center justify-center text-xs border border-brand-200 group-hover:bg-brand-600 group-hover:text-white transition shadow-2xs shrink-0">
- {{ c.first_name|first|upper|default:"U" }}
- </span>
- <div>
- <div class="flex items-center gap-1.5">
- <span class="font-bold text-slate-900 group-hover:text-brand-600">{{ c.get_full_name|default:c.email }}</span>
- <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-300 group-hover:text-brand-600"></i>
- </div>
- {% if c.profile.company_name %}
- <span class="text-[10px] text-slate-400 block font-normal">{{ c.profile.company_name }}</span>
- {% endif %}
- </div>
- </button>
- </td>
- <td class="px-6 py-4 font-mono font-medium text-slate-700">{{ c.email }}</td>
- <td class="px-6 py-4">{{ c.profile.phone|default:"—" }}</td>
- <td class="px-6 py-4">
- <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase {% if c.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-slate-100 text-slate-700{% endif %}">
- {{ c.role }}
- </span>
- </td>
- <td class="px-6 py-4 font-black text-brand-600">৳{{ c.profile.credit_balance|default:"0.00" }}</td>
- <td class="px-6 py-4">{{ c.date_joined|date:"M d, Y" }}</td>
- <td class="px-6 py-4 text-right">
- <div class="flex items-center justify-end gap-1.5 flex-wrap">
- <!-- View Full Profile / Details -->
- <button type="button" onclick="openClientDetailsModal('{{ c.id }}')"
- title="View Full Profile & All Customer Details"
- class="px-2.5 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer">
- <i class="fa-solid fa-id-card"></i> Profile
- </button>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                        <tr>
+                            <th class="px-4 py-3.5">Client Name</th>
+                            <th class="px-4 py-3.5">Email Address</th>
+                            <th class="px-4 py-3.5">Phone</th>
+                            <th class="px-4 py-3.5">Role</th>
+                            <th class="px-4 py-3.5">Wallet Balance</th>
+                            <th class="px-4 py-3.5">Joined Date</th>
+                            <th class="px-4 py-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    {% for c in clients %}
+                        <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                            <!-- Client Name (Single Line) -->
+                            <td class="px-4 py-3 align-middle">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-7 h-7 rounded-lg bg-brand-50 text-brand-700 font-extrabold flex items-center justify-center text-xs border border-brand-200 shrink-0 shadow-2xs">
+                                        {{ c.first_name|first|upper|default:"U" }}
+                                    </span>
+                                    <button type="button" onclick="openClientDetailsModal('{{ c.id }}')" title="View Profile{% if c.profile.company_name %} ({{ c.profile.company_name }}){% endif %}" class="font-bold text-slate-900 hover:text-brand-600 text-left cursor-pointer inline-flex items-center gap-1.5 transition">
+                                        <span class="truncate max-w-[170px]">{{ c.get_full_name|default:c.email }}</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-300 hover:text-brand-600"></i>
+                                    </button>
+                                </div>
+                            </td>
 
- <!-- Login as Client (Impersonate) -->
- <a href="{% url 'admin_login_as_client' client_id=c.id %}" target="_blank"
- title="Login as this Client"
- class="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-500 hover:text-white text-[11px] font-bold transition flex items-center gap-1 shadow-2xs">
- <i class="fa-solid fa-arrow-right-to-bracket"></i> Login As
- </a>
+                            <!-- Email Address -->
+                            <td class="px-4 py-3 align-middle font-mono font-medium text-slate-700">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
+                                    {{ c.email }}
+                                </span>
+                            </td>
 
- <!-- Edit Profile -->
- <button type="button" onclick="openEditClientModal('{{ c.id }}', '{{ c.first_name|escapejs }}', '{{ c.last_name|escapejs }}', '{{ c.email|escapejs }}', '{{ c.profile.phone|default:""|escapejs }}', '{{ c.profile.company_name|default:""|escapejs }}', '{{ c.role }}', {{ c.is_active|yesno:'true,false' }})"
- title="Edit Client Info"
- class="px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer">
- <i class="fa-solid fa-pen"></i>
- </button>
+                            <!-- Phone -->
+                            <td class="px-4 py-3 align-middle font-mono text-slate-600">
+                                {{ c.profile.phone|default:"—" }}
+                            </td>
 
- <!-- Adjust Credit / Wallet -->
- <button type="button" onclick="openWalletModal('{{ c.id }}', '{{ c.email }}', '{{ c.profile.credit_balance|default:"0.00" }}')"
- title="Adjust Wallet Balance"
- class="px-2 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer">
- <i class="fa-solid fa-wallet"></i>
- </button>
+                            <!-- Role -->
+                            <td class="px-4 py-3 align-middle">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase {% if c.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-slate-100 text-slate-700{% endif %}">
+                                    {{ c.role }}
+                                </span>
+                            </td>
 
- {% if c != user and not c.is_superuser %}
- <button type="button" onclick="confirmDeleteClient('{{ c.id }}', '{{ c.email|escapejs }}', '{{ c.get_full_name|default:c.email|escapejs }}')"
- title="Delete Client" class="px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 font-bold text-[11px] transition cursor-pointer">
- <i class="fa-solid fa-trash"></i>
- </button>
- {% endif %}
- </div>
- </td>
- </tr>
- {% empty %}
+                            <!-- Wallet Balance -->
+                            <td class="px-4 py-3 align-middle font-black text-brand-600">
+                                ৳{{ c.profile.credit_balance|default:"0.00" }}
+                            </td>
+
+                            <!-- Joined Date -->
+                            <td class="px-4 py-3 align-middle text-slate-500 font-mono text-[11px]">
+                                {{ c.date_joined|date:"M d, Y" }}
+                            </td>
+
+                            <!-- Actions (Single Line Horizontal Row) -->
+                            <td class="px-4 py-3 text-right align-middle">
+                                <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                    <!-- View Profile -->
+                                    <button type="button" onclick="openClientDetailsModal('{{ c.id }}')"
+                                        title="View Full Profile & All Customer Details"
+                                        class="px-2.5 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white text-[11px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-id-card"></i> Profile
+                                    </button>
+
+                                    <!-- Login As -->
+                                    <a href="{% url 'admin_login_as_client' client_id=c.id %}" target="_blank"
+                                        title="Login as this Client"
+                                        class="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-500 hover:text-white text-[11px] font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Login As
+                                    </a>
+
+                                    <!-- Edit Profile -->
+                                    <button type="button" onclick="openEditClientModal('{{ c.id }}', '{{ c.first_name|escapejs }}', '{{ c.last_name|escapejs }}', '{{ c.email|escapejs }}', '{{ c.profile.phone|default:""|escapejs }}', '{{ c.profile.company_name|default:""|escapejs }}', '{{ c.role }}', {{ c.is_active|yesno:'true,false' }})"
+                                        title="Edit Client Info"
+                                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-brand-600 text-xs transition inline-flex items-center justify-center shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+
+                                    <!-- Adjust Credit / Wallet -->
+                                    <button type="button" onclick="openWalletModal('{{ c.id }}', '{{ c.email }}', '{{ c.profile.credit_balance|default:"0.00" }}')"
+                                        title="Adjust Wallet Balance"
+                                        class="w-7 h-7 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs transition inline-flex items-center justify-center shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-wallet"></i>
+                                    </button>
+
+                                    <!-- Delete Client -->
+                                    {% if c != user and not c.is_superuser %}
+                                    <button type="button" onclick="confirmDeleteClient('{{ c.id }}', '{{ c.email|escapejs }}', '{{ c.get_full_name|default:c.email|escapejs }}')"
+                                        title="Delete Client" class="w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 text-xs transition inline-flex items-center justify-center shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
  <tr>
  <td colspan="7" class="px-6 py-10 text-center text-slate-400">
  <i class="fa-solid fa-users text-3xl text-slate-300 mb-2 block"></i>
@@ -3449,6 +3540,162 @@
 </div>
 
 <!-- 11. Modal: Sync WHM Accounts -->
+
+<!-- 10.5. Modal: Hosting Account Details Popup -->
+<div id="modal-hosting-account-details" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 my-8">
+        
+        <!-- Header -->
+        <div class="flex items-start justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 id="had_domain" class="font-black text-slate-900 text-lg font-mono">example.com</h3>
+                        <a id="had_visit_link" href="#" target="_blank" class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit
+                        </a>
+                        <span id="had_status_badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase">ACTIVE</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">WHM Hosting Account Details &amp; Control Center</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modal-hosting-account-details')" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- KPI Summary Grid (4 Cards) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">cPanel User</span>
+                <div class="flex items-center justify-between gap-1 mt-1">
+                    <span id="had_username" class="font-mono font-black text-slate-800 text-xs truncate">username</span>
+                    <button type="button" onclick="copyHostingUser()" title="Copy cPanel Username" class="text-slate-400 hover:text-blue-600 text-xs cursor-pointer p-0.5">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Package Plan</span>
+                <span id="had_package" class="font-bold text-slate-900 text-xs truncate mt-1 block">Basic Plan</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Next Due / Expiry</span>
+                <span id="had_expiry" class="font-mono font-black text-slate-800 text-xs truncate mt-1 block">Oct 20, 2027</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Renewal Price</span>
+                <span id="had_price" class="font-black text-brand-600 text-xs truncate mt-1 block">৳0.00 / mo</span>
+            </div>
+        </div>
+
+        <!-- 2 Column Details: Client Info & Server Specs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Client Information -->
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-circle text-blue-600"></i> Client Details
+                    </span>
+                    <button type="button" id="had_view_client_btn" class="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer">
+                        View Profile <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </button>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">Name:</span>
+                        <span id="had_client_name" class="font-bold text-slate-800">Client Name</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">Email:</span>
+                        <span id="had_client_email" class="font-mono font-medium text-slate-800 truncate max-w-[170px]">client@email.com</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-400">Phone:</span>
+                        <span id="had_client_phone" class="font-mono text-slate-700">+880...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server & Limits -->
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-server text-emerald-600"></i> Server &amp; Limits
+                </span>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">WHM Server:</span>
+                        <span id="had_server" class="font-bold text-slate-800">Server 1</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">WHM Package:</span>
+                        <span id="had_whm_pkg" class="font-mono text-[11px] text-slate-700 truncate max-w-[150px]">package_whm</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">Disk Space:</span>
+                        <span id="had_disk" class="font-mono font-bold text-slate-800">5,000 MB</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-400">Bandwidth:</span>
+                        <span id="had_bandwidth" class="font-mono font-bold text-slate-800">50,000 MB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline & Provisioning Dates -->
+        <div class="p-3 bg-slate-50/70 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-regular fa-calendar-plus text-slate-400"></i>
+                <span>Ordered: <strong id="had_created_at" class="text-slate-800 font-mono">Oct 20, 2026</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-slate-400"></i>
+                <span>Provisioned: <strong id="had_provisioned_at" class="text-slate-800 font-mono">Oct 20, 2026</strong></span>
+            </div>
+        </div>
+
+        <!-- Error Alert (if any) -->
+        <div id="had_error_box" class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 hidden space-y-1">
+            <div class="font-bold flex items-center gap-1.5 text-rose-700">
+                <i class="fa-solid fa-triangle-exclamation"></i> Last WHM Error:
+            </div>
+            <p id="had_error_text" class="font-mono text-[11px] text-rose-900 break-words"></p>
+        </div>
+
+        <!-- Modal Action Controls -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+            <!-- Left side: Danger Actions -->
+            <div class="flex items-center gap-2">
+                <button type="button" id="had_terminate_btn" class="px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-600 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-ban"></i> Terminate
+                </button>
+                <button type="button" id="had_delete_btn" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+
+            <!-- Right side: Edit & WHM Management -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" id="had_pass_btn" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-key text-brand-600"></i> Password
+                </button>
+                <button type="button" id="had_email_btn" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-envelope text-indigo-600"></i> Email
+                </button>
+                <span id="had_status_action_wrapper"></span>
+                <button type="button" id="had_edit_btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Plan &amp; Expiry
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <div id="modal-sync-accounts" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
  <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -4317,6 +4564,150 @@ function openWalletModal(clientId, email, currentBal) {
  document.getElementById('wallet_current_bal').innerText = '৳' + currentBal;
  openModal('modal-adjust-wallet');
 }
+
+
+// ─── Hosting Account Details Modal Controller ──────────────────────────────
+let currentHostingAccountData = null;
+
+function getHostingAccountsMap() {
+    if (window._hostingAccountsMapCache) return window._hostingAccountsMapCache;
+    const el = document.getElementById('hosting-accounts-data');
+    if (!el) return {};
+    try {
+        window._hostingAccountsMapCache = JSON.parse(el.textContent);
+    } catch(e) {
+        console.error('Error parsing hosting accounts data:', e);
+        window._hostingAccountsMapCache = {};
+    }
+    return window._hostingAccountsMapCache;
+}
+
+function openHostingDetailsModal(accountId) {
+    const map = getHostingAccountsMap();
+    const data = map[accountId];
+    if (!data) return;
+    currentHostingAccountData = data;
+
+    document.getElementById('had_domain').textContent = data.domain;
+    document.getElementById('had_visit_link').href = 'http://' + data.domain;
+
+    const statusBadge = document.getElementById('had_status_badge');
+    statusBadge.textContent = data.status.toUpperCase();
+    if (data.status === 'active') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800';
+    } else if (data.status === 'pending') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-800';
+    } else if (data.status === 'suspended') {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-rose-100 text-rose-800';
+    } else {
+        statusBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 text-slate-700';
+    }
+
+    document.getElementById('had_username').textContent = data.username;
+    document.getElementById('had_package').textContent = data.packageName;
+    document.getElementById('had_expiry').textContent = data.nextDueDate;
+    document.getElementById('had_price').textContent = `৳${data.amount} / ${data.billingCycle}`;
+
+    // Client Details
+    document.getElementById('had_client_name').textContent = data.userName;
+    document.getElementById('had_client_email').textContent = data.userEmail;
+    document.getElementById('had_client_phone').textContent = data.userPhone;
+    document.getElementById('had_view_client_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        openClientDetailsModal(data.userId);
+    };
+
+    // Server & Limits
+    document.getElementById('had_server').textContent = `${data.serverName} (${data.serverHost})`;
+    document.getElementById('had_whm_pkg').textContent = data.packageWhm;
+    document.getElementById('had_disk').textContent = data.packageDisk;
+    document.getElementById('had_bandwidth').textContent = data.packageBw;
+
+    // Timeline Dates
+    document.getElementById('had_created_at').textContent = data.createdAt;
+    document.getElementById('had_provisioned_at').textContent = data.provisionedAt;
+
+    // Last Error Box
+    const errorBox = document.getElementById('had_error_box');
+    const errorText = document.getElementById('had_error_text');
+    if (data.lastError && data.lastError.trim()) {
+        errorText.textContent = data.lastError;
+        errorBox.classList.remove('hidden');
+    } else {
+        errorBox.classList.add('hidden');
+    }
+
+    // Modal Actions
+    document.getElementById('had_edit_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        openEditHostingAccountModal(data.id, data.domain, data.username, data.packageId, data.billingCycleVal, data.nextDueDateRaw, data.status, data.amount);
+    };
+
+    document.getElementById('had_pass_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        openAccountPasswordModal(data.id, data.username, data.domain);
+    };
+
+    document.getElementById('had_email_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        openAccountEmailModal(data.id, data.username, data.userEmail);
+    };
+
+    document.getElementById('had_terminate_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        confirmTerminateHostingAccount(data.id, data.domain, data.username);
+    };
+
+    document.getElementById('had_delete_btn').onclick = function() {
+        closeModal('modal-hosting-account-details');
+        confirmDeleteHostingAccount(data.id, data.domain, data.username);
+    };
+
+    // Status Action Button inside Modal
+    const statusActionWrapper = document.getElementById('had_status_action_wrapper');
+    if (data.status === 'pending') {
+        statusActionWrapper.innerHTML = `
+            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block m-0">
+                {% csrf_token %}
+                <input type="hidden" name="account_id" value="${data.id}">
+                <input type="hidden" name="sub_action" value="provision">
+                <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-play"></i> Provision Now
+                </button>
+            </form>
+        `;
+    } else if (data.status === 'active') {
+        statusActionWrapper.innerHTML = `
+            <button type="button" onclick="closeModal('modal-hosting-account-details'); openSuspendModal('${data.id}', '${data.domain}', '${data.username}')"
+                class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-pause"></i> Suspend
+            </button>
+        `;
+    } else if (data.status === 'suspended') {
+        statusActionWrapper.innerHTML = `
+            <form method="POST" action="{% url 'admin_action_handler' action_type='account_action' %}" class="inline-block m-0">
+                {% csrf_token %}
+                <input type="hidden" name="account_id" value="${data.id}">
+                <input type="hidden" name="sub_action" value="unsuspend">
+                <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-rotate-left"></i> Unsuspend
+                </button>
+            </form>
+        `;
+    } else {
+        statusActionWrapper.innerHTML = '';
+    }
+
+    openModal('modal-hosting-account-details');
+}
+
+function copyHostingUser() {
+    if (!currentHostingAccountData) return;
+    navigator.clipboard.writeText(currentHostingAccountData.username).then(() => {
+        alert('cPanel Username copied to clipboard: ' + currentHostingAccountData.username);
+    });
+}
+
 
 function openAccountPasswordModal(accountId, username, domain) {
  document.getElementById('pass_account_id').value = accountId;
