@@ -48,6 +48,11 @@ def admin_only_view(view_func):
             return redirect('dashboard')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+from accounts.google_auth import (
+    google_login_redirect_view,
+    google_login_callback_view,
+    google_one_tap_login_view,
+)
 from django.contrib.sitemaps.views import sitemap
 from django.conf import settings
 from django.http import HttpResponse
@@ -130,6 +135,9 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('verify-otp/', verify_otp_view, name='verify_otp'),
     path('resend-otp/', resend_otp_view, name='resend_otp'),
+    path('accounts/google/login/', google_login_redirect_view, name='google_login'),
+    path('accounts/google/callback/', google_login_callback_view, name='google_callback'),
+    path('accounts/google/one-tap/', google_one_tap_login_view, name='google_one_tap'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('hosting/order/', order_hosting_view, name='order_hosting'),

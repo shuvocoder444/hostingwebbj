@@ -259,6 +259,10 @@ GATEWAY_BASE_URL = config('GATEWAY_BASE_URL', default='https://payment.webkoders
 GATEWAY_API_KEY = config('GATEWAY_API_KEY', default='')
 GATEWAY_API_SECRET = config('GATEWAY_API_SECRET', default='')
 
+# ─── Google OAuth & Social Login ──────────────────────────────────────────────
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+
 # ─── Security Headers & Hardening ───────────────────────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_BROWSER_XSS_FILTER = True

@@ -159,6 +159,24 @@ class SiteSetting(models.Model):
         help_text='Binance Pay ID / Binance Email / Pay QR'
     )
 
+    # ── Google OAuth & Social Login Settings ──
+    enable_google_login = models.BooleanField(
+        default=True,
+        help_text='Enable Google/Gmail 1-Click Login and Registration for customers.'
+    )
+    google_client_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Google OAuth 2.0 Web Client ID (from Google Cloud Console)'
+    )
+    google_client_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Google OAuth 2.0 Client Secret'
+    )
+
     # ── Currency & Exchange Rate ──
     bdt_per_usd = models.DecimalField(
         max_digits=10,
@@ -215,6 +233,14 @@ class SiteSetting(models.Model):
         verbose_name = 'Site & SEO Setting'
         verbose_name_plural = 'Site & SEO Settings'
 
+    def get_google_client_id(self):
+        from django.conf import settings
+        return (self.google_client_id or getattr(settings, 'GOOGLE_CLIENT_ID', '')).strip()
+
+    def get_google_client_secret(self):
+        from django.conf import settings
+        return (self.google_client_secret or getattr(settings, 'GOOGLE_CLIENT_SECRET', '')).strip()
+
     def __str__(self):
         return f"{self.company_name} Settings ({self.site_title})"
 
@@ -266,6 +292,13 @@ class SiteSetting(models.Model):
                 webkoders_api_secret = ''
                 webkoders_webhook_url = 'https://velohoster.com/payments/webhook/'
                 bdt_per_usd = 120.00
+                enable_google_login = True
+                google_client_id = ''
+                google_client_secret = ''
+                def get_google_client_id(self):
+                    return ''
+                def get_google_client_secret(self):
+                    return ''
             return FallbackSetting()
 
     def save(self, *args, **kwargs):

@@ -135,5 +135,7 @@ def global_brand_context(request):
         'CLIENT_COUNTRY': client_country,
         'CART_COUNT': cart_count,
         'CART_SESSION': cart,
+        'ENABLE_GOOGLE_LOGIN': getattr(site, 'enable_google_login', True),
+        'GOOGLE_CLIENT_ID': site.get_google_client_id() if hasattr(site, 'get_google_client_id') else getattr(settings, 'GOOGLE_CLIENT_ID', ''),
     }
 

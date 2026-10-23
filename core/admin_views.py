@@ -2108,6 +2108,17 @@ def admin_action_handler_view(request, action_type):
             except Exception:
                 pass
 
+        # Google OAuth & Gmail Login Settings
+        if 'enable_google_login' in request.POST:
+            site.enable_google_login = request.POST.get('enable_google_login') in ('true', '1', 'on')
+        elif 'google_client_id' in request.POST:
+            site.enable_google_login = False
+
+        if 'google_client_id' in request.POST:
+            site.google_client_id = request.POST.get('google_client_id', '').strip()
+        if 'google_client_secret' in request.POST:
+            site.google_client_secret = request.POST.get('google_client_secret', '').strip()
+
         site.save()
         messages.success(request, "Website Settings, Email OTP & Payment Gateway Settings saved successfully!")
 
