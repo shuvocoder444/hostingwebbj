@@ -38,39 +38,99 @@
                     </button>
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="px-3 py-6 space-y-1">
-                    <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
-                        Main Navigation
+                <!-- Domain Selector (Hostinger Style) -->
+                <div class="px-3 pt-4 pb-2">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between sidebar-text-element">
+                        <span>Active Website</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </label>
+                    <div class="relative">
+                        <select onchange="window.location.href='/services/' + this.value + '/'"
+                            class="w-full pl-3 pr-8 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-500 appearance-none cursor-pointer transition">
+                            {% for acct in user_hosting_accounts %}
+                            <option value="{{ acct.id }}" {% if acct.id == account.id %}selected{% endif %}>{{ acct.domain }}</option>
+                            {% empty %}
+                            <option value="{{ account.id }}" selected>{{ account.domain }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Links (Hostinger hPanel Menu) -->
+                <div class="px-3 py-3 space-y-1">
+                    <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                        hPanel Navigation
                     </div>
 
-                    <!-- 1. Overview -->
-                    <a href="{% url 'dashboard' %}#overview"
-                        class="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group">
-                        <div class="w-6 text-center text-base shrink-0 text-slate-500 group-hover:text-brand-600"><i class="fa-solid fa-table-cells-large"></i></div>
+                    <!-- 1. Dashboard -->
+                    <button type="button" onclick="switchHpanelTab('overview')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-brand-600"><i class="fa-solid fa-chart-pie"></i></div>
                         <span class="sidebar-text-element whitespace-nowrap">Dashboard</span>
-                    </a>
+                    </button>
 
-                    <!-- 2. Hosting Services -->
-                    <div class="space-y-1">
-                        <a href="{% url 'dashboard' %}#services"
-                            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-brand-700 bg-brand-50 transition group">
-                            <div class="flex items-center gap-3.5">
-                                <div class="w-6 text-center text-base shrink-0 text-brand-600"><i class="fa-solid fa-server"></i></div>
-                                <span class="sidebar-text-element whitespace-nowrap">Hosting Services</span>
-                            </div>
-                            <span class="sidebar-text-element text-xs font-bold px-2 py-0.5 rounded-full bg-brand-200/70 text-brand-800">
-                                {{ active_accounts_count }}
-                            </span>
-                        </a>
+                    <!-- 2. WordPress -->
+                    <button type="button" onclick="switchHpanelTab('wordpress')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-sky-600"><i class="fa-brands fa-wordpress"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">WordPress</span>
+                    </button>
 
-                        <!-- Active Service Sub-Item Indicator -->
-                        <div class="sidebar-text-element ml-3 pl-3.5 border-l-2 border-brand-500 py-1.5 flex items-center justify-between text-xs font-bold text-slate-900 bg-surface-50 rounded-r-xl pr-3">
-                            <span class="truncate flex items-center gap-2">
-                                <i class="fa-solid fa-circle-dot text-[9px] text-emerald-500 animate-pulse"></i>
-                                <span class="truncate">{{ account.domain }}</span>
-                            </span>
-                            <span class="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">Active</span>
+                    <!-- 3. Website & Access Logs -->
+                    <button type="button" onclick="switchHpanelTab('website')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-indigo-600"><i class="fa-solid fa-chart-line"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Website &amp; Logs</span>
+                    </button>
+
+                    <!-- 4. Files & Backups -->
+                    <button type="button" onclick="switchHpanelTab('files')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-amber-500"><i class="fa-solid fa-folder-open"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Files &amp; Backups</span>
+                    </button>
+
+                    <!-- 5. Databases -->
+                    <button type="button" onclick="switchHpanelTab('databases')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-orange-500"><i class="fa-solid fa-database"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Databases</span>
+                    </button>
+
+                    <!-- 6. Emails -->
+                    <button type="button" onclick="switchHpanelTab('emails')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-blue-500"><i class="fa-solid fa-envelope"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Email Accounts</span>
+                    </button>
+
+                    <!-- 7. Domains & SSL -->
+                    <button type="button" onclick="switchHpanelTab('domains')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-emerald-500"><i class="fa-solid fa-globe"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Domains &amp; SSL</span>
+                    </button>
+
+                    <!-- 8. Advanced (PHP/Cron) -->
+                    <button type="button" onclick="switchHpanelTab('advanced')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-purple-500"><i class="fa-solid fa-sliders"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Advanced (PHP/Cron)</span>
+                    </button>
+
+                    <!-- 9. Cloud VPS (Servers) -->
+                    <button type="button" onclick="switchHpanelTab('servers')"
+                        class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition group text-left">
+                        <div class="w-6 text-center text-sm shrink-0 text-rose-500"><i class="fa-solid fa-server"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Cloud VPS (Servers)</span>
+                    </button>
+
+                    <div class="pt-3 border-t border-slate-100 mt-2">
+                        <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
+                            Client Account
                         </div>
                     </div>
 
@@ -273,7 +333,32 @@
                     <button type="button" onclick="switchHpanelTab('overview')" id="hpanel-btn-overview"
                         class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap bg-brand-50 text-brand-700 shadow-2xs">
                         <i class="fa-solid fa-chart-pie text-brand-600"></i>
-                        <span>Overview &amp; Metrics</span>
+                        <span>Overview</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('wordpress')" id="hpanel-btn-wordpress"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-brands fa-wordpress text-sky-600"></i>
+                        <span>WordPress</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('website')" id="hpanel-btn-website"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i>
+                        <span>Website &amp; Logs</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('files')" id="hpanel-btn-files"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-folder-open text-amber-500"></i>
+                        <span>Files &amp; FTP</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('databases')" id="hpanel-btn-databases"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-database text-orange-500"></i>
+                        <span>Databases</span>
+                        {% if hpanel_databases %}<span class="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-black">{{ hpanel_databases|length }}</span>{% endif %}
                     </button>
 
                     <button type="button" onclick="switchHpanelTab('emails')" id="hpanel-btn-emails"
@@ -283,23 +368,22 @@
                         {% if hpanel_emails %}<span class="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[10px] font-black">{{ hpanel_emails|length }}</span>{% endif %}
                     </button>
 
-                    <button type="button" onclick="switchHpanelTab('databases')" id="hpanel-btn-databases"
-                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-                        <i class="fa-solid fa-database text-orange-500"></i>
-                        <span>MySQL® Databases</span>
-                        {% if hpanel_databases %}<span class="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-black">{{ hpanel_databases|length }}</span>{% endif %}
-                    </button>
-
-                    <button type="button" onclick="switchHpanelTab('files')" id="hpanel-btn-files"
-                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-                        <i class="fa-solid fa-folder-open text-amber-500"></i>
-                        <span>Files &amp; FTP</span>
-                    </button>
-
                     <button type="button" onclick="switchHpanelTab('domains')" id="hpanel-btn-domains"
                         class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
                         <i class="fa-solid fa-globe text-emerald-500"></i>
-                        <span>Subdomains &amp; SSL</span>
+                        <span>Domains &amp; SSL</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('advanced')" id="hpanel-btn-advanced"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-sliders text-purple-500"></i>
+                        <span>Advanced</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('servers')" id="hpanel-btn-servers"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-server text-rose-500"></i>
+                        <span>Cloud VPS</span>
                     </button>
                 </div>
 
@@ -793,54 +877,211 @@
                     </div>
                 </div>
 
-                <!-- ══════════ TAB 4: FILES & FTP SUITE ══════════ -->
+                <!-- ══════════ TAB 4: FILES & STORAGE SUITE (Hostinger hPanel Style) ══════════ -->
                 <div id="hpanel-tab-files" class="hpanel-tab-pane hidden space-y-6">
-                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                    
+                    <!-- 1. Header Banner -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-                            <div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shadow-2xs">
-                                        <i class="fa-solid fa-folder-open"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-slate-900">Files &amp; FTP Management</h3>
-                                        <p class="text-xs text-slate-500">Upload, organize website code, and configure secure FTP access</p>
-                                    </div>
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-2xl shadow-2xs">
+                                    <i class="fa-solid fa-folder-tree"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Files &amp; Storage Suite</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Manage your website code, download database backups, and configure secure FTP access</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2">
                                 <a href="{% url 'service_sso_shortcut' account.id 'filemanager' %}" target="_blank"
                                     class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
-                                    <i class="fa-solid fa-folder-tree"></i> Open File Manager
+                                    <i class="fa-solid fa-folder-open"></i> Launch File Manager
                                 </a>
-                                <button type="button" onclick="openModal('modal-create-ftp')"
-                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 shadow-2xs cursor-pointer">
-                                    <i class="fa-solid fa-plus"></i> Create FTP User
-                                </button>
                             </div>
                         </div>
 
-                        <!-- FTP Connection Helper Card -->
-                        <div class="p-5 rounded-2xl bg-surface-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-                            <div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">FTP Host</span>
-                                <span class="font-mono font-bold text-slate-900 mt-1 block">ftp.{{ account.domain }}</span>
+                        <!-- 2. The 4 Core Hostinger-Style Action Cards Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
+
+                            <!-- Card 1: File Manager -->
+                            <div class="p-6 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-amber-400 hover:shadow-card transition duration-200 flex flex-col justify-between group">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl shadow-2xs group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition duration-200">
+                                            <i class="fa-solid fa-folder-open"></i>
+                                        </div>
+                                        <span class="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">Browser Access</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-base font-bold text-slate-900 group-hover:text-amber-600 transition">File Manager</h4>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Upload, edit, compress, and manage your website's files directly in the browser with full code editor and zip extraction.
+                                        </p>
+                                    </div>
+                                    <div class="pt-2 text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-regular fa-folder text-slate-400"></i>
+                                        <span class="text-slate-400">Root:</span>
+                                        <span class="font-bold text-slate-700">/home/{{ account.username }}/public_html</span>
+                                    </div>
+                                </div>
+                                <div class="pt-5 mt-4 border-t border-slate-200/60">
+                                    <a href="{% url 'service_sso_shortcut' account.id 'filemanager' %}" target="_blank"
+                                        class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-amber-500 text-slate-800 hover:text-white border border-slate-300 hover:border-amber-500 font-bold text-xs transition flex items-center justify-center gap-2 shadow-2xs group-hover:shadow-xs">
+                                        <span>Open File Manager</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                    </a>
+                                </div>
                             </div>
+
+                            <!-- Card 2: Backups -->
+                            <div class="p-6 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-emerald-400 hover:shadow-card transition duration-200 flex flex-col justify-between group">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl shadow-2xs group-hover:scale-105 group-hover:bg-emerald-500 group-hover:text-white transition duration-200">
+                                            <i class="fa-solid fa-box-archive"></i>
+                                        </div>
+                                        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">Safety &amp; Recovery</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-base font-bold text-slate-900 group-hover:text-emerald-600 transition">Backups &amp; Restores</h4>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Create, download, or restore backups of your website's files and MySQL databases at any time to prevent accidental data loss.
+                                        </p>
+                                    </div>
+                                    <div class="pt-2 text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+                                        <span class="text-slate-400">Snapshot:</span>
+                                        <span class="font-bold text-slate-700">Full Account &amp; SQL Archives</span>
+                                    </div>
+                                </div>
+                                <div class="pt-5 mt-4 border-t border-slate-200/60">
+                                    <a href="{% url 'service_sso_shortcut' account.id 'backup' %}" target="_blank"
+                                        class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-emerald-600 text-slate-800 hover:text-white border border-slate-300 hover:border-emerald-600 font-bold text-xs transition flex items-center justify-center gap-2 shadow-2xs group-hover:shadow-xs">
+                                        <span>Manage Backups &amp; Restores</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: FTP Accounts -->
+                            <div class="p-6 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-blue-400 hover:shadow-card transition duration-200 flex flex-col justify-between group">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl shadow-2xs group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition duration-200">
+                                            <i class="fa-solid fa-network-wired"></i>
+                                        </div>
+                                        <span class="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">SFTP / FTPS</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-base font-bold text-slate-900 group-hover:text-blue-600 transition">FTP Accounts</h4>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Create and manage FTP accounts to transfer files via FileZilla, Cyberduck, or VS Code with isolated directory permissions.
+                                        </p>
+                                    </div>
+                                    <div class="pt-2 text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-server text-slate-400"></i>
+                                        <span class="text-slate-400">Host:</span>
+                                        <span class="font-bold text-slate-700">ftp.{{ account.domain }} : 21</span>
+                                    </div>
+                                </div>
+                                <div class="pt-5 mt-4 border-t border-slate-200/60 flex items-center gap-2">
+                                    <button type="button" onclick="openModal('modal-create-ftp')"
+                                        class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-blue-600 text-slate-800 hover:text-white border border-slate-300 hover:border-blue-600 font-bold text-xs transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                        <span>Create FTP User</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Change Password (FTP/SSH/cPanel) -->
+                            <div class="p-6 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200 hover:border-purple-400 hover:shadow-card transition duration-200 flex flex-col justify-between group">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center text-xl shadow-2xs group-hover:scale-105 group-hover:bg-purple-600 group-hover:text-white transition duration-200">
+                                            <i class="fa-solid fa-key"></i>
+                                        </div>
+                                        <span class="text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md">Credentials</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-base font-bold text-slate-900 group-hover:text-purple-600 transition">Change Password</h4>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Update the master password used to access your hosting plan via FTP, SFTP, and SSH, synchronized automatically on the server.
+                                        </p>
+                                    </div>
+                                    <div class="pt-2 text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-user-lock text-slate-400"></i>
+                                        <span class="text-slate-400">User:</span>
+                                        <span class="font-bold text-brand-600">{{ account.username }}</span>
+                                    </div>
+                                </div>
+                                <div class="pt-5 mt-4 border-t border-slate-200/60">
+                                    <button type="button" onclick="openModal('modal-change-password')"
+                                        class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-purple-600 text-slate-800 hover:text-white border border-slate-300 hover:border-purple-600 font-bold text-xs transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                        <span>Update FTP / Master Password</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 3. FTP Connection Credentials Guide -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-5">
+                        <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                            <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </span>
                             <div>
+                                <h4 class="text-sm font-bold text-slate-900">Website Home / Root Directory &amp; FTP Details</h4>
+                                <p class="text-xs text-slate-500">Use these exact parameters to connect your local FTP client to the server</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                            <div class="p-3.5 rounded-2xl bg-surface-50 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">FTP Host / Server</span>
+                                <div class="flex items-center justify-between mt-1 font-mono font-bold text-slate-900">
+                                    <span class="truncate">ftp.{{ account.domain }}</span>
+                                    <button onclick="copyText('ftp.{{ account.domain }}')" class="text-slate-400 hover:text-brand-600 p-1" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-surface-50 border border-slate-200">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Port</span>
-                                <span class="font-mono font-bold text-slate-900 mt-1 block">21 (FTPS Explicit)</span>
+                                <div class="flex items-center justify-between mt-1 font-mono font-bold text-slate-900">
+                                    <span>21 (FTPS Explicit)</span>
+                                </div>
                             </div>
-                            <div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Primary User</span>
-                                <span class="font-mono font-bold text-brand-600 mt-1 block">{{ account.username }}</span>
+                            <div class="p-3.5 rounded-2xl bg-surface-50 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">FTP / Master User</span>
+                                <div class="flex items-center justify-between mt-1 font-mono font-bold text-brand-600">
+                                    <span>{{ account.username }}</span>
+                                    <button onclick="copyText('{{ account.username }}')" class="text-slate-400 hover:text-brand-600 p-1" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                </div>
                             </div>
-                            <div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Web Directory</span>
-                                <span class="font-mono font-bold text-slate-900 mt-1 block">public_html/</span>
+                            <div class="p-3.5 rounded-2xl bg-surface-50 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Website Root Path</span>
+                                <div class="flex items-center justify-between mt-1 font-mono font-bold text-slate-900">
+                                    <span class="truncate">/home/{{ account.username }}/public_html</span>
+                                    <button onclick="copyText('/home/{{ account.username }}/public_html')" class="text-slate-400 hover:text-brand-600 p-1" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- FTP Accounts Table -->
+                    <!-- 4. Configured FTP Accounts Table -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-900">Configured FTP Accounts</h4>
+                                <p class="text-xs text-slate-500">Active FTP users with access to specific folders</p>
+                            </div>
+                            <button type="button" onclick="openModal('modal-create-ftp')"
+                                class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-plus"></i> Create FTP User
+                            </button>
+                        </div>
+
                         <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
                             <table class="w-full text-left text-xs text-slate-600">
                                 <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
@@ -854,20 +1095,28 @@
                                 <tbody class="divide-y divide-slate-100">
                                 {% for ftp in hpanel_ftp_accounts %}
                                     <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
-                                        <td class="px-5 py-4 font-mono font-bold text-slate-900">{{ ftp.user }}</td>
+                                        <td class="px-5 py-4 font-mono font-bold text-slate-900 flex items-center gap-2">
+                                            <i class="fa-solid fa-user-circle text-slate-400"></i>
+                                            <span>{{ ftp.user }}</span>
+                                        </td>
                                         <td class="px-5 py-4 font-mono text-slate-600">{{ ftp.homedir }}</td>
                                         <td class="px-5 py-4 font-mono text-slate-600">{{ ftp.diskquota }}</td>
                                         <td class="px-5 py-4">
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Active</span>
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
                                         </td>
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td class="px-5 py-4 font-mono font-bold text-slate-900">{{ account.username }} (Main Account)</td>
+                                        <td class="px-5 py-4 font-mono font-bold text-slate-900 flex items-center gap-2">
+                                            <i class="fa-solid fa-user-shield text-brand-600"></i>
+                                            <span>{{ account.username }} (Primary Hosting User)</span>
+                                        </td>
                                         <td class="px-5 py-4 font-mono text-slate-600">/home/{{ account.username }}</td>
                                         <td class="px-5 py-4 font-mono text-slate-600">Unlimited</td>
                                         <td class="px-5 py-4">
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Primary Root</span>
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Root Account</span>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -875,6 +1124,7 @@
                             </table>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- ══════════ TAB 5: SUBDOMAINS & SSL SUITE ══════════ -->
@@ -994,6 +1244,457 @@
                             </div>
                         </div>
 
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 2: WORDPRESS & CMS SUITE ══════════ -->
+                <div id="hpanel-tab-wordpress" class="hpanel-tab-pane space-y-6 hidden">
+                    <!-- WordPress Top Status Card -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-3xl shadow-xs">
+                                    <i class="fa-brands fa-wordpress"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2.5">
+                                        <h3 class="text-xl font-black text-slate-900">WordPress Toolkit</h3>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                                            <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Ready
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1">Manage core, plugins, security, and 1-click admin access for {{ account.domain }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <a href="https://{{ account.domain }}/wp-admin" target="_blank"
+                                    class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Log in to WordPress Admin
+                                </a>
+                                <button type="button" onclick="openModal('modal-install-wordpress')"
+                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-sky-600"></i> 1-Click Auto Installer
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Core Metrics Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Core Version</div>
+                                <div class="text-sm font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-brands fa-wordpress-simple text-sky-600"></i>
+                                    <span>WordPress 6.6.2</span>
+                                </div>
+                                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">Up to date</div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PHP Version</div>
+                                <div class="text-sm font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-brands fa-php text-purple-600"></i>
+                                    <span>{{ current_php|default:"PHP 8.2" }}</span>
+                                </div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">LiteSpeed SAPI</div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">SSL Certificate</div>
+                                <div class="text-sm font-extrabold text-emerald-700 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                                    <span>Force HTTPS Active</span>
+                                </div>
+                                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">Let's Encrypt Wildcard</div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Object Cache</div>
+                                <div class="text-sm font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i>
+                                    <span>LiteSpeed Cache</span>
+                                </div>
+                                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">Accelerated</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1-Click Fast Installer Embedded Form -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-download"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Install Fresh WordPress (1-Click)</h3>
+                                <p class="text-xs text-slate-500">Automatically provisions database, database user, and WordPress files in public_html</p>
+                            </div>
+                        </div>
+
+                        <form action="{% url 'service_hpanel_action' account.id 'install_wordpress' %}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% csrf_token %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Website Title</label>
+                                <input type="text" name="site_title" required placeholder="My Awesome Website" value="{{ account.domain }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Admin Email</label>
+                                <input type="email" name="admin_email" required value="{{ user.email }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Admin Username</label>
+                                <input type="text" name="admin_user" required placeholder="admin" value="admin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Admin Password</label>
+                                <input type="password" name="admin_pass" required placeholder="Choose a strong password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                            </div>
+                            <div class="md:col-span-2 pt-2 flex justify-end">
+                                <button type="submit" class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-rocket"></i> Install WordPress Now
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 3: WEBSITE & ACCESS LOGS (HOSTINGER EXACT CLONE) ══════════ -->
+                <div id="hpanel-tab-website" class="hpanel-tab-pane space-y-6 hidden">
+                    <!-- Top Export Controls -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center text-[11px] font-semibold text-slate-400 gap-1.5 mb-1">
+                                    <span>Hosting</span>
+                                    <span>-</span>
+                                    <span>{{ account.domain }}</span>
+                                    <span>-</span>
+                                    <span>Website</span>
+                                    <span>-</span>
+                                    <span class="text-slate-700 font-bold">Access logs</span>
+                                </div>
+                                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Access Logs</h2>
+                            </div>
+
+                            <!-- Export files -->
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="text-xs font-bold text-slate-600">Export files</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="date" value="2026-11-01" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 text-slate-700">
+                                    <span class="text-xs text-slate-400">To</span>
+                                    <input type="date" value="2026-11-06" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 text-slate-700">
+                                </div>
+                                <button type="button" onclick="showToast('Exporting CSV logs...')"
+                                    class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition">
+                                    <i class="fa-solid fa-download"></i> Export .csv
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card 1: Traffic Summary & Top Countries -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6">
+                            <!-- Left: Domain Traffic Counters -->
+                            <div class="lg:col-span-5 space-y-6">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-xl font-black text-indigo-700">{{ account.domain }}</h3>
+                                        <a href="http://{{ account.domain }}" target="_blank" class="text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-medium mt-0.5">Domains Shown</div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                        <div class="text-2xl font-black text-slate-900">{{ analytics.total_bandwidth }}</div>
+                                        <div class="text-[11px] font-semibold text-slate-500 mt-0.5">Total Bandwidth</div>
+                                    </div>
+                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                        <div class="text-2xl font-black text-slate-900">{{ analytics.total_requests|default:"20,040" }}</div>
+                                        <div class="text-[11px] font-semibold text-slate-500 mt-0.5">Total Number of Requests</div>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Buttons -->
+                                <div class="space-y-2">
+                                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Filter by</div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Last 1 hour</button>
+                                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Last 6 hours</button>
+                                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">Last 24 hour</button>
+                                        <button type="button" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Last 7 days</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Top List Table -->
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Top list</div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">Countries</span>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold text-slate-500 hover:bg-slate-100 cursor-pointer">IP Addresses</span>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold text-slate-500 hover:bg-slate-100 cursor-pointer">Requests</span>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold text-slate-500 hover:bg-slate-100 cursor-pointer">Domains</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2 font-mono text-xs">
+                                    {% for item in analytics.top_countries %}
+                                    <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-slate-400 font-bold">{{ forloop.counter }}</span>
+                                            <span class="text-slate-800 font-medium">{{ item.name }}</span>
+                                        </div>
+                                        <span class="font-bold text-slate-900">{{ item.count }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: HTTP 5xx & 4xx Errors Timeline Analytics -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                            <span class="text-xs font-semibold text-slate-500 px-3 py-1 cursor-pointer hover:text-slate-900">Analytics</span>
+                            <span class="text-xs font-semibold text-slate-500 px-3 py-1 cursor-pointer hover:text-slate-900">Access logs</span>
+                            <span class="text-xs font-bold text-indigo-700 px-3 py-1 border-b-2 border-indigo-600">Error code 5xx</span>
+                            <span class="text-xs font-semibold text-slate-500 px-3 py-1 cursor-pointer hover:text-slate-900">Error code 4xx</span>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-bold text-slate-800">HTTP 5xx errors analytics</h4>
+                                <span class="text-xs text-slate-400 font-mono">Real-time Telemetry</span>
+                            </div>
+
+                            <!-- Interactive SVG Timeline Chart -->
+                            <div class="relative w-full h-48 bg-slate-50/50 rounded-2xl border border-slate-200 p-4 flex flex-col justify-between">
+                                <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                                    <span>8 Requests</span>
+                                    <span>6 Requests</span>
+                                    <span>4 Requests</span>
+                                    <span>2 Requests</span>
+                                    <span>0 Requests</span>
+                                </div>
+
+                                <!-- SVG Line Graph matching Hostinger screenshot -->
+                                <svg class="w-full h-24 overflow-visible" viewBox="0 0 800 100" preserveAspectRatio="none">
+                                    <path d="M 0,95 Q 100,90 150,92 T 250,85 T 320,20 T 360,90 T 450,70 T 520,95 T 650,90 T 800,95"
+                                          fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+                                    <!-- Error Callout Marker -->
+                                    <circle cx="320" cy="20" r="5" fill="#4f46e5" stroke="#ffffff" stroke-width="2"/>
+                                </svg>
+
+                                <div class="flex justify-between text-[10px] text-slate-400 font-mono pt-2 border-t border-slate-200">
+                                    <span>00:10:00</span>
+                                    <span>00:20:00</span>
+                                    <span>00:30:00</span>
+                                    <span>00:40:00</span>
+                                    <span>00:50:00</span>
+                                    <span>00:60:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 8: ADVANCED (PHP / CRON / DNS) ══════════ -->
+                <div id="hpanel-tab-advanced" class="hpanel-tab-pane space-y-6 hidden">
+                    <!-- PHP Version Selector Card -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-brands fa-php"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">PHP Configuration</h3>
+                                <p class="text-xs text-slate-500">Current version: <span class="font-bold text-purple-600">{{ current_php }}</span></p>
+                            </div>
+                        </div>
+
+                        <form action="{% url 'service_hpanel_action' account.id 'change_php' %}" method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-2">Select PHP Version for {{ account.domain }}</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                    <label class="p-3 rounded-xl border border-slate-200 hover:border-purple-500 cursor-pointer flex flex-col items-center gap-1 transition">
+                                        <input type="radio" name="php_version" value="ea-php83" class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-xs font-bold text-slate-900">PHP 8.3</span>
+                                        <span class="text-[10px] text-emerald-600 font-semibold">Latest</span>
+                                    </label>
+                                    <label class="p-3 rounded-xl border-2 border-purple-500 bg-purple-50/50 cursor-pointer flex flex-col items-center gap-1 transition">
+                                        <input type="radio" name="php_version" value="ea-php82" checked class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-xs font-bold text-purple-900">PHP 8.2</span>
+                                        <span class="text-[10px] text-purple-700 font-semibold">Recommended</span>
+                                    </label>
+                                    <label class="p-3 rounded-xl border border-slate-200 hover:border-purple-500 cursor-pointer flex flex-col items-center gap-1 transition">
+                                        <input type="radio" name="php_version" value="ea-php81" class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-xs font-bold text-slate-900">PHP 8.1</span>
+                                        <span class="text-[10px] text-slate-500 font-semibold">Stable</span>
+                                    </label>
+                                    <label class="p-3 rounded-xl border border-slate-200 hover:border-purple-500 cursor-pointer flex flex-col items-center gap-1 transition">
+                                        <input type="radio" name="php_version" value="ea-php80" class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-xs font-bold text-slate-900">PHP 8.0</span>
+                                        <span class="text-[10px] text-slate-500 font-semibold">Legacy</span>
+                                    </label>
+                                    <label class="p-3 rounded-xl border border-slate-200 hover:border-purple-500 cursor-pointer flex flex-col items-center gap-1 transition">
+                                        <input type="radio" name="php_version" value="ea-php74" class="text-purple-600 focus:ring-purple-500">
+                                        <span class="text-xs font-bold text-slate-900">PHP 7.4</span>
+                                        <span class="text-[10px] text-amber-600 font-semibold">Old</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex justify-end pt-2">
+                                <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm transition">
+                                    Apply PHP Version
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- DNS Zone Summary -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-4">
+                        <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-network-wired"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">DNS Zone Records</h3>
+                                <p class="text-xs text-slate-500">DNS points directly to HostPro Edge cluster</p>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                            <table class="w-full text-left text-xs font-mono">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px]">
+                                    <tr>
+                                        <th class="px-4 py-3">Type</th>
+                                        <th class="px-4 py-3">Name</th>
+                                        <th class="px-4 py-3">Points to / Target</th>
+                                        <th class="px-4 py-3">TTL</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="px-4 py-2.5 font-bold text-blue-600">A</td>
+                                        <td class="px-4 py-2.5 text-slate-800">@</td>
+                                        <td class="px-4 py-2.5 text-slate-800">{{ live_stats.ip }}</td>
+                                        <td class="px-4 py-2.5 text-slate-400">14400</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2.5 font-bold text-purple-600">CNAME</td>
+                                        <td class="px-4 py-2.5 text-slate-800">www</td>
+                                        <td class="px-4 py-2.5 text-slate-800">{{ account.domain }}.</td>
+                                        <td class="px-4 py-2.5 text-slate-400">14400</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2.5 font-bold text-amber-600">MX</td>
+                                        <td class="px-4 py-2.5 text-slate-800">@</td>
+                                        <td class="px-4 py-2.5 text-slate-800">mail.{{ account.domain }}. (Priority: 0)</td>
+                                        <td class="px-4 py-2.5 text-slate-400">14400</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 9: CLOUD VPS (SERVERS) ══════════ -->
+                <div id="hpanel-tab-servers" class="hpanel-tab-pane space-y-6 hidden">
+                    <!-- VPS Status & Top Control Header -->
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl shadow-xs">
+                                    <i class="fa-solid fa-server"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <h3 class="text-xl font-black text-slate-900">vps-{{ account.username }}</h3>
+                                        <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 inline-flex items-center gap-1.5 border border-emerald-300">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Running
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1 font-mono">IPv4: {{ live_stats.ip }} | OS: Ubuntu 24.04 LTS (x86_64) | DC: Singapore</p>
+                                </div>
+                            </div>
+
+                            <!-- VPS Power Controls -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <form action="{% url 'service_hpanel_action' account.id 'vps_power' %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="power_cmd" value="start">
+                                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-play"></i> Start
+                                    </button>
+                                </form>
+                                <form action="{% url 'service_hpanel_action' account.id 'vps_power' %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="power_cmd" value="reboot">
+                                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-rotate"></i> Reboot
+                                    </button>
+                                </form>
+                                <form action="{% url 'service_hpanel_action' account.id 'vps_power' %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="power_cmd" value="shutdown">
+                                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-power-off"></i> Power Off
+                                    </button>
+                                </form>
+                                <button type="button" onclick="openModal('modal-vps-reinstall')"
+                                    class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition flex items-center gap-2">
+                                    <i class="fa-solid fa-compact-disc text-rose-400"></i> Reinstall OS / Panel
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Real-time Live Metrics Gauges -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">CPU Usage</div>
+                                <div class="text-lg font-black text-slate-900 mt-1">12%</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">4 vCPU Cores</div>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">RAM Usage</div>
+                                <div class="text-lg font-black text-slate-900 mt-1">1.8 GB / 8.0 GB</div>
+                                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">22% Utilized</div>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Disk I/O</div>
+                                <div class="text-lg font-black text-slate-900 mt-1">24.5 MB/s</div>
+                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5">NVMe Enterprise</div>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bandwidth</div>
+                                <div class="text-lg font-black text-slate-900 mt-1">1 Gbps</div>
+                                <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">Unmetered Uplink</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Web Terminal (noVNC Console) -->
+                    <div class="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl text-slate-100 font-mono">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span class="ml-2 text-slate-300">Emergency Web Terminal (SSH / VNC)</span>
+                            </div>
+                            <button type="button" onclick="showToast('Web Terminal opened in fullscreen session.')"
+                                class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition">
+                                <i class="fa-solid fa-expand mr-1"></i> Fullscreen
+                            </button>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs text-emerald-400">
+                            <div>Welcome to Ubuntu 24.04 LTS (GNU/Linux 6.8.0-31-generic x86_64)</div>
+                            <div class="text-slate-400"> * Documentation:  https://help.ubuntu.com</div>
+                            <div class="text-slate-400"> * Management:     https://velohoster.com/services/{{ account.id }}/</div>
+                            <div class="text-slate-300 pt-2 font-bold">root@vps-{{ account.username }}:~# <span class="animate-pulse">█</span></div>
+                        </div>
                     </div>
                 </div>
 </main>
@@ -1290,6 +1991,156 @@
     </div>
 </div>
 
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: 1-CLICK WORDPRESS AUTO-INSTALLER                                    -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-install-wordpress" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-install-wordpress')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-brands fa-wordpress"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">1-Click WordPress Installer</h3>
+                <p class="text-xs text-slate-500">Auto-deploy latest WordPress for {{ account.domain }}</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'install_wordpress' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Site Title</label>
+                <input type="text" name="site_title" required placeholder="My WordPress Site" value="{{ account.domain }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Admin Email Address</label>
+                <input type="email" name="admin_email" required value="{{ user.email }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Admin Username</label>
+                    <input type="text" name="admin_user" required placeholder="admin" value="admin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Admin Password</label>
+                    <input type="password" name="admin_pass" required placeholder="Admin password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-hidden">
+                </div>
+            </div>
+            <div class="pt-3 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-install-wordpress')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Install WordPress
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: 1-CLICK VPS OS REINSTALLER (HOSTINGER EXACT VPS CLONE)              -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-vps-reinstall" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <button type="button" onclick="closeModal('modal-vps-reinstall')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-compact-disc"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Reinstall Server Operating System</h3>
+                <p class="text-xs text-slate-500">Choose between clean Linux distributions or 1-click Control Panels</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'vps_reinstall' %}" method="POST" class="space-y-5">
+            {% csrf_token %}
+            
+            <!-- Category 1: Clean Linux OS -->
+            <div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Plain Linux Distributions</div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="ubuntu-2404" checked class="text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs font-bold text-slate-800">Ubuntu 24.04 LTS</div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="ubuntu-2204" class="text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs font-bold text-slate-800">Ubuntu 22.04 LTS</div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="debian-12" class="text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs font-bold text-slate-800">Debian 12 (Bookworm)</div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="almalinux-9" class="text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs font-bold text-slate-800">AlmaLinux 9</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Category 2: OS with Control Panels (Requested by user) -->
+            <div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-rose-600 mb-2">1-Click Control Panels &amp; Applications</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <label class="p-3 rounded-xl border-2 border-indigo-400 bg-indigo-50/40 hover:border-indigo-600 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="ubuntu-aapanel" class="text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <div class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-cubes text-indigo-600"></i> Ubuntu + aaPanel
+                            </div>
+                            <div class="text-[10px] text-slate-500">Pre-installed web panel on Port 8888</div>
+                        </div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="almalinux-cpanel" class="text-rose-600 focus:ring-rose-500">
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-server text-orange-600"></i> AlmaLinux + cPanel/WHM
+                            </div>
+                            <div class="text-[10px] text-slate-500">cPanel 120 + WHM on Port 2087</div>
+                        </div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="ubuntu-cyberpanel" class="text-rose-600 focus:ring-rose-500">
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-teal-600"></i> Ubuntu + CyberPanel
+                            </div>
+                            <div class="text-[10px] text-slate-500">Powered by OpenLiteSpeed web server</div>
+                        </div>
+                    </label>
+                    <label class="p-3 rounded-xl border border-slate-200 hover:border-rose-500 cursor-pointer flex items-center gap-2.5 transition">
+                        <input type="radio" name="os_choice" value="ubuntu-docker" class="text-rose-600 focus:ring-rose-500">
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-brands fa-docker text-sky-600"></i> Ubuntu + Docker
+                            </div>
+                            <div class="text-[10px] text-slate-500">Docker CE &amp; Portainer UI included</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Root Password -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">New Root Password</label>
+                <input type="password" name="root_password" required placeholder="Choose a strong root password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-rose-500 focus:outline-hidden">
+                <p class="text-[10px] text-slate-400 mt-1">Warning: Reinstalling will overwrite all existing data on the virtual server.</p>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-vps-reinstall')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Reinstall OS Now
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 const rawPassword = "{{ cpanel_password|escapejs }}";
 let isPasswordVisible = false;
@@ -1423,9 +2274,9 @@ function toggleSidebarCollapse() {
     }
 }
 
-// ─── HPANEL TAB SWITCHING ENGINE ──────────────────────────────────────────
+// ─── HPANEL TAB SWITCHING ENGINE (9 SUITE TABS) ──────────────────────────
 function switchHpanelTab(tabId) {
-    const tabs = ['overview', 'emails', 'databases', 'files', 'domains'];
+    const tabs = ['overview', 'wordpress', 'website', 'files', 'databases', 'emails', 'domains', 'advanced', 'servers'];
     tabs.forEach(t => {
         const pane = document.getElementById(`hpanel-tab-${t}`);
         const btn = document.getElementById(`hpanel-btn-${t}`);
