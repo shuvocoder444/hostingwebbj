@@ -273,3 +273,32 @@ class DomainService:
 
         logger.info("✓ Domain '%s' successfully provisioned and active until %s!", domain.domain_name, expiry)
         return domain
+
+    @classmethod
+    def update_nameservers(cls, domain: Domain, nameservers: list) -> bool:
+        """
+        Update nameservers locally in DB and upstream at registrar driver if available.
+        """
+        ns1 = nameservers[0].strip().lower() if len(nameservers) > 0 and nameservers[0] else ''
+        ns2 = nameservers[1].strip().lower() if len(nameservers) > 1 and nameservers[1] else ''
+        ns3 = nameservers[2].strip().lower() if len(nameservers) > 2 and nameservers[2] else ''
+        ns4 = nameservers[3].strip().lower() if len(nameservers) > 3 and nameservers[3] else ''
+
+        domain.nameserver_1 = ns1
+        domain.nameserver_2 = ns2
+        domain.nameserver_3 = ns3
+        domain.nameserver_4 = ns4
+        domain.save(update_fields=['nameserver_1', 'nameserver_2', 'nameserver_3', 'nameserver_4', 'updated_at'])
+
+        if domain.registrar and domain.registrar.is_active:
+            try:
+                from domains.drivers.factory import get_registrar_driver
+                driver = get_registrar_driver(domain.registrar)
+                if hasattr(driver, 'set_nameservers'):
+                    valid_ns = [n for n in [ns1, ns2, ns3, ns4] if n]
+                    driver.set_nameservers(domain.domain_name, valid_ns)
+            except Exception as e:
+                logger.warning("Upstream registrar nameserver sync warning for %s: %s", domain.domain_name, e)
+
+        return True
+

@@ -6,7 +6,7 @@ Public domain availability search & Client domain management.
 from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -173,3 +173,35 @@ def order_domain_web_view(request):
         messages.error(request, f"Failed to order domain: {str(exc)}")
 
     return redirect('dashboard')
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def domain_update_nameservers_web_view(request, domain_id):
+    """
+    Handle updating nameservers for a client domain from Dashboard Domains Portfolio.
+    Allows clients who bought domain from us to point it to any external hosting (DigitalOcean, AWS, etc.).
+    """
+    domain = get_object_or_404(Domain, id=domain_id, user=request.user)
+
+    ns1 = request.POST.get('nameserver_1', '').strip().lower()
+    ns2 = request.POST.get('nameserver_2', '').strip().lower()
+    ns3 = request.POST.get('nameserver_3', '').strip().lower()
+    ns4 = request.POST.get('nameserver_4', '').strip().lower()
+
+    if not ns1 or not ns2:
+        messages.error(request, "Both Nameserver 1 and Nameserver 2 are required.")
+        return redirect('/dashboard/#domains')
+
+    try:
+        DomainService.update_nameservers(domain, [ns1, ns2, ns3, ns4])
+        messages.success(
+            request,
+            f"✓ Nameservers for '{domain.domain_name}' updated to [{ns1}, {ns2}]! "
+            f"Changes will propagate worldwide in 15-30 minutes."
+        )
+    except Exception as exc:
+        messages.error(request, f"Failed to update nameservers: {str(exc)}")
+
+    return redirect('/dashboard/#domains')
+

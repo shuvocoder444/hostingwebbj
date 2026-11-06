@@ -10,6 +10,7 @@ from .views import (
     DomainViewSet,
     OrderDomainAPIView,
     order_domain_web_view,
+    domain_update_nameservers_web_view,
 )
 
 app_name = 'domains'
@@ -24,6 +25,7 @@ urlpatterns = [
     path('order/', OrderDomainAPIView.as_view(), name='api_order'),
     path('', include(router.urls)),
 
-    # Web form endpoint
+    # Web form endpoints
     path('web/order/', order_domain_web_view, name='web_order'),
+    path('<uuid:domain_id>/update-nameservers/', domain_update_nameservers_web_view, name='update_nameservers'),
 ]

@@ -697,6 +697,88 @@
                             </div>
                         </div>
 
+                        <!-- 4. Domain Connection & Nameservers Guide (For External Domains) -->
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-network-wired"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Domain Connection &amp; Nameservers Setup</h3>
+                                        <p class="text-xs text-slate-500">বাইরে থেকে কেনা ডোমেন (Namecheap / GoDaddy) আপনার হোস্টিংয়ে কানেক্ট করার নিয়ম</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1.5 self-start sm:self-auto">
+                                    <i class="fa-solid fa-circle-check text-indigo-600 text-[10px]"></i> Server Ready
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Option 1: Nameservers -->
+                                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">পদ্ধতি ১: Nameservers (সেরা উপায়)</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">Recommended</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 leading-relaxed">
+                                        আপনার ডোমেন যেখানে রেজিস্টার করা, সেখানকার <strong>Custom Nameservers</strong>-এ নিচের দুটি নেমসার্ভার বসিয়ে সেভ করুন:
+                                    </p>
+                                    <div class="space-y-2 pt-1 font-mono text-xs">
+                                        <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                                            <div>
+                                                <span class="text-slate-400 text-[10px] block font-sans">Primary NS1</span>
+                                                <span class="font-bold text-slate-800">ns1.velohoster.com</span>
+                                            </div>
+                                            <button type="button" onclick="copyText('ns1.velohoster.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
+                                                <i class="fa-regular fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                                            <div>
+                                                <span class="text-slate-400 text-[10px] block font-sans">Secondary NS2</span>
+                                                <span class="font-bold text-slate-800">ns2.velohoster.com</span>
+                                            </div>
+                                            <button type="button" onclick="copyText('ns2.velohoster.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
+                                                <i class="fa-regular fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Option 2: A-Record (Cloudflare / Direct IP) -->
+                                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-700">পদ্ধতি ২: A-Record (Cloudflare ব্যবহারকারীদের জন্য)</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black uppercase">Instant</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 leading-relaxed">
+                                        নেমসার্ভার পরিবর্তন না করে ডোমেনের DNS ম্যানেজারে গিয়ে একটি <strong>A Record</strong> আমাদের সার্ভারের আইপিতে পয়েন্ট করুন:
+                                    </p>
+                                    <div class="space-y-2 pt-1 font-mono text-xs">
+                                        <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                                            <div>
+                                                <span class="text-slate-400 text-[10px] block font-sans">A-Record (@) Target IP</span>
+                                                <span class="font-bold text-brand-600">{{ live_stats.ip }}</span>
+                                            </div>
+                                            <button type="button" onclick="copyText('{{ live_stats.ip }}')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-brand-50 text-slate-600 hover:text-brand-600 text-xs font-sans font-semibold transition">
+                                                <i class="fa-regular fa-copy"></i> Copy IP
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                                            <div>
+                                                <span class="text-slate-400 text-[10px] block font-sans">CNAME (www) Target</span>
+                                                <span class="font-bold text-slate-800">{{ account.domain }}</span>
+                                            </div>
+                                            <button type="button" onclick="copyText('{{ account.domain }}')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-sans font-semibold transition">
+                                                <i class="fa-regular fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
