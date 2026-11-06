@@ -69,6 +69,12 @@ class Invoice(models.Model):
         null=True, blank=True,
         related_name='invoices',
     )
+    coupon = models.ForeignKey(
+        'Coupon',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='invoices',
+    )
 
     # ── Financials ─────────────────────────────────────────────────────────
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
@@ -199,3 +205,101 @@ class Transaction(models.Model):
 
     def __str__(self) -> str:
         return f'Txn {self.gateway_transaction_id} [{self.status}] BDT {self.amount}'
+
+
+class Coupon(models.Model):
+    """Promo Code / Discount Voucher model."""
+
+    class DiscountType(models.TextChoices):
+        PERCENTAGE = 'percentage', 'Percentage (%)'
+        FIXED = 'fixed', 'Fixed Amount (৳)'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(
+        max_length=50, unique=True, db_index=True,
+        help_text='Promo voucher code (e.g., EID50, WELCOME10)'
+    )
+    discount_type = models.CharField(
+        max_length=15, choices=DiscountType.choices, default=DiscountType.PERCENTAGE
+    )
+    discount_value = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text='Percentage (e.g. 20.00 for 20%) or Fixed amount in BDT (e.g. 200.00)'
+    )
+    min_order_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal('0.00'),
+        help_text='Minimum cart/subtotal amount required to apply this coupon'
+    )
+    max_discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text='Optional cap on discount amount for percentage coupons'
+    )
+    max_uses = models.PositiveIntegerField(
+        default=0, help_text='Maximum times this coupon can be used overall (0 for unlimited)'
+    )
+    used_count = models.PositiveIntegerField(default=0)
+    max_uses_per_user = models.PositiveIntegerField(
+        default=1, help_text='Maximum uses per customer'
+    )
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Promo Code'
+        verbose_name_plural = 'Promo Codes'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        val_str = f"{self.discount_value}%" if self.discount_type == self.DiscountType.PERCENTAGE else f"৳{self.discount_value}"
+        return f"{self.code} ({val_str} Off)"
+
+    def is_valid_for_cart(self, subtotal: Decimal, user=None) -> tuple[bool, str]:
+        """Validate if coupon can be applied."""
+        now = timezone.now()
+        if not self.is_active:
+            return False, "This promo code is currently inactive."
+        if self.valid_from and now < self.valid_from:
+            return False, "This promo code has not started yet."
+        if self.valid_until and now > self.valid_until:
+            return False, "This promo code has expired."
+        if self.max_uses > 0 and self.used_count >= self.max_uses:
+            return False, "This promo code has reached its maximum usage limit."
+        if Decimal(str(subtotal)) < self.min_order_amount:
+            return False, f"Minimum order amount of ৳{self.min_order_amount} required to use this coupon."
+        if user and user.is_authenticated:
+            user_uses = self.usages.filter(user=user).count()
+            if user_uses >= self.max_uses_per_user:
+                return False, f"You have already used this coupon code {user_uses} time(s)."
+        return True, ""
+
+    def calculate_discount(self, subtotal: Decimal) -> Decimal:
+        """Calculate discount amount based on type and limits."""
+        subtotal = Decimal(str(subtotal))
+        if self.discount_type == self.DiscountType.PERCENTAGE:
+            disc = (subtotal * self.discount_value) / Decimal('100.00')
+            if self.max_discount_amount and disc > self.max_discount_amount:
+                disc = self.max_discount_amount
+        else:
+            disc = self.discount_value
+        return min(disc, subtotal)
+
+
+class CouponUsage(models.Model):
+    """Audit log of coupon usages."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='usages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coupon_usages')
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupon_usages')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Coupon Usage'
+        verbose_name_plural = 'Coupon Usages'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} used {self.coupon.code} (-৳{self.discount_amount})"
+

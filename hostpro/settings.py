@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'hosting',
     'domains',
     'notifications',
+    'tickets',
 ]
 
 # ─── Middleware ────────────────────────────────────────────────────────────────

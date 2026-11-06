@@ -1,21 +1,143 @@
-# HostPro
 
-Django application for hosting, domain registration, client accounts and billing.
 
-## Local setup
+# 🚀 Next-Gen Web Hosting Billing & Automation Platform (WHMCS Alternative)
 
-1. Create and activate a Python virtual environment.
-2. Install the Python dependencies with `pip install -r requirements.txt`.
-3. Copy `.env.example` to `.env` and set unique local secrets.
-4. Leave `DB_ENGINE=sqlite` for local development, then run `python manage.py migrate` and `python manage.py runserver`.
-5. Build the production CSS with `npm ci` and `npm run build:css`.
+> **WHMCS 8.11.2**-এর অনুকরণে তৈরি আধুনিক, দ্রুতগতির এবং ওপেন আর্কিটেকচার সম্বলিত ওয়েব হোস্টিং বিলিং, ক্লায়েন্ট ম্যানেজমেন্ট এবং সার্ভার অটোমেশন প্ল্যাটফর্মের পূর্ণাঙ্গ ব্লুপ্রিন্ট ও স্টেপ-বাই-স্টেপ গাইড।
 
-## Production database
+---
 
-Use PostgreSQL for production. Create a database and database user in the hosting control panel, grant that user access to the database, then set `DB_ENGINE=postgresql`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_HOST` in the server environment. Back up the existing SQLite database and migrate its data before switching the live application. Do not commit `.env` or paste production credentials into source files or documentation.
+## 📌 ১. প্রজেক্ট পরিচিতি (Overview)
 
-Build `static/css/site.css` before deploying templates, then run Django's `collectstatic` step on the server.
+এই প্ল্যাটফর্মটির মূল উদ্দেশ্য হলো ওয়েব হোস্টিং কোম্পানি, ক্লাউড প্রোভাইডার এবং ডিজিটাল এজেন্সিগুলোর সম্পূর্ণ অপারেশন অটোমেট করা:
+- গ্রাহক অর্ডার করবে এবং অনলাইন গেটওয়ে (যেমন: bKash, SSLCommerz, Stripe) দিয়ে পেমেন্ট সম্পন্ন করবে।
+- পেমেন্ট ভেরিফাই হওয়ার কয়েক সেকেন্ডের মধ্যে অটোমেটিক cPanel / DirectAdmin / Proxmox সার্ভারে হোস্টিং অ্যাকাউন্ট তৈরি হয়ে ক্লায়েন্টের ইমেইলে ক্রেডেনশিয়াল চলে যাবে।
+- নির্ধারিত তারিখে অটোমেটিক ইনভয়েস জেনারেট হবে, বকেয়া থাকলে সার্ভার অটোমেটিক সাসপেন্ড হবে এবং টাকা পরিশোধ করলে অটোমেটিক আন-সাসপেন্ড হবে।
 
-## Security notice
+---
 
-Previous revisions of this README contained account credentials. Treat them as exposed: change those passwords and any related credentials, and remove the old values from repository history before sharing the repository.
+## 🛠️ ২. প্রস্তাবিত টেকনোলজি স্ট্যাক (Tech Stack)
+
+| লেয়ার | প্রযুক্তি | ব্যবহারের কারণ |
+|---|---|---|
+| **Backend Framework** | **PHP 8.3+ & Laravel 11** | হোস্টিং ইন্ডাস্ট্রির বেশিরভাগ API (cPanel, WHM, Plesk) পিএইচপি ভিত্তিক এবং দ্রুত ইন্টিগ্রেশন উপযোগী। |
+| **Frontend UI** | **Tailwind CSS + Vue.js 3 / Inertia.js** | দ্রুতগতির সিঙ্গেল পেজ অ্যাপ্লিকেশন (SPA) অনুভূতি ও চমৎকার রেসপন্সিভ ডিজাইন। |
+| **Database** | **MySQL 8.0+ / MariaDB** | রিলেশনাল ডাটা, ট্রানজ্যাকশন এবং ফিনান্সিয়াল অডিটের জন্য নির্ভরযোগ্য। |
+| **Queue & Cache** | **Redis + Laravel Horizon** | ইনভয়েস জেনারেশন, ইমেইল পাঠানো এবং সার্ভার API কলের মতো ভারী ব্যাকগ্রাউন্ড টাস্ক হ্যান্ডেল করার জন্য। |
+| **Scheduler (Crons)** | **Laravel Task Scheduler** | প্রতিদিনের ইনভয়েস, পেমেন্ট রিমাইন্ডার এবং অটো সাসপেনশন টাস্ক পরিচালনার জন্য। |
+| **Realtime Engine** | **Laravel Reverb / WebSockets** | লাইভ সাপোর্ট চ্যাট, ইনভয়েস পেমেন্ট কনফার্মেশন ও ইনস্ট্যান্ট নোটিফিকেশন। |
+
+---
+
+## 🏗️ ৩. সিস্টেম আর্কিটেকচার ডায়াগ্রাম
+
+```
+[ ক্লায়েন্ট পোর্টাল / অর্ডার কার্ট ]
+                │
+                ▼
+      [ Laravel REST / API Layer ]
+        ├── Auth & Multi-Tenant CRM
+        ├── Product Catalog & Addons
+        ├── Invoicing & Gateway Dispatcher
+        └── Support Ticket & Piping
+                │
+                ├─────────────────────────────────────────┐
+                ▼                                         ▼
+      [ Background Queues (Redis) ]               [ MySQL Database ]
+        ├── cPanel / WHM Provisioning Engine        ├── Clients & Contacts
+        ├── Domain Registrar APIs (Namecheap/Enom)  ├── Invoices & Payments
+        ├── Payment Webhooks (bKash, Stripe)       ├── Services & Servers
+        └── Daily Automation Cron Tasks             └── Support Tickets
+```
+
+---
+
+## 🗄️ ৪. কোর ডাটাবেজ মডেল (Database Entities)
+
+1. **`users` & `clients`**: গ্রাহকের নাম, কোম্পানি, ইমেইল, ব্যালেন্স/ক্রেডিট, পাসওয়ার্ড ও সিকিউরিটি লগ।
+2. **`products` & `product_groups`**: প্যাকেজ নেম, ডিস্ক স্পেস, ব্যান্ডউইথ, সার্ভার টাইপ (cPanel/DirectAdmin), প্যাকেজ প্ল্যান নেম।
+3. **`pricing`**: প্রতিটি প্রোডাক্টের মাসিক, ত্রৈমাসিক, বার্ষিক ও সেটআপ ফি।
+4. **`servers`**: WHM/cPanel হোস্টনেম, আইপি, API টোকেন/পাসওয়ার্ড, ম্যাক্সিমাম অ্যাকাউন্ট লিমিট।
+5. **`orders`**: অর্ডার আইডি, ক্লায়েন্ট আইডি, স্ট্যাটাস (Pending, Active, Fraud, Cancelled)।
+6. **`services` / `hosting`**: ইউজারের সক্রিয় হোস্টিং অ্যাকাউন্টসমূহ (ডোমেন, ইউজারনেম, পাসওয়ার্ড হ্যাশ, প্যাকেজ, স্ট্যাটাস: Active/Suspended/Terminated)।
+7. **`invoices` & `invoice_items`**: ইনভয়েস নম্বর, ইস্যু ডেট, ডিউ ডেট, সাবটোটাল, ট্যাক্স, টোটাল, পেমেন্ট স্ট্যাটাস (Paid/Unpaid/Cancelled)।
+8. **`transactions`**: ট্রানজ্যাকশন আইডি, পেমেন্ট গেটওয়ে নাম, অ্যামাউন্ট, ফি, পেমেন্ট ডেট।
+9. **`domains`**: ডোমেন নেম, রেজিস্টারার (Namecheap/ResellerClub), রেজিস্ট্রেশন ডেট, এক্সপায়ারি ডেট, নেমসার্ভার।
+10. **`tickets` & `ticket_replies`**: সাপোর্ট টিকিট, ডিপার্টমেন্ট, প্রায়োরিটি, অ্যাটাচমেন্ট ও কনভারসেশন।
+
+---
+
+## 📋 ৫. ধাপে ধাপে সম্পূর্ণ বাস্তবায়ন রোডম্যাপ (Step-by-Step Implementation Roadmap)
+
+### ধাপ ১: প্রজেক্ট ইনিশিয়ালাইজেশন ও এনভায়রনমেন্ট সেটআপ
+- [ ] Laravel 11 প্রজেক্ট সেটআপ করা।
+- [ ] Tailwind CSS এবং ক্লায়েন্ট ড্যাশবোর্ড UI ফ্রেমওয়ার্ক কনফিগার করা।
+- [ ] MySQL ডাটাবেজ সংযোগ ও Redis কনফিগারেশন।
+
+### ধাপ ২: ইউজার অথেন্টিকেশন ও পারমিশন সিস্টেম
+- [ ] ক্লায়েন্ট সাইনআপ, ইমেইল ভেরিফিকেশন এবং লগইন।
+- [ ] ২-ফ্যাক্টর অথেন্টিকেশন (2FA - Google Authenticator)।
+- [ ] রোল ও পারমিশন সিস্টেম (Super Admin, Billing Admin, Support Staff, Client)।
+- [ ] ক্লায়েন্ট অ্যাক্টিভিটি লগ ও আইপি ট্র্যাকিং।
+
+### ধাপ ৩: প্রোডাক্ট, প্যাকেজ ও শপিং কার্ট ইঞ্জিন
+- [ ] হোস্টিং প্রোডাক্ট ও ক্যাটাগরি তৈরি (Shared, Reseller, VPS)।
+- [ ] কনফিগারেবল অপশনস (যেমন: অতিরিক্ত RAM, IP, অটো-ব্যাকআপ অ্যাডঅন)।
+- [ ] প্রোমো কোড ও ডিসকাউন্ট ভাউচার সিস্টেম।
+- [ ] মাল্টি-স্টেপ শপিং কার্ট (`cart.php`-এর মতো ডোমেন সিলেকশন, প্যাকেজ কনফিগারেশন, চেকআউট)।
+
+### ধাপ ৪: বিলিং, ইনভয়েস ও পেমেন্ট গেটওয়ে ইঞ্জিন
+- [ ] স্বয়ংক্রিয় ইনভয়েস জেনারেটর (PDF ডাউনলোড ও প্রিন্ট ভিউ)।
+- [ ] ট্যাক্স/ভ্যাট রুলস ও মাল্টি-কারেন্সি (BDT ও USD কারেন্সি কনভার্সন)।
+- [ ] আন্তর্জাতিক গেটওয়ে ইন্টিগ্রেশন: **Stripe** এবং **PayPal**।
+- [ ] লোকাল গেটওয়ে ইন্টিগ্রেশন (বাংলাদেশ): **bKash Tokenized**, **Nagad**, **SSLCommerz**, **AamarPay**।
+- [ ] ইনস্ট্যান্ট আইপিএন/ওয়েবহুক হ্যান্ডলার (Webhook Listener - পেমেন্ট সফল হওয়ার সাথে সাথে ডাটাবেজ আপডেট)।
+
+### ধাপ ৫: সার্ভার অটোমেশন ও প্রভিশনিং ইঞ্জিন (Core WHMCS Feature)
+- [ ] **cPanel / WHM API 1** ক্লায়েন্ট তৈরি:
+  - `createacct`: নতুন cPanel অ্যাকাউন্ট তৈরি ও রিসোর্স বরাদ্দ।
+  - `suspendacct`: বিল বকেয়া হলে সার্ভার বন্ধ করা।
+  - `unsuspendacct`: পেমেন্ট পেলে এক ক্লিকে বা অটোমেটিক সচল করা।
+  - `removeacct`: মেয়াদ শেষ হয়ে গেলে টার্মিনেট/ডিলিট করা।
+  - `changepackage`: প্যাকেজ আপগ্রেড বা ডাউনগ্রেড করা।
+- [ ] **DirectAdmin API** এবং **Proxmox/Virtualizor API** মডিউলার আর্কিটেকচার।
+- [ ] মডিউল হ্যান্ডলার (যাতে ভবিষ্যতে যেকোনো কন্ট্রোল প্যানেলের প্লাগইন সহজে যোগ করা যায়)।
+
+### ধাপ ৬: ডোমেন ম্যানেজমেন্ট ও রেজিস্টারার ইন্টিগ্রেশন
+- [ ] WHOIS লুকআপ এপিআই (ডোমেন খালি আছে কিনা চেক করার জন্য)।
+- [ ] ডোমেন রেজিস্টারার মডিউল:
+  - **Namecheap API** / **ResellerClub API** ইন্টিগ্রেশন।
+  - অটোমেটিক ডোমেন রেজিস্ট্রেশন, রিনিউয়াল এবং ট্রান্সফার।
+  - নেমসার্ভার পরিবর্তন (DNS Management) ও EPP কোড রিকোয়েস্ট।
+
+### ধাপ ৭: ব্যাকগ্রাউন্ড অটোমেশন ও ক্রন জবস (`crons/cron.php`)
+- [ ] প্রতিদিন মধ্যরাতে রান হওয়া শিডিউলড জব:
+  - বিল ডিউ ডেটের ৭ দিন আগে অটোমেটিক নতুন ইনভয়েস জেনারেট।
+  - ৩ দিন, ১ দিন আগে পেমেন্ট রিমাইন্ডার ইমেইল/এসএমএস।
+  - ডিউ ডেট পার হয়ে গেলে (গ্রেস পিরিয়ড শেষে) সার্ভার অটোমেটিক সাসপেন্ড করা।
+  - ৩০ দিন অতিক্রম করলে টার্মিনেশন নোটিশ এবং অ্যাকাউন্ট ড্রপ।
+
+### ধাপ ৮: সাপোর্ট টিকিট ও হেল্পডেস্ক ইঞ্জিন
+- [ ] ক্লায়েন্ট ও অ্যাডমিন টিকিটিং পোর্টাল (High, Medium, Low প্রায়োরিটি)।
+- [ ] ফাইল/স্ক্রিনশট অ্যাটাচমেন্ট সুবিধা।
+- [ ] **Email Piping**: সাপোর্টের ইমেইলে ক্লায়েন্ট রিপ্লাই দিলে সেটি স্বয়ংক্রিয়ভাবে টিকিটের উত্তর হিসেবে জমা হওয়া।
+- [ ] নলেজবেস (FAQ ও টিউটোরিয়াল আর্টিকল) ও সার্ভার স্ট্যাটাস নোটিশ।
+
+### ধাপ ৯: অ্যাডমিন ম্যানেজমেন্ট কন্ট্রোল প্যানেল
+- [ ] বিজনেস অ্যানালিটিক্স ড্যাশবোর্ড (দৈনিক/মাসিক ইনকাম, অ্যাক্টিভ সার্ভিস, টিকিট সংখ্যা)।
+- [ ] সম্পূর্ণ ক্লায়েন্ট লিস্ট ও অ্যাকাউন্ট স্টেটমেন্ট।
+- [ ] ম্যানুয়াল অর্ডার ও সার্ভিস ম্যানেজমেন্ট।
+- [ ] সিস্টেম সেটিংস, ইমেইল টেমপ্লেট কাস্টমাইজেশন এবং অটোমেশন সেটিংস।
+
+---
+
+## ⚡ ৬. আমরা এখন কিভাবে কাজ শুরু করতে পারি?
+
+আমরা চাইলে এই সফটওয়্যারটি ধাপে ধাপে সরাসরি এখানে কোড করে তৈরি করতে পারি:
+
+1. **পদক্ষেপ ১**: ব্যাকএন্ড আর্কিটেকচার ও ডাটাবেজ মাইগ্রেশন ফাইলগুলো তৈরি করা (Users, Products, Servers, Invoices, Services)।
+2. **পদক্ষেপ ২**: cPanel/WHM প্রভিশনিং সার্ভিস তৈরি করা (যার মাধ্যমে পিএইচপি দিয়ে সরাসরি cPanel অ্যাকাউন্ট তৈরি ও সাসপেন্ড করা যায়)।
+3. **পদক্ষেপ ৩**: পেমেন্ট গেটওয়ে এবং অর্ডার হ্যান্ডলার যুক্ত করা।
+4. **পদক্ষেপ ৪**: ক্লায়েন্ট এরিয়া এবং অ্যাডমিন এরিয়া ডিজাইন সম্পন্ন করা।
+
+---
+*Created by AI Developer Assistant for Custom Hosting Automation Project.*

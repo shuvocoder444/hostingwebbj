@@ -30,7 +30,8 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from accounts.models import ClientProfile
-from billing.models import Gateway, Invoice, InvoiceItem, Transaction
+from billing.models import Gateway, Invoice, InvoiceItem, Transaction, Coupon, CouponUsage
+from tickets.models import Department, Ticket, TicketMessage, TicketAttachment
 from core.models import SiteSetting
 from domains.drivers.factory import get_registrar_driver
 from domains.models import Domain, DomainRegistrar, RegistrarType, TLDPricing
@@ -153,6 +154,13 @@ def admin_dashboard_view(request):
     unpaid_revenue = sum(inv.total for inv in invoices if inv.status in (Invoice.Status.UNPAID, Invoice.Status.OVERDUE))
     pending_invoices_count = sum(1 for inv in invoices if inv.status == Invoice.Status.UNPAID)
 
+    # 9. Support Tickets & Coupons
+    support_tickets = list(Ticket.objects.select_related('user', 'department', 'hosting_account', 'domain').prefetch_related('messages').all().order_by('-last_reply_at'))
+    open_tickets_count = sum(1 for t in support_tickets if t.status != Ticket.Status.CLOSED)
+    pending_staff_reply_count = sum(1 for t in support_tickets if t.status in (Ticket.Status.OPEN, Ticket.Status.CUSTOMER_REPLY))
+    coupons = list(Coupon.objects.all().order_by('-created_at'))
+    departments = list(Department.objects.all().order_by('order', 'name'))
+
     context = {
         'admin_user': request.user,
         'servers': servers_list,
@@ -180,6 +188,13 @@ def admin_dashboard_view(request):
         'monthly_revenue': monthly_revenue,
         'unpaid_revenue': unpaid_revenue,
         'pending_invoices_count': pending_invoices_count,
+
+        # Tickets & Promo Codes
+        'support_tickets': support_tickets,
+        'open_tickets_count': open_tickets_count,
+        'pending_staff_reply_count': pending_staff_reply_count,
+        'coupons': coupons,
+        'departments': departments,
 
         # Site & SEO Settings
         'site_settings': SiteSetting.get_settings(),
@@ -439,6 +454,10 @@ ACTION_TAB_MAP = {
     'update_site_settings': 'settings',
     'save_site_settings': 'settings',
     'save_settings': 'settings',
+    'ticket_action': 'tickets',
+    'add_coupon': 'settings',
+    'delete_coupon': 'settings',
+    'run_daily_automation': 'settings',
 }
 
 
@@ -2139,4 +2158,90 @@ def admin_action_handler_view(request, action_type):
         return redirect_to_admin_tab('save_site_settings', request)
 
 
-    return redirect_to_admin_tab(action_type, request)
+
+    # ── 8. SUPPORT TICKET ACTIONS ─────────────────────────────────────────────
+    elif action_type == 'ticket_action':
+        ticket_id = request.POST.get('ticket_id')
+        ticket = get_object_or_404(Ticket, id=ticket_id)
+        sub_action = request.POST.get('sub_action', 'reply')
+
+        if sub_action == 'reply':
+            reply_text = request.POST.get('reply_message', '').strip()
+            if not reply_text:
+                messages.error(request, "Reply message cannot be empty.")
+                return redirect_to_admin_tab('tickets', request)
+
+            TicketMessage.objects.create(
+                ticket=ticket,
+                user=request.user,
+                is_staff=True,
+                message=reply_text,
+            )
+            ticket.status = Ticket.Status.ANSWERED
+            ticket.last_reply_at = timezone.now()
+            ticket.save(update_fields=['status', 'last_reply_at', 'updated_at'])
+            messages.success(request, f"Staff reply posted to Ticket #{ticket.ticket_number} and marked as Answered!")
+
+        elif sub_action == 'change_status':
+            new_status = request.POST.get('status')
+            if new_status in dict(Ticket.Status.choices):
+                ticket.status = new_status
+                ticket.save(update_fields=['status', 'updated_at'])
+                messages.success(request, f"Ticket #{ticket.ticket_number} status updated to {ticket.get_status_display()}.")
+
+        elif sub_action == 'change_priority':
+            new_priority = request.POST.get('priority')
+            if new_priority in dict(Ticket.Priority.choices):
+                ticket.priority = new_priority
+                ticket.save(update_fields=['priority', 'updated_at'])
+                messages.success(request, f"Ticket #{ticket.ticket_number} priority updated to {ticket.get_priority_display()}.")
+
+        elif sub_action == 'close':
+            ticket.status = Ticket.Status.CLOSED
+            ticket.save(update_fields=['status', 'updated_at'])
+            messages.info(request, f"Ticket #{ticket.ticket_number} marked as CLOSED.")
+
+    # ── 9. PROMO COUPONS / VOUCHERS ──────────────────────────────────────────
+    elif action_type == 'add_coupon':
+        code = request.POST.get('code', '').strip().upper()
+        discount_type = request.POST.get('discount_type', Coupon.DiscountType.PERCENTAGE)
+        discount_value = Decimal(request.POST.get('discount_value', '0.00'))
+        min_order_amount = Decimal(request.POST.get('min_order_amount', '0.00'))
+        max_discount_amount = request.POST.get('max_discount_amount')
+        max_discount_amount = Decimal(max_discount_amount) if max_discount_amount else None
+        max_uses = int(request.POST.get('max_uses', 0))
+        valid_until_str = request.POST.get('valid_until', '').strip()
+        valid_until = datetime.strptime(valid_until_str, '%Y-%m-%d') if valid_until_str else None
+        is_active = request.POST.get('is_active', 'on') in ('on', '1', 'true')
+
+        if not code or discount_value <= 0:
+            messages.error(request, "Valid Coupon Code and Discount Value are required.")
+            return redirect_to_admin_tab('settings', request)
+
+        Coupon.objects.create(
+            code=code,
+            discount_type=discount_type,
+            discount_value=discount_value,
+            min_order_amount=min_order_amount,
+            max_discount_amount=max_discount_amount,
+            max_uses=max_uses,
+            valid_until=valid_until,
+            is_active=is_active,
+        )
+        messages.success(request, f"Promo code '{code}' created successfully!")
+
+    elif action_type == 'delete_coupon':
+        coupon_id = request.POST.get('coupon_id')
+        Coupon.objects.filter(id=coupon_id).delete()
+        messages.success(request, "Promo code deleted.")
+
+    # ── 10. DAILY AUTOMATION MANUAL TRIGGER ──────────────────────────────────
+    elif action_type == 'run_daily_automation':
+        from django.core.management import call_command
+        import io
+        out = io.StringIO()
+        call_command('run_daily_automation', stdout=out)
+        res = out.getvalue()
+        messages.success(request, "VeloHoster Daily Automation executed successfully!")
+
+        return redirect_to_admin_tab(action_type, request)

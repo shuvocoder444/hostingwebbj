@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Open New Support Ticket — {{ COMPANY_NAME|default:'VeloHoster' }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-10 antialiased">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+
+        <!-- Top Header & Breadcrumbs -->
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+                    <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">Dashboard</a>
+                    <span>/</span>
+                    <a href="{% url 'ticket_list' %}" class="hover:text-brand-600 transition">Tickets</a>
+                    <span>/</span>
+                    <span class="text-slate-800 font-bold">New Ticket</span>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <i class="fa-solid fa-headset text-brand-600"></i> Open a Support Ticket
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Our system administrators &amp; billing specialists will review and reply promptly.</p>
+            </div>
+
+            <a href="{% url 'ticket_list' %}" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Back to Tickets
+            </a>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-soft p-6 sm:p-8">
+            <form method="POST" action="{% url 'ticket_create' %}" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Client Info (Read-only banner) -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 flex items-center justify-center font-bold text-sm">
+                            {{ request.user.first_name|first|upper|default:"U" }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">{{ request.user.get_full_name|default:request.user.email }}</span>
+                            <span class="text-[11px] font-mono text-slate-500">{{ request.user.email }}</span>
+                        </div>
+                    </div>
+                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                        <i class="fa-solid fa-shield-check text-emerald-600 mr-1"></i> Verified Client
+                    </span>
+                </div>
+
+                <!-- Department & Priority -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Support Department <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="department_id" required class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white">
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if forloop.first %}selected{% endif %}>
+                                {{ dept.name }} {% if dept.description %}— {{ dept.description }}{% endif %}
+                            </option>
+                            {% empty %}
+                            <option value="">General Support</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Ticket Priority <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="priority" required class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white">
+                            <option value="medium" selected>Medium (Standard 15-30 mins)</option>
+                            <option value="low">Low (General inquiry)</option>
+                            <option value="high">High (Service degraded)</option>
+                            <option value="urgent">Urgent / Critical (Server down / outage)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Related Service (Optional) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Related Hosting Account (Optional)
+                        </label>
+                        <select name="hosting_id" class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white">
+                            <option value="">-- None / General Inquiry --</option>
+                            {% for ha in user_hosting_accounts %}
+                            <option value="{{ ha.id }}">{{ ha.domain }} (User: {{ ha.username }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Related Domain (Optional)
+                        </label>
+                        <select name="domain_id" class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white">
+                            <option value="">-- None / General Inquiry --</option>
+                            {% for dom in user_domains %}
+                            <option value="{{ dom.id }}">{{ dom.domain_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Subject / Issue Summary <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="subject" value="{{ form_data.subject|default:'' }}" required
+                        placeholder="e.g., DNS record update request for my domain, or cPanel SSL error"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+
+                <!-- Message Body -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Detailed Message / Description <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea name="message" rows="6" required
+                        placeholder="Please describe your issue in detail. If applicable, include exact error messages, steps to reproduce, or requested configuration changes."
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs leading-relaxed focus:ring-2 focus:ring-brand-500 focus:outline-none">{{ form_data.message|default:'' }}</textarea>
+                </div>
+
+                <!-- Attachments -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <label class="block text-xs font-bold text-slate-800">
+                        <i class="fa-solid fa-paperclip text-brand-600 mr-1"></i> Attach Screenshots or Log Files (Optional)
+                    </label>
+                    <input type="file" name="attachments" multiple
+                        class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer">
+                    <p class="text-[11px] text-slate-400">Accepted: PNG, JPG, PDF, TXT, ZIP. Maximum 10MB per file.</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <a href="{% url 'ticket_list' %}" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Ticket
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

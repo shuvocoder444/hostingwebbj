@@ -118,6 +118,18 @@
  <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold sidebar-text-element">{{ total_clients_count }}</span>
  </button>
 
+                    <!-- 9.5 Support Tickets -->
+                    <button type="button" onclick="switchAdminTab('tickets')" id="admin-tab-btn-tickets"
+                        class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
+                        <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-headset text-blue-500"></i></div>
+                        <span class="sidebar-text-element whitespace-nowrap">Support Tickets</span>
+                        {% if pending_staff_reply_count > 0 %}
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold sidebar-text-element animate-pulse">{{ pending_staff_reply_count }}</span>
+                        {% else %}
+                        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold sidebar-text-element">{{ open_tickets_count }}</span>
+                        {% endif %}
+                    </button>
+
  <!-- 10. Site Branding, SEO & WhatsApp Settings -->
  <button type="button" onclick="switchAdminTab('settings')" id="admin-tab-btn-settings"
  class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
@@ -1579,7 +1591,132 @@
  <!-- ═══════════════════════════════════════════════════════════════════ -->
  <!-- 10. TAB: SITE BRANDING, SEO & WHATSAPP SETTINGS -->
  <!-- ═══════════════════════════════════════════════════════════════════ -->
- <div id="admin-tab-settings" class="admin-tab-content hidden space-y-6">
+ 
+        <!-- ═════════════════════════════════════════════════════════════ -->
+        <!-- 9.5. TAB: SUPPORT TICKETS & HELPDESK -->
+        <!-- ═════════════════════════════════════════════════════════════ -->
+        <div id="admin-tab-tickets" class="admin-tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-headset text-blue-600"></i> Customer Support Tickets
+                        </h2>
+                        <div class="flex items-center gap-1.5">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800">{{ support_tickets|length }} Total</span>
+                            {% if pending_staff_reply_count %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 animate-pulse">{{ pending_staff_reply_count }} Awaiting Reply</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Real-time helpdesk, technical troubleshooting, billing queries, and customer conversation history.</p>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                            <tr>
+                                <th class="px-4 py-3.5">Ticket #</th>
+                                <th class="px-4 py-3.5">Client</th>
+                                <th class="px-4 py-3.5">Department</th>
+                                <th class="px-4 py-3.5">Subject</th>
+                                <th class="px-4 py-3.5">Priority</th>
+                                <th class="px-4 py-3.5">Status</th>
+                                <th class="px-4 py-3.5">Last Updated</th>
+                                <th class="px-4 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        {% for t in support_tickets %}
+                            <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                <td class="px-4 py-3 align-middle font-mono font-bold text-brand-600">
+                                    #{{ t.ticket_number }}
+                                </td>
+                                <td class="px-4 py-3 align-middle">
+                                    <button type="button" onclick="openClientDetailsModal('{{ t.user.id }}')" class="font-bold text-slate-900 hover:text-brand-600 text-left inline-flex items-center gap-1.5 cursor-pointer">
+                                        <i class="fa-regular fa-user text-slate-400"></i>
+                                        <span class="truncate max-w-[150px]">{{ t.user.get_full_name|default:t.user.email }}</span>
+                                    </button>
+                                </td>
+                                <td class="px-4 py-3 align-middle">
+                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700">
+                                        {{ t.department.name|default:"General" }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 align-middle font-semibold text-slate-900 max-w-[200px] truncate" title="{{ t.subject }}">
+                                    <a href="{% url 'ticket_detail' ticket_id=t.id %}" target="_blank" class="hover:text-brand-600 hover:underline">
+                                        {{ t.subject }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 align-middle">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase
+                                        {% if t.priority == 'urgent' %}bg-rose-100 text-rose-800
+                                        {% elif t.priority == 'high' %}bg-amber-100 text-amber-800
+                                        {% elif t.priority == 'medium' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                        {{ t.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 align-middle">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase inline-flex items-center gap-1
+                                        {% if t.status == 'answered' %}bg-indigo-100 text-indigo-800
+                                        {% elif t.status == 'open' %}bg-emerald-100 text-emerald-800
+                                        {% elif t.status == 'customer_reply' %}bg-amber-100 text-amber-800
+                                        {% elif t.status == 'in_progress' %}bg-purple-100 text-purple-800
+                                        {% else %}bg-slate-100 text-slate-500{% endif %}">
+                                        <span class="w-1.5 h-1.5 rounded-full
+                                            {% if t.status == 'answered' %}bg-indigo-500
+                                            {% elif t.status == 'open' %}bg-emerald-500
+                                            {% elif t.status == 'customer_reply' %}bg-amber-500
+                                            {% elif t.status == 'in_progress' %}bg-purple-500
+                                            {% else %}bg-slate-400{% endif %}"></span>
+                                        {{ t.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-slate-500 font-mono text-[11px]">
+                                    {{ t.last_reply_at|date:"M d, Y h:i A" }}
+                                </td>
+                                <td class="px-4 py-3 text-right align-middle">
+                                    <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                        <a href="{% url 'ticket_detail' ticket_id=t.id %}" target="_blank"
+                                            class="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow-2xs">
+                                            <i class="fa-solid fa-reply"></i> Reply
+                                        </a>
+
+                                        <!-- Quick Status Dropdown Form -->
+                                        <form method="POST" action="{% url 'admin_action_handler' action_type='ticket_action' %}" class="inline-block m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="ticket_id" value="{{ t.id }}">
+                                            <input type="hidden" name="sub_action" value="change_status">
+                                            <select name="status" onchange="this.form.submit()" class="px-2 py-1 rounded-lg border border-slate-200 text-[10px] font-bold bg-white text-slate-700 focus:outline-none cursor-pointer">
+                                                <option value="open" {% if t.status == 'open' %}selected{% endif %}>Open</option>
+                                                <option value="in_progress" {% if t.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="answered" {% if t.status == 'answered' %}selected{% endif %}>Answered</option>
+                                                <option value="closed" {% if t.status == 'closed' %}selected{% endif %}>Closed</option>
+                                            </select>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                                    <i class="fa-solid fa-headset text-3xl text-slate-300 mb-2 block"></i>
+                                    <p class="text-sm font-semibold text-slate-600">No support tickets found.</p>
+                                    <p class="text-xs text-slate-400 mt-1">When customers submit tickets from the client portal, they will appear here in real time.</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+<div id="admin-tab-settings" class="admin-tab-content hidden space-y-6">
 
  <!-- Tab Header & Quick Actions -->
  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
@@ -2295,6 +2432,107 @@
 
  </form>
 
+            <!-- Section 8: WHMCS Daily Automation & Background Crons -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </span>
+                            <h3 class="text-sm font-bold text-slate-900">WHMCS Daily Automation &amp; Crons (দৈনিক অটোমেশন ও ক্রন জব)</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Auto-generates renewal invoices 7 days prior, marks overdue invoices, suspends delinquent accounts, and auto-unsuspends on payment.</p>
+                    </div>
+
+                    <form method="POST" action="{% url 'admin_action_handler' action_type='run_daily_automation' %}" onsubmit="return confirm('Run full VeloHoster Daily Automation now?');" class="m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="active_tab" value="settings">
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-play"></i> Run Automation Now
+                        </button>
+                    </form>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-terminal text-brand-600"></i> cPanel Cron Job Command Setup (প্রতিদিন মধ্যরাতে অটোমেটিক চালুর জন্য)
+                    </span>
+                    <div class="p-2.5 bg-slate-900 rounded-lg text-emerald-400 font-mono text-[11px] overflow-x-auto select-all">
+                        0 0 * * * /home/webkoders/virtualenv/velohoster.com/3.12/bin/python /home/webkoders/velohoster.com/manage.py run_daily_automation >> /home/webkoders/cron.log 2>&1
+                    </div>
+                    <p class="text-[10px] text-slate-500">Copy and paste this into your cPanel &gt; Cron Jobs interface set to run once daily at midnight (0 0 * * *).</p>
+                </div>
+            </div>
+
+            <!-- Section 9: Promo Codes & Discount Vouchers -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid fa-tags"></i>
+                            </span>
+                            <h3 class="text-sm font-bold text-slate-900">Promo Codes &amp; Discount Vouchers (কুপন ও ডিসকাউন্ট ভাউচার)</h3>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Manage promotional discount campaigns and checkout coupon codes.</p>
+                    </div>
+
+                    <button type="button" onclick="openModal('modal-add-coupon')"
+                        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i> Create Promo Code
+                    </button>
+                </div>
+
+                <!-- Coupons List -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                            <tr>
+                                <th class="px-4 py-2.5">Code</th>
+                                <th class="px-4 py-2.5">Discount</th>
+                                <th class="px-4 py-2.5">Min Order</th>
+                                <th class="px-4 py-2.5">Uses</th>
+                                <th class="px-4 py-2.5">Status</th>
+                                <th class="px-4 py-2.5 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        {% for cp in coupons %}
+                            <tr class="hover:bg-slate-50 transition whitespace-nowrap">
+                                <td class="px-4 py-2.5 font-mono font-black text-brand-600 text-xs">{{ cp.code }}</td>
+                                <td class="px-4 py-2.5 font-bold text-slate-900">
+                                    {% if cp.discount_type == 'percentage' %}{{ cp.discount_value }}% Off{% else %}৳{{ cp.discount_value }} Flat{% endif %}
+                                </td>
+                                <td class="px-4 py-2.5 font-mono">৳{{ cp.min_order_amount }}</td>
+                                <td class="px-4 py-2.5 font-mono">{{ cp.used_count }}{% if cp.max_uses %} / {{ cp.max_uses }}{% endif %}</td>
+                                <td class="px-4 py-2.5">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if cp.is_active %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-500{% endif %}">
+                                        {% if cp.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2.5 text-right">
+                                    <form method="POST" action="{% url 'admin_action_handler' action_type='delete_coupon' %}" onsubmit="return confirm('Delete coupon {{ cp.code }}?');" class="inline m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="coupon_id" value="{{ cp.id }}">
+                                        <input type="hidden" name="active_tab" value="settings">
+                                        <button type="submit" class="text-slate-400 hover:text-rose-600 text-xs transition p-1">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 text-center text-slate-400">No active promo codes. Click "+ Create Promo Code" to launch a campaign.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
  </div>
 
  </main>
@@ -2306,6 +2544,64 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- MODALS -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+
+<!-- Modal: Add New Promo Coupon -->
+<div id="modal-add-coupon" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="font-black text-slate-900 text-base">Create Promo Code</h3>
+                <p class="text-[11px] text-slate-500">Configure promotional discount voucher for cart checkout</p>
+            </div>
+            <button type="button" onclick="closeModal('modal-add-coupon')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'admin_action_handler' action_type='add_coupon' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="active_tab" value="settings">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Coupon Code</label>
+                <input type="text" name="code" required placeholder="e.g., EID50, NEWYEAR25" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono uppercase focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Discount Type</label>
+                    <select name="discount_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white font-bold">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount (৳)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Discount Value</label>
+                    <input type="number" step="0.01" name="discount_value" required placeholder="10 or 150" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Min Order Amount (৳)</label>
+                    <input type="number" step="0.01" name="min_order_amount" value="0.00" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Max Discount Cap (৳)</label>
+                    <input type="number" step="0.01" name="max_discount_amount" placeholder="Leave blank for none" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Expiry Date (Optional)</label>
+                <input type="date" name="valid_until" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+
+            <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('modal-add-coupon')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 shadow-sm">Save Coupon</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- 1. Modal: Add Server -->
 <div id="modal-add-server" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">

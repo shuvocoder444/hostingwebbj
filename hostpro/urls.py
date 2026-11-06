@@ -69,6 +69,8 @@ from core.cart_views import (
     cart_ajax_send_otp_view,
     cart_ajax_verify_otp_view,
     cart_verify_checkout_otp_view,
+    cart_apply_coupon_view,
+    cart_remove_coupon_view,
 )
 from core.page_views import (
     about_us_view,
@@ -100,6 +102,7 @@ from core.views import (
     resend_otp_view,
     service_change_password_view,
     service_detail_view,
+    service_hpanel_action_view,
     service_request_cancellation_view,
     service_sso_view,
     set_currency_view,
@@ -140,6 +143,7 @@ urlpatterns = [
     path('accounts/google/one-tap/', google_one_tap_login_view, name='google_one_tap'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard_view, name='dashboard'),
+    path('tickets/', include('tickets.urls')),
     path('hosting/order/', order_hosting_view, name='order_hosting'),
     path('billing/invoices/<uuid:invoice_id>/pay/', pay_invoice_view, name='pay_invoice'),
     path('billing/invoices/<uuid:invoice_id>/pay-online/', initiate_online_payment_view, name='initiate_online_payment'),
@@ -184,6 +188,7 @@ urlpatterns = [
     path('services/<uuid:account_id>/', service_detail_view, name='service_detail'),
     path('services/<uuid:account_id>/sso/', service_sso_view, name='service_sso'),
     path('services/<uuid:account_id>/sso/<str:shortcut>/', service_sso_view, name='service_sso_shortcut'),
+    path('services/<uuid:account_id>/hpanel-action/<str:action_type>/', service_hpanel_action_view, name='service_hpanel_action'),
     path('services/<uuid:account_id>/change-password/', service_change_password_view, name='service_change_password'),
     path('services/<uuid:account_id>/request-cancellation/', service_request_cancellation_view, name='service_request_cancellation'),
 
@@ -196,6 +201,8 @@ urlpatterns = [
     path('cart/ajax/send-otp/', cart_ajax_send_otp_view, name='cart_ajax_send_otp'),
     path('cart/ajax/verify-otp/', cart_ajax_verify_otp_view, name='cart_ajax_verify_otp'),
     path('cart/verify-order/', cart_verify_checkout_otp_view, name='cart_verify_checkout_otp'),
+    path('cart/ajax/apply-coupon/', cart_apply_coupon_view, name='cart_apply_coupon'),
+    path('cart/ajax/remove-coupon/', cart_remove_coupon_view, name='cart_remove_coupon'),
     path('api/v1/domains/ajax-check/', ajax_domain_check_view, name='ajax_domain_check'),
     path('cart/ajax/domain-check/', ajax_domain_check_view, name='cart_ajax_domain_check'),
     path('api/v1/domains/bulk-search/', ajax_domain_bulk_search_view, name='ajax_domain_bulk_search'),

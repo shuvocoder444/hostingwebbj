@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Support Tickets — {{ COMPANY_NAME|default:'VeloHoster' }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-10 antialiased">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        <!-- Breadcrumb & Top Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+                    <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition flex items-center gap-1">
+                        <i class="fa-solid fa-gauge-high"></i> Dashboard
+                    </a>
+                    <span>/</span>
+                    <span class="text-slate-800 font-bold">Support Tickets</span>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <i class="fa-solid fa-headset text-brand-600"></i>
+                    Helpdesk &amp; Support Tickets
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Get priority technical support, billing assistance, or server consultations 24/7/365.</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition shadow-2xs">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+                </a>
+                <a href="{% url 'ticket_create' %}" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Open New Ticket
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI / Filter Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="{% url 'ticket_list' %}?status=all" class="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-brand-500 transition {% if status_filter == 'all' %}ring-2 ring-brand-500/30 border-brand-500{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Tickets</span>
+                        <strong class="text-2xl font-black text-slate-900 mt-1 block">{{ total_count }}</strong>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'ticket_list' %}?status=open" class="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-amber-500 transition {% if status_filter == 'open' %}ring-2 ring-amber-500/30 border-amber-500{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block">Awaiting / Open</span>
+                        <strong class="text-2xl font-black text-slate-900 mt-1 block">{{ open_count }}</strong>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'ticket_list' %}?status=closed" class="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-emerald-500 transition {% if status_filter == 'closed' %}ring-2 ring-emerald-500/30 border-emerald-500{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Resolved &amp; Closed</span>
+                        <strong class="text-2xl font-black text-slate-900 mt-1 block">{{ closed_count }}</strong>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tickets Table Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            
+            <!-- Table Header Bar -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-700">Filter Status:</span>
+                    <div class="flex items-center gap-1">
+                        <a href="{% url 'ticket_list' %}?status=all" class="px-2.5 py-1 rounded-lg text-xs font-bold {% if status_filter == 'all' %}bg-brand-600 text-white{% else %}bg-slate-200/70 text-slate-600 hover:bg-slate-200{% endif %}">All</a>
+                        <a href="{% url 'ticket_list' %}?status=open" class="px-2.5 py-1 rounded-lg text-xs font-bold {% if status_filter == 'open' %}bg-amber-500 text-white{% else %}bg-slate-200/70 text-slate-600 hover:bg-slate-200{% endif %}">Open</a>
+                        <a href="{% url 'ticket_list' %}?status=answered" class="px-2.5 py-1 rounded-lg text-xs font-bold {% if status_filter == 'answered' %}bg-indigo-600 text-white{% else %}bg-slate-200/70 text-slate-600 hover:bg-slate-200{% endif %}">Answered</a>
+                        <a href="{% url 'ticket_list' %}?status=closed" class="px-2.5 py-1 rounded-lg text-xs font-bold {% if status_filter == 'closed' %}bg-emerald-600 text-white{% else %}bg-slate-200/70 text-slate-600 hover:bg-slate-200{% endif %}">Closed</a>
+                    </div>
+                </div>
+
+                <form method="GET" action="{% url 'ticket_list' %}" class="flex items-center gap-2">
+                    <input type="hidden" name="status" value="{{ status_filter }}">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" name="q" value="{{ search_q }}" placeholder="Search tickets..."
+                            class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none w-48 sm:w-60 bg-white">
+                    </div>
+                    {% if search_q %}
+                    <a href="{% url 'ticket_list' %}?status={{ status_filter }}" class="text-xs text-rose-500 font-bold hover:underline">Clear</a>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                        <tr>
+                            <th class="px-5 py-3.5">Ticket #</th>
+                            <th class="px-5 py-3.5">Department</th>
+                            <th class="px-5 py-3.5">Subject</th>
+                            <th class="px-5 py-3.5">Priority</th>
+                            <th class="px-5 py-3.5">Status</th>
+                            <th class="px-5 py-3.5">Last Updated</th>
+                            <th class="px-5 py-3.5 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    {% for t in tickets %}
+                        <tr class="hover:bg-slate-50/80 transition cursor-pointer" onclick="window.location='{% url 'ticket_detail' ticket_id=t.id %}'">
+                            <!-- Ticket # -->
+                            <td class="px-5 py-3.5 font-mono font-bold text-brand-600">
+                                #{{ t.ticket_number }}
+                            </td>
+
+                            <!-- Department -->
+                            <td class="px-5 py-3.5 font-semibold text-slate-700">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-[11px]">
+                                    <i class="fa-solid fa-building-user text-slate-400 text-[10px]"></i>
+                                    {{ t.department.name|default:"General Support" }}
+                                </span>
+                            </td>
+
+                            <!-- Subject -->
+                            <td class="px-5 py-3.5 font-bold text-slate-900 max-w-xs truncate">
+                                <a href="{% url 'ticket_detail' ticket_id=t.id %}" class="hover:text-brand-600 transition block truncate">
+                                    {{ t.subject }}
+                                </a>
+                                {% if t.hosting_account %}
+                                <span class="text-[10px] text-slate-400 font-mono block">Service: {{ t.hosting_account.domain }}</span>
+                                {% elif t.domain %}
+                                <span class="text-[10px] text-slate-400 font-mono block">Domain: {{ t.domain.domain_name }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Priority -->
+                            <td class="px-5 py-3.5">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase
+                                    {% if t.priority == 'urgent' %}bg-rose-100 text-rose-800
+                                    {% elif t.priority == 'high' %}bg-amber-100 text-amber-800
+                                    {% elif t.priority == 'medium' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    {{ t.get_priority_display }}
+                                </span>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-5 py-3.5">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase inline-flex items-center gap-1
+                                    {% if t.status == 'answered' %}bg-indigo-100 text-indigo-800
+                                    {% elif t.status == 'open' %}bg-emerald-100 text-emerald-800
+                                    {% elif t.status == 'customer_reply' %}bg-amber-100 text-amber-800
+                                    {% elif t.status == 'in_progress' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-slate-100 text-slate-500{% endif %}">
+                                    <span class="w-1.5 h-1.5 rounded-full
+                                        {% if t.status == 'answered' %}bg-indigo-500
+                                        {% elif t.status == 'open' %}bg-emerald-500
+                                        {% elif t.status == 'customer_reply' %}bg-amber-500
+                                        {% elif t.status == 'in_progress' %}bg-purple-500
+                                        {% else %}bg-slate-400{% endif %}"></span>
+                                    {{ t.get_status_display }}
+                                </span>
+                            </td>
+
+                            <!-- Last Updated -->
+                            <td class="px-5 py-3.5 text-slate-500 font-mono text-[11px]">
+                                {{ t.last_reply_at|date:"M d, Y h:i A" }}
+                            </td>
+
+                            <!-- Action -->
+                            <td class="px-5 py-3.5 text-right" onclick="event.stopPropagation()">
+                                <a href="{% url 'ticket_detail' ticket_id=t.id %}" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-600 text-slate-700 text-xs font-bold transition inline-flex items-center gap-1 border border-slate-200">
+                                    View <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-14 text-center text-slate-400">
+                                <div class="max-w-xs mx-auto space-y-3">
+                                    <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+                                        <i class="fa-regular fa-comments"></i>
+                                    </div>
+                                    <strong class="text-sm font-bold text-slate-700 block">No Support Tickets Found</strong>
+                                    <p class="text-xs text-slate-500">Need help with your hosting, domain, or billing? Our engineers are ready to assist you.</p>
+                                    <a href="{% url 'ticket_create' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 shadow-sm transition">
+                                        <i class="fa-solid fa-plus"></i> Open First Ticket
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

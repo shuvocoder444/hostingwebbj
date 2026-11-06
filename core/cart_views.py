@@ -20,7 +20,7 @@ from django.views.decorators.http import require_http_methods
 
 from accounts.models import ClientProfile, EmailOTP
 from accounts.otp_service import OTPService
-from billing.models import Gateway, Invoice, InvoiceItem, Transaction
+from billing.models import Gateway, Invoice, InvoiceItem, Transaction, Coupon, CouponUsage
 from billing.services import InvoiceNumberGenerator
 from core.models import SiteSetting
 from core.security import rate_limit
@@ -689,7 +689,22 @@ def cart_checkout_view(request):
 
     subtotal = hosting_price + domain_price
     tax_amount = Decimal('0.00')
-    total = subtotal + tax_amount
+
+    coupon_code = cart.get('coupon_code')
+    applied_coupon = None
+    discount_amount = Decimal('0.00')
+    if coupon_code:
+        coupon_obj = Coupon.objects.filter(code__iexact=coupon_code, is_active=True).first()
+        if coupon_obj:
+            is_valid, _ = coupon_obj.is_valid_for_cart(subtotal, user=request.user)
+            if is_valid:
+                applied_coupon = coupon_obj
+                discount_amount = coupon_obj.calculate_discount(subtotal)
+            else:
+                cart['coupon_code'] = None
+                update_cart_session(request, **cart)
+
+    total = max(Decimal('0.00'), subtotal - discount_amount + tax_amount)
 
     total_usd = max(1.0, round(float(total) / 125.0, 2))
     from core.models import SiteSetting
@@ -709,6 +724,8 @@ def cart_checkout_view(request):
         'location_label': location_label,
         'subtotal': subtotal,
         'tax_amount': tax_amount,
+        'applied_coupon': applied_coupon,
+        'discount_amount': discount_amount,
         'total': total,
         'total_usd': total_usd,
         'site_setting': site_setting,
@@ -1034,9 +1051,22 @@ def cart_complete_order_view(request):
                         auto_renew=True,
                     )
 
+            # Check for promo coupon
+            coupon_code = cart.get('coupon_code')
+            applied_coupon = None
+            discount_amount = Decimal('0.00')
+            if coupon_code:
+                coupon_obj = Coupon.objects.filter(code__iexact=coupon_code, is_active=True).first()
+                if coupon_obj:
+                    is_valid, _ = coupon_obj.is_valid_for_cart(total_amount, user=current_user)
+                    if is_valid:
+                        applied_coupon = coupon_obj
+                        discount_amount = coupon_obj.calculate_discount(total_amount)
+
             # 4. Create Unpaid Invoice with line items
             inv_number = InvoiceNumberGenerator.generate()
             inv_type = Invoice.InvoiceType.DOMAIN if is_domain_only else Invoice.InvoiceType.HOSTING
+            invoice_final_total = max(Decimal('0.00'), total_amount - discount_amount)
             
             invoice = Invoice.objects.create(
                 invoice_number=inv_number,
@@ -1044,12 +1074,24 @@ def cart_complete_order_view(request):
                 invoice_type=inv_type,
                 hosting_account=account,
                 domain=domain_record,
+                coupon=applied_coupon,
+                discount_amount=discount_amount,
                 status=Invoice.Status.UNPAID,
                 subtotal=total_amount,
-                total=total_amount,
+                total=invoice_final_total,
                 issued_date=timezone.now().date(),
                 due_date=timezone.now().date() + timezone.timedelta(days=7),
             )
+
+            if applied_coupon:
+                CouponUsage.objects.create(
+                    coupon=applied_coupon,
+                    user=current_user,
+                    invoice=invoice,
+                    discount_amount=discount_amount,
+                )
+                applied_coupon.used_count += 1
+                applied_coupon.save(update_fields=['used_count'])
 
             # Hosting Line Item (if hosting purchased)
             if package and hosting_amount > 0:
@@ -1137,3 +1179,53 @@ def cart_complete_order_view(request):
         logger.exception("Error processing cart complete order: %s", exc)
         messages.error(request, f"Error processing order: {exc!s}")
         return redirect(redirect_err_url)
+
+
+# ─── AJAX PROMO CODE / COUPON HANDLERS ────────────────────────────────────────
+
+@require_http_methods(["POST"])
+def cart_apply_coupon_view(request):
+    """AJAX endpoint to validate and apply promo discount voucher."""
+    code = request.POST.get('coupon_code', '').strip().upper()
+    subtotal_val = request.POST.get('subtotal', '0.00')
+    try:
+        subtotal = Decimal(str(subtotal_val))
+    except Exception:
+        subtotal = Decimal('0.00')
+
+    if not code:
+        return JsonResponse({'success': False, 'message': 'Please enter a promo code.'})
+
+    coupon = Coupon.objects.filter(code__iexact=code, is_active=True).first()
+    if not coupon:
+        return JsonResponse({'success': False, 'message': f"Promo code '{code}' is invalid or does not exist."})
+
+    is_valid, err_msg = coupon.is_valid_for_cart(subtotal, user=request.user)
+    if not is_valid:
+        return JsonResponse({'success': False, 'message': err_msg})
+
+    discount = coupon.calculate_discount(subtotal)
+    new_total = max(Decimal('0.00'), subtotal - discount)
+
+    cart = get_cart_session(request)
+    cart['coupon_code'] = coupon.code
+    update_cart_session(request, **cart)
+
+    return JsonResponse({
+        'success': True,
+        'code': coupon.code,
+        'discount_type': coupon.discount_type,
+        'discount_value': str(coupon.discount_value),
+        'discount_amount': f"{discount:.2f}",
+        'new_total': f"{new_total:.2f}",
+        'message': f"Promo code '{coupon.code}' applied successfully!"
+    })
+
+
+@require_http_methods(["POST"])
+def cart_remove_coupon_view(request):
+    """AJAX endpoint to remove applied promo code from cart."""
+    cart = get_cart_session(request)
+    cart['coupon_code'] = None
+    update_cart_session(request, **cart)
+    return JsonResponse({'success': True, 'message': 'Promo code removed.'})

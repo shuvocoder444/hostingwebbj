@@ -744,13 +744,62 @@ def service_detail_view(request, account_id):
                 res_stats = driver.get_live_usage(account.username)
                 if res_stats:
                     live_stats.update(res_stats)
-                    # If WHM reported disk_limit_mb is 0 (unlimited), use package quota for visual gauge
-                    if live_stats['disk_limit_mb'] == 0 and account.package and account.package.disk_quota_mb > 0:
-                        live_stats['disk_limit_mb'] = float(account.package.disk_quota_mb)
-                        live_stats['disk_percent'] = min(int((live_stats['disk_used_mb'] / live_stats['disk_limit_mb']) * 100), 100)
-                    if live_stats['bandwidth_limit_mb'] == 0 and account.package and account.package.bandwidth_mb > 0:
-                        live_stats['bandwidth_limit_mb'] = float(account.package.bandwidth_mb)
-                        live_stats['bandwidth_percent'] = min(int((live_stats['bandwidth_used_mb'] / live_stats['bandwidth_limit_mb']) * 100), 100)
+
+            # Fallback to cPanel UAPI Quota if disk_used_mb is 0
+            if live_stats.get('disk_used_mb', 0) == 0:
+                try:
+                    from hosting.cpanel_uapi import CPanelUAPIManager
+                    uapi = CPanelUAPIManager(account)
+                    r_quota = uapi.call_uapi('Quota', 'get_local_quota_info')
+                    if r_quota.get('success') and r_quota.get('data'):
+                        q_data = r_quota['data']
+                        b_used = float(q_data.get('bytes_used', 0) or 0)
+                        b_limit = float(q_data.get('byte_limit', 0) or 0)
+                        if b_used > 0:
+                            live_stats['disk_used_mb'] = round(b_used / (1024 * 1024), 2)
+                        if b_limit > 0 and live_stats['disk_limit_mb'] == 0:
+                            live_stats['disk_limit_mb'] = round(b_limit / (1024 * 1024), 2)
+                        if q_data.get('inodes_used'):
+                            live_stats['inodes_used'] = q_data['inodes_used']
+                except Exception:
+                    pass
+
+            # If WHM reported disk_limit_mb is 0 (unlimited), use package quota for visual gauge
+            if live_stats['disk_limit_mb'] == 0 and account.package and account.package.disk_quota_mb > 0:
+                live_stats['disk_limit_mb'] = float(account.package.disk_quota_mb)
+            if live_stats['disk_limit_mb'] > 0:
+                live_stats['disk_percent'] = min(int((live_stats['disk_used_mb'] / live_stats['disk_limit_mb']) * 100), 100)
+
+            if live_stats['bandwidth_limit_mb'] == 0 and account.package and account.package.bandwidth_mb > 0:
+                live_stats['bandwidth_limit_mb'] = float(account.package.bandwidth_mb)
+            if live_stats['bandwidth_limit_mb'] > 0:
+                live_stats['bandwidth_percent'] = min(int((live_stats['bandwidth_used_mb'] / live_stats['bandwidth_limit_mb']) * 100), 100)
+
+            # Human-friendly readable strings
+            if live_stats['disk_used_mb'] >= 1024:
+                live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'] / 1024, 2)} GB"
+            else:
+                live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'], 1)} MB"
+
+            if live_stats['disk_limit_mb'] >= 1024:
+                live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'] / 1024, 1)} GB"
+            elif live_stats['disk_limit_mb'] > 0:
+                live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'], 0)} MB"
+            else:
+                live_stats['disk_limit_human'] = "Unlimited"
+
+            if live_stats['bandwidth_used_mb'] >= 1024:
+                live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'] / 1024, 2)} GB"
+            else:
+                live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'], 2)} MB"
+
+            if live_stats['bandwidth_limit_mb'] >= 1024:
+                live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'] / 1024, 1)} GB"
+            elif live_stats['bandwidth_limit_mb'] > 0:
+                live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'], 0)} MB"
+            else:
+                live_stats['bandwidth_limit_human'] = "Unlimited"
+
         except Exception as exc:
             logger.warning("Could not fetch live usage for account %s: %s", account.username, exc)
 
@@ -770,6 +819,30 @@ def service_detail_view(request, account_id):
 
     # Decrypt stored cPanel password if available
     cpanel_password = account.get_account_password()
+
+    # Active tab for Hostinger-style hPanel experience
+    active_tab = request.GET.get('tab', 'overview')
+    hpanel_emails = []
+    hpanel_databases = []
+    hpanel_subdomains = []
+    hpanel_ftp_accounts = []
+    hpanel_ssl_hosts = []
+
+    if server and account.username and account.status == HostingAccount.Status.ACTIVE:
+        try:
+            from hosting.cpanel_uapi import CPanelUAPIManager
+            uapi = CPanelUAPIManager(account)
+            if active_tab in ('emails', 'overview'):
+                hpanel_emails = uapi.list_email_accounts()
+            if active_tab in ('databases', 'overview'):
+                hpanel_databases = uapi.list_databases()
+            if active_tab in ('domains', 'overview'):
+                hpanel_subdomains = uapi.list_subdomains()
+                hpanel_ssl_hosts = uapi.get_installed_ssl_certificates()
+            if active_tab in ('files', 'overview'):
+                hpanel_ftp_accounts = uapi.list_ftp_accounts()
+        except Exception as exc:
+            logger.warning("Could not fetch hPanel UAPI data for %s: %s", account.username, exc)
 
     # Check if a matching domain registration exists
     from domains.models import Domain
@@ -798,6 +871,12 @@ def service_detail_view(request, account_id):
         'active_accounts_count': active_accounts_count,
         'active_domains_count': active_domains_count,
         'unpaid_invoices_count': unpaid_invoices_count,
+        'active_tab': active_tab,
+        'hpanel_emails': hpanel_emails,
+        'hpanel_databases': hpanel_databases,
+        'hpanel_subdomains': hpanel_subdomains,
+        'hpanel_ftp_accounts': hpanel_ftp_accounts,
+        'hpanel_ssl_hosts': hpanel_ssl_hosts,
     }
     return render(request, 'service_detail.html', context)
 
@@ -918,3 +997,133 @@ def service_request_cancellation_view(request, account_id):
     logger.info("Cancellation requested for %s: type=%s, reason=%s", account.domain, cancellation_type, reason)
     messages.success(request, f"Cancellation request for '{account.domain}' has been submitted. Our team will process it accordingly.")
     return redirect('service_detail', account_id=account.id)
+
+
+@login_required(login_url='login')
+@require_http_methods(['POST'])
+def service_hpanel_action_view(request, account_id, action_type):
+    """
+    Handle in-app Hostinger-style hPanel management actions:
+    - Emails (create, delete, change password)
+    - Databases (create, delete)
+    - Subdomains (create, delete)
+    - FTP accounts (create)
+    - AutoSSL trigger
+    """
+    account = get_object_or_404(HostingAccount, id=account_id)
+
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        messages.error(request, "Permission denied.")
+        return redirect('dashboard')
+
+    if account.status != HostingAccount.Status.ACTIVE:
+        messages.error(request, "Control panel actions are only available for active services.")
+        return redirect('service_detail', account_id=account.id)
+
+    from hosting.cpanel_uapi import CPanelUAPIManager
+    uapi = CPanelUAPIManager(account)
+
+    if action_type == 'create_email':
+        email_user = request.POST.get('email_user', '').strip()
+        pwd = request.POST.get('password', '').strip()
+        quota = int(request.POST.get('quota_mb', 1024) or 1024)
+        if not email_user or not pwd:
+            messages.error(request, "Email username and password are required.")
+        else:
+            res = uapi.create_email_account(email_user, pwd, quota_mb=quota)
+            if res['success']:
+                messages.success(request, res['message'])
+            else:
+                messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=emails")
+
+    elif action_type == 'delete_email':
+        email_user = request.POST.get('email_user', '').strip()
+        res = uapi.delete_email_account(email_user)
+        if res['success']:
+            messages.success(request, res['message'])
+        else:
+            messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=emails")
+
+    elif action_type == 'change_email_password':
+        email_user = request.POST.get('email_user', '').strip()
+        new_pwd = request.POST.get('new_password', '').strip()
+        if not email_user or not new_pwd:
+            messages.error(request, "Email user and new password are required.")
+        else:
+            res = uapi.change_email_password(email_user, new_pwd)
+            if res['success']:
+                messages.success(request, res['message'])
+            else:
+                messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=emails")
+
+    elif action_type == 'create_database':
+        db_suffix = request.POST.get('db_suffix', '').strip()
+        user_suffix = request.POST.get('user_suffix', '').strip()
+        pwd = request.POST.get('password', '').strip()
+        if not db_suffix or not user_suffix or not pwd:
+            messages.error(request, "Database name, user name, and password are required.")
+        else:
+            res = uapi.create_database_and_user(db_suffix, user_suffix, pwd)
+            if res['success']:
+                messages.success(request, res['message'])
+            else:
+                messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=databases")
+
+    elif action_type == 'delete_database':
+        db_name = request.POST.get('db_name', '').strip()
+        res = uapi.delete_database(db_name)
+        if res['success']:
+            messages.success(request, res['message'])
+        else:
+            messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=databases")
+
+    elif action_type == 'create_subdomain':
+        sub_prefix = request.POST.get('subdomain_prefix', '').strip()
+        if not sub_prefix:
+            messages.error(request, "Subdomain prefix is required.")
+        else:
+            res = uapi.create_subdomain(sub_prefix)
+            if res['success']:
+                messages.success(request, res['message'])
+            else:
+                messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=domains")
+
+    elif action_type == 'delete_subdomain':
+        full_sub = request.POST.get('subdomain', '').strip()
+        res = uapi.delete_subdomain(full_sub)
+        if res['success']:
+            messages.success(request, res['message'])
+        else:
+            messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=domains")
+
+    elif action_type == 'create_ftp':
+        user_prefix = request.POST.get('user_prefix', '').strip()
+        pwd = request.POST.get('password', '').strip()
+        quota = int(request.POST.get('quota_mb', 0) or 0)
+        if not user_prefix or not pwd:
+            messages.error(request, "FTP username and password are required.")
+        else:
+            res = uapi.create_ftp_account(user_prefix, pwd, quota_mb=quota)
+            if res['success']:
+                messages.success(request, res['message'])
+            else:
+                messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=files")
+
+    elif action_type == 'trigger_autossl':
+        res = uapi.trigger_autossl()
+        if res['success']:
+            messages.success(request, res['message'])
+        else:
+            messages.error(request, res['message'])
+        return redirect(f"/services/{account.id}/?tab=domains")
+
+    return redirect('service_detail', account_id=account.id)
+

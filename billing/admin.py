@@ -6,7 +6,7 @@ Staff management for Invoices, Transactions, and Payment audit logs.
 from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Invoice, InvoiceItem, Transaction
+from .models import Invoice, InvoiceItem, Transaction, Coupon, CouponUsage
 
 
 class InvoiceItemInline(admin.TabularInline):
@@ -93,3 +93,16 @@ class TransactionAdmin(admin.ModelAdmin):
             color, obj.get_status_display()
         )
     status_badge.short_description = "Status"
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ['code', 'discount_type', 'discount_value', 'min_order_amount', 'used_count', 'max_uses', 'is_active', 'valid_until']
+    list_filter = ['discount_type', 'is_active']
+    search_fields = ['code']
+
+
+@admin.register(CouponUsage)
+class CouponUsageAdmin(admin.ModelAdmin):
+    list_display = ['coupon', 'user', 'invoice', 'discount_amount', 'created_at']
+    search_fields = ['coupon__code', 'user__email']
+    readonly_fields = ['coupon', 'user', 'invoice', 'discount_amount', 'created_at']

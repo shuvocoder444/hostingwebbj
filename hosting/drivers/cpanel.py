@@ -189,7 +189,8 @@ class CPanelDriver(BaseServerDriver):
     def get_account_info(self, username: str) -> AccountInfo:
         """Fetch live account info via WHM accountsummary API."""
         result = self._call('accountsummary', params={'user': username})
-        acct = result.get('acct', [None])[0]
+        raw_accts = result.get('acct') or result.get('data', {}).get('acct', [])
+        acct = raw_accts[0] if raw_accts else None
         
         if not acct:
             raise ServerDriverError(f"No account info returned for {username}")
@@ -199,8 +200,8 @@ class CPanelDriver(BaseServerDriver):
             domain=acct.get('domain', ''),
             ip=acct.get('ip', ''),
             package=acct.get('plan', ''),
-            disk_used_mb=float(acct.get('diskused', 0)),
-            bandwidth_used_mb=float(acct.get('totalbytes', 0)) / (1024 * 1024),
+            disk_used_mb=float(str(acct.get('diskused', 0)).replace('M', '').replace('G', '').strip() or 0),
+            bandwidth_used_mb=float(acct.get('totalbytes', 0) or 0) / (1024 * 1024),
         )
 
     def change_package(self, username: str, new_package_name: str) -> dict:
@@ -407,7 +408,7 @@ class CPanelDriver(BaseServerDriver):
         """
         try:
             res = self._call('accountsummary', params={'user': username})
-            accts = res.get('acct', [])
+            accts = res.get('acct') or res.get('data', {}).get('acct', [])
             if accts:
                 acct = accts[0]
                 disk_used_str = str(acct.get('diskused', '0M')).replace('M', '').replace('G', '').strip()
@@ -425,7 +426,7 @@ class CPanelDriver(BaseServerDriver):
 
                 bw_used_bytes = float(acct.get('totalbytes', 0) or 0)
                 bw_used_mb = round(bw_used_bytes / (1024 * 1024), 2)
-                bw_limit_str = str(acct.get('bwlimit', 'unlimited')).strip()
+                bw_limit_str = str(acct.get('bwlimit', 'unlimited')).replace('M', '').replace('G', '').strip()
                 try:
                     bw_limit_mb = float(bw_limit_str) if bw_limit_str not in ('unlimited', '') else 0.0
                 except (ValueError, TypeError):
@@ -434,6 +435,9 @@ class CPanelDriver(BaseServerDriver):
                 disk_pct = int((disk_used_mb / disk_limit_mb * 100)) if disk_limit_mb > 0 else 0
                 bw_pct = int((bw_used_mb / bw_limit_mb * 100)) if bw_limit_mb > 0 else 0
 
+                inodes_used = int(acct.get('inodesused', 0) or 0)
+                inodes_limit = str(acct.get('inodeslimit', 'unlimited'))
+
                 return {
                     'disk_used_mb': disk_used_mb,
                     'disk_limit_mb': disk_limit_mb,
@@ -441,6 +445,8 @@ class CPanelDriver(BaseServerDriver):
                     'bandwidth_used_mb': bw_used_mb,
                     'bandwidth_limit_mb': bw_limit_mb,
                     'bandwidth_percent': min(bw_pct, 100),
+                    'inodes_used': inodes_used,
+                    'inodes_limit': inodes_limit,
                     'ip': acct.get('ip', self.host),
                     'domain': acct.get('domain', ''),
                     'plan': acct.get('plan', ''),

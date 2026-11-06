@@ -267,8 +267,46 @@
                     </div>
                 </div>
 
-                <!-- ─── 2-COLUMN GRID ───────────────────────────────────────────── -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- ─── HPANEL SUITE NAVIGATION BAR ───────────────────────────── -->
+                <div class="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-xs flex items-center gap-1.5 overflow-x-auto select-none">
+                    <button type="button" onclick="switchHpanelTab('overview')" id="hpanel-btn-overview"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap bg-brand-50 text-brand-700 shadow-2xs">
+                        <i class="fa-solid fa-chart-pie text-brand-600"></i>
+                        <span>Overview &amp; Metrics</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('emails')" id="hpanel-btn-emails"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-envelope text-blue-500"></i>
+                        <span>Email Accounts</span>
+                        {% if hpanel_emails %}<span class="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[10px] font-black">{{ hpanel_emails|length }}</span>{% endif %}
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('databases')" id="hpanel-btn-databases"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-database text-orange-500"></i>
+                        <span>MySQL® Databases</span>
+                        {% if hpanel_databases %}<span class="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-black">{{ hpanel_databases|length }}</span>{% endif %}
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('files')" id="hpanel-btn-files"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-folder-open text-amber-500"></i>
+                        <span>Files &amp; FTP</span>
+                    </button>
+
+                    <button type="button" onclick="switchHpanelTab('domains')" id="hpanel-btn-domains"
+                        class="hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50">
+                        <i class="fa-solid fa-globe text-emerald-500"></i>
+                        <span>Subdomains &amp; SSL</span>
+                    </button>
+                </div>
+
+<!-- ─── 2-COLUMN GRID ───────────────────────────────────────────── -->
+                                <!-- ══════════ TAB 1: OVERVIEW & METRICS ══════════ -->
+                <div id="hpanel-tab-overview" class="hpanel-tab-pane space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     <!-- ═════════════════════════════════════════════════════════════ -->
                     <!-- LEFT COLUMN: Actions & Info (4 Cols)                         -->
@@ -430,11 +468,17 @@
                                     <div class="min-w-0">
                                         <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Disk Usage</div>
                                         <div class="text-base font-extrabold text-slate-900 mt-1">
-                                            {{ live_stats.disk_used_mb|floatformat:1 }} MB
+                                            {{ live_stats.disk_used_human|default:live_stats.disk_used_mb }}
                                         </div>
                                         <div class="text-xs text-slate-500 mt-0.5">
-                                            of {% if live_stats.disk_limit_mb > 0 %}{{ live_stats.disk_limit_mb|floatformat:0 }} MB{% else %}Unlimited{% endif %}
+                                            of {{ live_stats.disk_limit_human|default:"Unlimited" }}
                                         </div>
+                                        {% if live_stats.inodes_used %}
+                                        <div class="text-[11px] font-semibold text-slate-500 mt-1 flex items-center gap-1">
+                                            <i class="fa-regular fa-file text-slate-400"></i>
+                                            <span>{{ live_stats.inodes_used }} Files / Inodes</span>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -454,10 +498,10 @@
                                     <div class="min-w-0">
                                         <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Bandwidth Usage</div>
                                         <div class="text-base font-extrabold text-slate-900 mt-1">
-                                            {{ live_stats.bandwidth_used_mb|floatformat:2 }} MB
+                                            {{ live_stats.bandwidth_used_human|default:live_stats.bandwidth_used_mb }}
                                         </div>
                                         <div class="text-xs text-slate-500 mt-0.5">
-                                            of {% if live_stats.bandwidth_limit_mb > 0 %}{{ live_stats.bandwidth_limit_mb|floatformat:0 }} MB{% else %}Unlimited{% endif %}
+                                            of {{ live_stats.bandwidth_limit_human|default:"Unlimited" }}
                                         </div>
                                     </div>
                                 </div>
@@ -478,9 +522,51 @@
                                 {% for item in shortcuts %}
                                 <a href="{% url 'service_sso_shortcut' account.id item.id %}" target="_blank"
                                     class="flex flex-col items-center justify-center p-4 rounded-2xl bg-surface-50 hover:bg-white border border-slate-200 hover:border-brand-400 shadow-2xs hover:shadow-card transition duration-200 group text-center">
-                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr {{ item.color }} text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition duration-200">
+                                    {% if item.id == 'email' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </div>
+                                    {% elif item.id == 'forwarders' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-indigo-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-share"></i>
+                                    </div>
+                                    {% elif item.id == 'autoresponders' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-purple-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-reply-all"></i>
+                                    </div>
+                                    {% elif item.id == 'filemanager' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-amber-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                    </div>
+                                    {% elif item.id == 'backup' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 border border-teal-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-teal-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-box-archive"></i>
+                                    </div>
+                                    {% elif item.id == 'domains' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-sky-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-globe"></i>
+                                    </div>
+                                    {% elif item.id == 'cron' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 border border-slate-300 flex items-center justify-center text-xl shadow-2xs group-hover:bg-slate-800 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </div>
+                                    {% elif item.id == 'mysql' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-orange-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-database"></i>
+                                    </div>
+                                    {% elif item.id == 'phpmyadmin' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-yellow-50 text-yellow-700 border border-yellow-300 flex items-center justify-center text-xl shadow-2xs group-hover:bg-yellow-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-table-cells"></i>
+                                    </div>
+                                    {% elif item.id == 'awstats' %}
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 transition duration-200">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 border border-brand-200 flex items-center justify-center text-xl shadow-2xs group-hover:bg-brand-600 group-hover:text-white group-hover:scale-110 transition duration-200">
                                         <i class="{{ item.icon }}"></i>
                                     </div>
+                                    {% endif %}
                                     <span class="text-xs font-bold text-slate-800 mt-3 group-hover:text-brand-600 transition">{{ item.name }}</span>
                                     <span class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{{ item.desc }}</span>
                                 </a>
@@ -531,7 +617,386 @@
 
                 </div>
 
-            </main>
+            
+                </div><!-- /#hpanel-tab-overview -->
+
+                <!-- ══════════ TAB 2: CORPORATE EMAIL SUITE ══════════ -->
+                <div id="hpanel-tab-emails" class="hpanel-tab-pane hidden space-y-6">
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shadow-2xs">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Corporate Email Accounts</h3>
+                                        <p class="text-xs text-slate-500">Create and manage customized business email inboxes on @{{ account.domain }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <a href="{% url 'service_sso_shortcut' account.id 'webmail' %}" target="_blank"
+                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 shadow-2xs">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Webmail
+                                </a>
+                                <button type="button" onclick="openModal('modal-create-email')"
+                                    class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> Create Email Account
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Emails Table -->
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                    <tr>
+                                        <th class="px-5 py-3.5">Email Address</th>
+                                        <th class="px-5 py-3.5">Disk Usage</th>
+                                        <th class="px-5 py-3.5">Status</th>
+                                        <th class="px-5 py-3.5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                {% for em in hpanel_emails %}
+                                    <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                        <td class="px-5 py-4 font-bold text-slate-900 flex items-center gap-2.5">
+                                            <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs shrink-0"><i class="fa-regular fa-envelope"></i></span>
+                                            <span>{{ em.email }}</span>
+                                        </td>
+                                        <td class="px-5 py-4 font-mono">
+                                            <span class="font-bold text-slate-800">{{ em.human_disk_used }}</span>
+                                            <span class="text-slate-400">/ {{ em.human_disk_quota }}</span>
+                                        </td>
+                                        <td class="px-5 py-4">
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{% url 'service_sso_shortcut' account.id 'webmail' %}" target="_blank"
+                                                    class="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow-2xs">
+                                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Webmail
+                                                </a>
+                                                <button type="button" onclick="openChangeEmailPwdModal('{{ em.login }}')"
+                                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 font-bold text-[11px] transition inline-flex items-center gap-1 shadow-2xs cursor-pointer">
+                                                    <i class="fa-solid fa-key text-[10px]"></i> Password
+                                                </button>
+                                                <form method="POST" action="{% url 'service_hpanel_action' account.id 'delete_email' %}" onsubmit="return confirm('Delete email account {{ em.email }}?');" class="inline m-0">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="email_user" value="{{ em.login }}">
+                                                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="Delete Email">
+                                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                                            <i class="fa-regular fa-envelope-open text-3xl text-slate-300 mb-2 block"></i>
+                                            <p class="text-sm font-semibold text-slate-700">No corporate email accounts created yet.</p>
+                                            <p class="text-xs text-slate-400 mt-1">Click "+ Create Email Account" to launch your first branded email address.</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 3: MYSQL DATABASE SUITE ══════════ -->
+                <div id="hpanel-tab-databases" class="hpanel-tab-pane hidden space-y-6">
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-lg shadow-2xs">
+                                        <i class="fa-solid fa-database"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">MySQL® Databases &amp; phpMyAdmin</h3>
+                                        <p class="text-xs text-slate-500">Manage relational databases, database users, and visual SQL admin tool</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <a href="{% url 'service_sso_shortcut' account.id 'phpmyadmin' %}" target="_blank"
+                                    class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-table-cells"></i> Open phpMyAdmin
+                                </a>
+                                <button type="button" onclick="openModal('modal-create-database')"
+                                    class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> Create Database
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Databases Table -->
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                    <tr>
+                                        <th class="px-5 py-3.5">Database Name</th>
+                                        <th class="px-5 py-3.5">Database Size</th>
+                                        <th class="px-5 py-3.5">Assigned Users</th>
+                                        <th class="px-5 py-3.5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                {% for db in hpanel_databases %}
+                                    <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                        <td class="px-5 py-4 font-mono font-bold text-slate-900 flex items-center gap-2.5">
+                                            <span class="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-server"></i></span>
+                                            <span>{{ db.name }}</span>
+                                        </td>
+                                        <td class="px-5 py-4 font-mono text-slate-700 font-semibold">{{ db.size_mb }} MB</td>
+                                        <td class="px-5 py-4 font-mono text-slate-600">
+                                            {% for u in db.users %}
+                                            <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-mono mr-1">{{ u }}</span>
+                                            {% empty %}
+                                            <span class="text-slate-400 italic">None</span>
+                                            {% endfor %}
+                                        </td>
+                                        <td class="px-5 py-4 text-right">
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{% url 'service_sso_shortcut' account.id 'phpmyadmin' %}" target="_blank"
+                                                    class="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-600 hover:text-white font-bold text-[11px] transition inline-flex items-center gap-1 shadow-2xs">
+                                                    <i class="fa-solid fa-table-cells text-[10px]"></i> phpMyAdmin
+                                                </a>
+                                                <form method="POST" action="{% url 'service_hpanel_action' account.id 'delete_database' %}" onsubmit="return confirm('Permanently delete database {{ db.name }}? All tables will be wiped!');" class="inline m-0">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="db_name" value="{{ db.name }}">
+                                                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="Delete Database">
+                                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                                            <i class="fa-solid fa-database text-3xl text-slate-300 mb-2 block"></i>
+                                            <p class="text-sm font-semibold text-slate-700">No MySQL databases created yet.</p>
+                                            <p class="text-xs text-slate-400 mt-1">Click "+ Create Database" to set up your database and user with full privileges.</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 4: FILES & FTP SUITE ══════════ -->
+                <div id="hpanel-tab-files" class="hpanel-tab-pane hidden space-y-6">
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shadow-2xs">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Files &amp; FTP Management</h3>
+                                        <p class="text-xs text-slate-500">Upload, organize website code, and configure secure FTP access</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <a href="{% url 'service_sso_shortcut' account.id 'filemanager' %}" target="_blank"
+                                    class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-folder-tree"></i> Open File Manager
+                                </a>
+                                <button type="button" onclick="openModal('modal-create-ftp')"
+                                    class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 shadow-2xs cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> Create FTP User
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- FTP Connection Helper Card -->
+                        <div class="p-5 rounded-2xl bg-surface-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">FTP Host</span>
+                                <span class="font-mono font-bold text-slate-900 mt-1 block">ftp.{{ account.domain }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Port</span>
+                                <span class="font-mono font-bold text-slate-900 mt-1 block">21 (FTPS Explicit)</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Primary User</span>
+                                <span class="font-mono font-bold text-brand-600 mt-1 block">{{ account.username }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Web Directory</span>
+                                <span class="font-mono font-bold text-slate-900 mt-1 block">public_html/</span>
+                            </div>
+                        </div>
+
+                        <!-- FTP Accounts Table -->
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                    <tr>
+                                        <th class="px-5 py-3.5">FTP Username</th>
+                                        <th class="px-5 py-3.5">Home Directory</th>
+                                        <th class="px-5 py-3.5">Disk Quota</th>
+                                        <th class="px-5 py-3.5">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                {% for ftp in hpanel_ftp_accounts %}
+                                    <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                        <td class="px-5 py-4 font-mono font-bold text-slate-900">{{ ftp.user }}</td>
+                                        <td class="px-5 py-4 font-mono text-slate-600">{{ ftp.homedir }}</td>
+                                        <td class="px-5 py-4 font-mono text-slate-600">{{ ftp.diskquota }}</td>
+                                        <td class="px-5 py-4">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Active</span>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td class="px-5 py-4 font-mono font-bold text-slate-900">{{ account.username }} (Main Account)</td>
+                                        <td class="px-5 py-4 font-mono text-slate-600">/home/{{ account.username }}</td>
+                                        <td class="px-5 py-4 font-mono text-slate-600">Unlimited</td>
+                                        <td class="px-5 py-4">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Primary Root</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ TAB 5: SUBDOMAINS & SSL SUITE ══════════ -->
+                <div id="hpanel-tab-domains" class="hpanel-tab-pane hidden space-y-6">
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shadow-2xs">
+                                        <i class="fa-solid fa-globe"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-slate-900">Subdomains &amp; Free AutoSSL</h3>
+                                        <p class="text-xs text-slate-500">Configure custom subdomains and verify Let's Encrypt / cPanel AutoSSL protection</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <form method="POST" action="{% url 'service_hpanel_action' account.id 'trigger_autossl' %}" class="inline m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 shadow-2xs cursor-pointer">
+                                        <i class="fa-solid fa-shield-halved text-emerald-600"></i> Run AutoSSL Check
+                                    </button>
+                                </form>
+                                <button type="button" onclick="openModal('modal-create-subdomain')"
+                                    class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> Create Subdomain
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Subdomains List -->
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Subdomains</h4>
+                            <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                        <tr>
+                                            <th class="px-5 py-3.5">Subdomain</th>
+                                            <th class="px-5 py-3.5">Document Root</th>
+                                            <th class="px-5 py-3.5 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                    {% for sub in hpanel_subdomains %}
+                                        <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                            <td class="px-5 py-4 font-mono font-bold text-slate-900">
+                                                <a href="http://{{ sub.domain }}" target="_blank" class="hover:text-brand-600 hover:underline">
+                                                    {{ sub.domain }}
+                                                </a>
+                                            </td>
+                                            <td class="px-5 py-4 font-mono text-slate-600">{{ sub.document_root }}</td>
+                                            <td class="px-5 py-4 text-right">
+                                                <form method="POST" action="{% url 'service_hpanel_action' account.id 'delete_subdomain' %}" onsubmit="return confirm('Delete subdomain {{ sub.domain }}?');" class="inline m-0">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="subdomain" value="{{ sub.domain }}">
+                                                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer" title="Delete Subdomain">
+                                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="px-6 py-8 text-center text-slate-400">
+                                                No custom subdomains created yet. Click "+ Create Subdomain" (e.g. app.{{ account.domain }}).
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SSL Certificates Table -->
+                        <div class="space-y-3 pt-4 border-t border-slate-100">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">SSL Certificate Status</h4>
+                            <div class="overflow-x-auto rounded-2xl border border-slate-200/80">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                        <tr>
+                                            <th class="px-5 py-3.5">Host / Domain</th>
+                                            <th class="px-5 py-3.5">SSL Issuer</th>
+                                            <th class="px-5 py-3.5">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                    {% for ssl in hpanel_ssl_hosts %}
+                                        <tr class="hover:bg-slate-50/70 transition whitespace-nowrap">
+                                            <td class="px-5 py-3.5 font-mono font-bold text-slate-900">{{ ssl.domain }}</td>
+                                            <td class="px-5 py-3.5 text-slate-600">{{ ssl.issuer_organization }}</td>
+                                            <td class="px-5 py-3.5">
+                                                {% if ssl.is_valid %}
+                                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1">
+                                                    <i class="fa-solid fa-lock text-emerald-600"></i> Active &amp; Valid
+                                                </span>
+                                                {% else %}
+                                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800">
+                                                    Pending / Self-Signed
+                                                </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr class="whitespace-nowrap">
+                                            <td class="px-5 py-3.5 font-mono font-bold text-slate-900">{{ account.domain }}</td>
+                                            <td class="px-5 py-3.5 text-slate-600">Let's Encrypt / cPanel AutoSSL</td>
+                                            <td class="px-5 py-3.5">
+                                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1">
+                                                    <i class="fa-solid fa-lock text-emerald-600"></i> Active &amp; Auto-Renewing
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+</main>
 
         </div>
 
@@ -637,6 +1102,189 @@
                     class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-ban"></i> Submit Request
                 </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CREATE EMAIL ACCOUNT                                                -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-create-email" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-create-email')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-envelope"></i></div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Create Email Account</h3>
+                <p class="text-xs text-slate-500">@{{ account.domain }}</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'create_email' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Email Username</label>
+                <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                    <input type="text" name="email_user" required placeholder="info or support" class="w-full px-3.5 py-2.5 text-xs font-mono focus:outline-none">
+                    <span class="bg-slate-100 px-3 py-2.5 text-xs font-mono text-slate-500 border-l border-slate-200">@{{ account.domain }}</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                <input type="password" name="password" required placeholder="Minimum 8 characters" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Storage Quota (MB)</label>
+                <input type="number" name="quota_mb" value="1024" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                <span class="text-[10px] text-slate-400 mt-1 block">Set 0 for unlimited mailbox storage</span>
+            </div>
+            <div class="pt-2 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-create-email')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm">Create Email</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CHANGE EMAIL PASSWORD                                              -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-change-email-pwd" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-change-email-pwd')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-key"></i></div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Change Email Password</h3>
+                <p id="label-email-pwd-target" class="text-xs text-slate-500">Updating mailbox</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'change_email_password' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="email_user" id="input_email_pwd_user">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">New Password</label>
+                <input type="password" name="new_password" required placeholder="New secure password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="pt-2 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-change-email-pwd')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CREATE DATABASE & USER                                              -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-create-database" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-create-database')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-database"></i></div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Create MySQL Database</h3>
+                <p class="text-xs text-slate-500">Atomic setup with Database, User &amp; All Privileges</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'create_database' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Database Name Suffix</label>
+                <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                    <span class="bg-slate-100 px-3 py-2.5 text-xs font-mono text-slate-500 border-r border-slate-200">{{ account.username }}_</span>
+                    <input type="text" name="db_suffix" required placeholder="db1 or wp" class="w-full px-3.5 py-2.5 text-xs font-mono focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Database User Suffix</label>
+                <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                    <span class="bg-slate-100 px-3 py-2.5 text-xs font-mono text-slate-500 border-r border-slate-200">{{ account.username }}_</span>
+                    <input type="text" name="user_suffix" required placeholder="usr1" class="w-full px-3.5 py-2.5 text-xs font-mono focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Database Password</label>
+                <input type="password" name="password" required placeholder="Strong database password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="pt-2 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-create-database')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-sm">Create Database</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CREATE SUBDOMAIN                                                    -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-create-subdomain" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-create-subdomain')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-globe"></i></div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Create Subdomain</h3>
+                <p class="text-xs text-slate-500">Configure new host for {{ account.domain }}</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'create_subdomain' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Subdomain Prefix</label>
+                <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                    <input type="text" name="subdomain_prefix" required placeholder="blog or app" class="w-full px-3.5 py-2.5 text-xs font-mono focus:outline-none">
+                    <span class="bg-slate-100 px-3 py-2.5 text-xs font-mono text-slate-500 border-l border-slate-200">.{{ account.domain }}</span>
+                </div>
+            </div>
+            <div class="pt-2 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-create-subdomain')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm">Create Subdomain</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: CREATE FTP ACCOUNT                                                  -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<div id="modal-create-ftp" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-200 shadow-2xl relative">
+        <button type="button" onclick="closeModal('modal-create-ftp')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-base">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-folder-tree"></i></div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Create FTP Account</h3>
+                <p class="text-xs text-slate-500">Dedicated file transfer credentials</p>
+            </div>
+        </div>
+        <form action="{% url 'service_hpanel_action' account.id 'create_ftp' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">FTP Username</label>
+                <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                    <input type="text" name="user_prefix" required placeholder="dev or upload" class="w-full px-3.5 py-2.5 text-xs font-mono focus:outline-none">
+                    <span class="bg-slate-100 px-3 py-2.5 text-xs font-mono text-slate-500 border-l border-slate-200">@{{ account.domain }}</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">FTP Password</label>
+                <input type="password" name="password" required placeholder="FTP password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+            <div class="pt-2 flex justify-end gap-2.5">
+                <button type="button" onclick="closeModal('modal-create-ftp')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm">Create FTP Account</button>
             </div>
         </form>
     </div>
@@ -774,5 +1422,48 @@ function toggleSidebarCollapse() {
         if (icon) icon.className = 'fa-solid fa-chevron-left';
     }
 }
+
+// ─── HPANEL TAB SWITCHING ENGINE ──────────────────────────────────────────
+function switchHpanelTab(tabId) {
+    const tabs = ['overview', 'emails', 'databases', 'files', 'domains'];
+    tabs.forEach(t => {
+        const pane = document.getElementById(`hpanel-tab-${t}`);
+        const btn = document.getElementById(`hpanel-btn-${t}`);
+        if (pane) {
+            if (t === tabId) {
+                pane.classList.remove('hidden');
+            } else {
+                pane.classList.add('hidden');
+            }
+        }
+        if (btn) {
+            if (t === tabId) {
+                btn.className = "hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap bg-brand-50 text-brand-700 shadow-2xs";
+            } else {
+                btn.className = "hpanel-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer whitespace-nowrap text-slate-600 hover:text-slate-900 hover:bg-slate-50";
+            }
+        }
+    });
+    // Update browser URL query param without refresh
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabId);
+    window.history.replaceState({}, '', url);
+}
+
+function openChangeEmailPwdModal(emailUser) {
+    const userField = document.getElementById('input_email_pwd_user');
+    const label = document.getElementById('label-email-pwd-target');
+    if (userField) userField.value = emailUser;
+    if (label) label.innerText = `Updating password for ${emailUser}@{{ account.domain }}`;
+    openModal('modal-change-email-pwd');
+}
+
+// Auto activate tab from URL query param on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const initialTab = params.get('tab') || '{{ active_tab|default:"overview" }}';
+    switchHpanelTab(initialTab);
+});
+
 </script>
 {% endblock %}
