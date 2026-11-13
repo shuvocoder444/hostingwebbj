@@ -7,15 +7,13 @@ automated provisioning via registrar drivers, and DNS management.
 import logging
 from datetime import timedelta
 from decimal import Decimal
-from typing import Optional, Tuple
 
 from django.db import transaction as db_transaction
 from django.utils import timezone
 
-from core.exceptions import DomainRegistrationError, DomainRenewalError
-from .models import Domain, DomainRegistrar, TLDPricing
+from .drivers.base import DomainCheckResult
 from .drivers.factory import get_registrar_driver
-from .drivers.base import DomainCheckResult, DomainRegistrationResult
+from .models import Domain, DomainRegistrar, TLDPricing
 
 logger = logging.getLogger('domains')
 
@@ -26,7 +24,7 @@ class DomainService:
     """
 
     @staticmethod
-    def extract_tld(domain_name: str) -> Tuple[str, str]:
+    def extract_tld(domain_name: str) -> tuple[str, str]:
         """
         Splits 'mycompany.com.bd' -> ('mycompany', '.com.bd')
         Splits 'mycompany.com' -> ('mycompany', '.com')
@@ -110,6 +108,7 @@ class DomainService:
         Checks alternate active TLDs and variation prefixes/suffixes concurrently using ThreadPoolExecutor.
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
+
         from .whois_checker import check_domain_live
 
         clean_name = domain_name.lower().strip().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
@@ -189,7 +188,7 @@ class DomainService:
         user,
         domain_name: str,
         years: int = 1,
-        nameservers: Optional[list] = None,
+        nameservers: list | None = None,
     ) -> Domain:
         """
         Create a PENDING domain record before payment.
@@ -301,4 +300,3 @@ class DomainService:
                 logger.warning("Upstream registrar nameserver sync warning for %s: %s", domain.domain_name, e)
 
         return True
-

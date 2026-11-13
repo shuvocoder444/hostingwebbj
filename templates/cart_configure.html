@@ -424,6 +424,43 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
 
                 <!-- 4. IF HOSTING ONLY: SUGGEST REGISTERING A NEW DOMAIN -->
                 {% if is_hosting_only %}
+                <!-- Existing Domain Nameserver Instructions -->
+                <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-soft space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
+                                <i class="fa-solid fa-link"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900">Existing Domain Setup (হোস্টিংয়ের সাথে আপনার ডোমেইন)</h3>
+                                <p class="text-xs text-slate-500">You are purchasing web hosting for your existing domain: <strong class="text-slate-900 font-mono">{{ domain }}</strong></p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase">
+                            Domain Fee: ৳0 (Free)
+                        </span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-slate-700 space-y-2">
+                        <div class="flex items-center gap-2 text-blue-900 font-bold">
+                            <i class="fa-solid fa-circle-info text-blue-600"></i>
+                            <span>নেমসার্ভার পয়েন্ট করার নিয়ম (Nameserver Instructions):</span>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            অর্ডার সম্পন্ন হওয়ার পর আপনার বর্তমান ডোমেইন প্রোভাইডারের কন্ট্রোল প্যানেলে লগইন করে আপনার ডোমেইনের নেমসার্ভারগুলো নিচের মতো পরিবর্তন করুন:
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-xs font-bold text-blue-700">
+                            <div class="p-2.5 bg-white rounded-xl border border-blue-200 flex items-center justify-between">
+                                <span>Nameserver 1:</span>
+                                <code class="text-slate-900 select-all">srv1.whitednszone.com</code>
+                            </div>
+                            <div class="p-2.5 bg-white rounded-xl border border-blue-200 flex items-center justify-between">
+                                <span>Nameserver 2:</span>
+                                <code class="text-slate-900 select-all">srv2.whitednszone.com</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="p-5 rounded-2xl bg-purple-50/70 border border-purple-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shrink-0">
@@ -440,6 +477,167 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                 </div>
                 {% endif %}
 
+                {% endif %}
+
+                {% if not is_hosting_only and domain %}
+                <!-- ═══════════════════════════════════════════════════════════════ -->
+                <!-- WHMCS DOMAINS CONFIGURATION CARD (Addons, Nexus, Nameservers)   -->
+                <!-- ═══════════════════════════════════════════════════════════════ -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
+                    <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-sliders text-blue-600"></i> Domains Configuration
+                                </h3>
+                                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-mono font-bold border border-blue-200">
+                                    {{ domain }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Please review your domain name selections and any add-ons or custom nameservers that are available for them.
+                            </p>
+                        </div>
+                        <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 self-start sm:self-auto">
+                            Registration Period: 1 Year
+                        </span>
+                    </div>
+
+                    <!-- Domain Add-ons (DNS Management & Email Forwarding like Image 2) -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">Domain Add-ons (ডোমেইন এড-অন সার্ভিস):</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- DNS Management -->
+                            <label class="relative p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-white hover:bg-blue-50/20 cursor-pointer transition flex items-start gap-3 group">
+                                <input type="checkbox" name="dns_management" value="1" {% if dns_management %}checked{% endif %}
+                                    class="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <strong class="text-xs font-black text-slate-900 block group-hover:text-blue-700">DNS Management</strong>
+                                        <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">FREE! / 1 Yr</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 leading-snug">
+                                        External DNS Hosting can help speed up your website and improve availability with increased redundancy.
+                                    </p>
+                                </div>
+                            </label>
+
+                            <!-- Email Forwarding -->
+                            <label class="relative p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-white hover:bg-blue-50/20 cursor-pointer transition flex items-start gap-3 group">
+                                <input type="checkbox" name="email_forwarding" value="1" {% if email_forwarding %}checked{% endif %}
+                                    class="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <strong class="text-xs font-black text-slate-900 block group-hover:text-blue-700">Email Forwarding</strong>
+                                        <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">FREE! / 1 Yr</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 leading-snug">
+                                        Get emails forwarded to alternate email addresses of your choice so that you can monitor all from a single account.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Nexus Information (Required for .US Domains as in Image 2) -->
+                    {% if is_us_domain or domain|slice:"-3:" == ".us" or domain|slice:"-3:" == ".US" %}
+                    <div class="p-5 rounded-2xl bg-amber-50/60 border-2 border-amber-300 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-amber-200">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold">
+                                    <i class="fa-solid fa-flag-usa"></i>
+                                </span>
+                                <strong class="text-sm font-bold text-slate-900">.US Domain Nexus Information (রেজিস্ট্রেশন আবশ্যকীয় তথ্য)</strong>
+                            </div>
+                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Required by US Registry</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            যুক্তরাষ্ট্রের রেজিস্ট্রি নীতিমালা অনুযায়ী .US ডোমেইন নিবন্ধনের জন্য নিচের Nexus ক্যাটাগরি, কান্ট্রি এবং ব্যবহারের উদ্দেশ্য উল্লেখ করা আবশ্যক।
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Nexus Category -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Nexus Category <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="nexus_category" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="C11" {% if nexus_category == 'C11' %}selected{% endif %}>C11 - United States Citizen</option>
+                                    <option value="C12" {% if nexus_category == 'C12' %}selected{% endif %}>C12 - Permanent Resident of US</option>
+                                    <option value="C21" {% if nexus_category == 'C21' %}selected{% endif %}>C21 - US Entity or Organization</option>
+                                    <option value="C31" {% if nexus_category == 'C31' %}selected{% endif %}>C31 - Foreign Entity doing business in US</option>
+                                    <option value="C32" {% if nexus_category == 'C32' %}selected{% endif %}>C32 - Foreign Entity with US office/facility</option>
+                                </select>
+                            </div>
+
+                            <!-- Nexus Country -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Nexus Country <span class="text-rose-500 font-extrabold">* (Required)</span>
+                                </label>
+                                <input type="text" name="nexus_country" value="{{ nexus_country|default:'Bangladesh' }}" required
+                                    placeholder="e.g. Bangladesh or United States"
+                                    class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <p class="text-[10px] text-slate-400 mt-1">Country of citizenship or establishment.</p>
+                            </div>
+
+                            <!-- Application Purpose -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Application Purpose <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="nexus_purpose" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="P1" {% if nexus_purpose == 'P1' %}selected{% endif %}>Business use for profit</option>
+                                    <option value="P2" {% if nexus_purpose == 'P2' %}selected{% endif %}>Non-profit business / Association</option>
+                                    <option value="P3" {% if nexus_purpose == 'P3' %}selected{% endif %}>Personal use</option>
+                                    <option value="P4" {% if nexus_purpose == 'P4' %}selected{% endif %}>Educational purpose</option>
+                                    <option value="P5" {% if nexus_purpose == 'P5' %}selected{% endif %}>Government purpose</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Nameservers Section (Exactly matching WHMCS in Image 2) -->
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                        <div>
+                            <strong class="text-sm font-black text-slate-900 block flex items-center gap-1.5">
+                                <i class="fa-solid fa-server text-blue-600"></i> Nameservers (নেমসার্ভার কনফিগারেশন)
+                            </strong>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                If you want to use custom nameservers then enter them below. By default, new domains will use our nameservers for hosting on our network.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 1</label>
+                                <input type="text" name="ns1" value="{{ ns1|default:'srv1.whitednszone.com' }}" placeholder="srv1.whitednszone.com"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 2</label>
+                                <input type="text" name="ns2" value="{{ ns2|default:'srv2.whitednszone.com' }}" placeholder="srv2.whitednszone.com"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono font-bold focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 3 (Optional)</label>
+                                <input type="text" name="ns3" value="{{ ns3 }}" placeholder="e.g. ns3.example.com"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 4 (Optional)</label>
+                                <input type="text" name="ns4" value="{{ ns4 }}" placeholder="e.g. ns4.example.com"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 5 (Optional)</label>
+                            <input type="text" name="ns5" value="{{ ns5 }}" placeholder="e.g. ns5.example.com"
+                                class="w-full sm:w-1/2 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
 
             </div>

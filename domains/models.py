@@ -153,6 +153,16 @@ class Domain(models.Model):
     nameserver_2 = models.CharField(max_length=150, default='srv2.whitednszone.com')
     nameserver_3 = models.CharField(max_length=150, blank=True)
     nameserver_4 = models.CharField(max_length=150, blank=True)
+    nameserver_5 = models.CharField(max_length=150, blank=True)
+
+    dns_management = models.BooleanField(default=False, help_text='Free DNS Host Records Management')
+    email_forwarding = models.BooleanField(default=False, help_text='Free Email Forwarding')
+    id_protection = models.BooleanField(default=False, help_text='WHOIS ID Protection / Privacy')
+
+    # .US Nexus Data (WHMCS format)
+    nexus_category = models.CharField(max_length=50, blank=True, help_text='.US Nexus Category (C11, C12, C21, C31, C32)')
+    nexus_country = models.CharField(max_length=100, blank=True, help_text='.US Nexus Country')
+    nexus_purpose = models.CharField(max_length=50, blank=True, help_text='.US Application Purpose (P1-P5)')
 
     auto_renew = models.BooleanField(default=True)
     epp_code = models.CharField(max_length=100, blank=True, help_text='Domain EPP/Auth transfer code')

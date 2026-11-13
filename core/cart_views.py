@@ -443,10 +443,29 @@ def cart_domain_view(request):
 
         elif domain_option == 'existing':
             existing_domain = request.POST.get('existing_domain', '').strip().lower()
-            existing_domain = existing_domain.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
-            if not existing_domain or '.' not in existing_domain:
+            existing_sld = request.POST.get('existing_sld', '').strip().lower()
+            existing_tld = request.POST.get('existing_tld', '').strip().lower()
+
+            if not existing_domain:
+                if existing_sld:
+                    if '.' in existing_sld:
+                        existing_domain = existing_sld
+                    else:
+                        tld_clean = existing_tld.lstrip('.') if existing_tld else 'com'
+                        existing_domain = f"{existing_sld}.{tld_clean}"
+                elif request.POST.get('domain'):
+                    existing_domain = request.POST.get('domain', '').strip().lower()
+
+            existing_domain = existing_domain.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0].strip()
+
+            # Auto append .com if user omitted dot/tld so it never blocks
+            if existing_domain and '.' not in existing_domain:
+                existing_domain = f"{existing_domain}.com"
+
+            if not existing_domain:
                 messages.error(request, "Please enter a valid existing domain name (e.g. mycompany.com).")
-                return redirect(f"/cart/?{pkg_param}")
+                return redirect(f"/cart/?{pkg_param}&domain_option=existing")
+
             update_cart_session(request, package_id=str(package.id) if package else 'none', domain=existing_domain, domain_option='existing')
             return redirect(f"/cart/configure/?{pkg_param}&domain={existing_domain}&domain_option=existing")
 
@@ -564,6 +583,23 @@ def cart_configure_view(request):
         key=lambda p: (p.sort_order, str(p.id))
     )[:3]
 
+    # WHMCS Domain Configuration Fields (Addons, Nameservers & .US Nexus Data)
+    ns1 = request.GET.get('ns1', '').strip() or cart.get('ns1', 'srv1.whitednszone.com')
+    ns2 = request.GET.get('ns2', '').strip() or cart.get('ns2', 'srv2.whitednszone.com')
+    ns3 = request.GET.get('ns3', '').strip() or cart.get('ns3', '')
+    ns4 = request.GET.get('ns4', '').strip() or cart.get('ns4', '')
+    ns5 = request.GET.get('ns5', '').strip() or cart.get('ns5', '')
+
+    dns_management = request.GET.get('dns_management') in ('on', '1', 'true') or cart.get('dns_management', True)
+    email_forwarding = request.GET.get('email_forwarding') in ('on', '1', 'true') or cart.get('email_forwarding', True)
+    id_protection = request.GET.get('id_protection') in ('on', '1', 'true') or cart.get('id_protection', True)
+
+    nexus_category = request.GET.get('nexus_category', '').strip() or cart.get('nexus_category', 'C11')
+    nexus_country = request.GET.get('nexus_country', '').strip() or cart.get('nexus_country', '')
+    nexus_purpose = request.GET.get('nexus_purpose', '').strip() or cart.get('nexus_purpose', 'P1')
+
+    is_us_domain = domain.lower().endswith('.us') or tld.lower() == '.us'
+
     context = {
         'package': package,
         'domain': domain,
@@ -580,6 +616,18 @@ def cart_configure_view(request):
         'is_bundle': is_bundle,
         'suggested_packages': suggested_packages,
         'step': 2,
+        'ns1': ns1,
+        'ns2': ns2,
+        'ns3': ns3,
+        'ns4': ns4,
+        'ns5': ns5,
+        'dns_management': dns_management,
+        'email_forwarding': email_forwarding,
+        'id_protection': id_protection,
+        'nexus_category': nexus_category,
+        'nexus_country': nexus_country,
+        'nexus_purpose': nexus_purpose,
+        'is_us_domain': is_us_domain,
     }
     return render(request, 'cart_configure.html', context)
 
@@ -614,6 +662,20 @@ def cart_checkout_view(request):
     epp = request.GET.get('epp') or cart.get('epp', '').strip()
     server_location = request.GET.get('server_location') or cart.get('server_location', 'germany').lower()
 
+    # WHMCS Domain Configuration Fields
+    ns1 = request.GET.get('ns1', '').strip() or cart.get('ns1', 'srv1.whitednszone.com')
+    ns2 = request.GET.get('ns2', '').strip() or cart.get('ns2', 'srv2.whitednszone.com')
+    ns3 = request.GET.get('ns3', '').strip() or cart.get('ns3', '')
+    ns4 = request.GET.get('ns4', '').strip() or cart.get('ns4', '')
+    ns5 = request.GET.get('ns5', '').strip() or cart.get('ns5', '')
+    dns_mgmt = request.GET.get('dns_management') in ('on', '1', 'true') or cart.get('dns_management', False)
+    email_fwd = request.GET.get('email_forwarding') in ('on', '1', 'true') or cart.get('email_forwarding', False)
+    id_prot = request.GET.get('id_protection') in ('on', '1', 'true') or cart.get('id_protection', False)
+    nexus_cat = request.GET.get('nexus_category', '').strip() or cart.get('nexus_category', 'C11')
+    nexus_country = request.GET.get('nexus_country', '').strip() or cart.get('nexus_country', '')
+    nexus_purpose = request.GET.get('nexus_purpose', '').strip() or cart.get('nexus_purpose', 'P1')
+    is_us_domain = domain.endswith('.us') or tld == '.us'
+
     package = safe_get_package(package_id)
 
     is_domain_only = package is None
@@ -633,7 +695,18 @@ def cart_checkout_view(request):
         billing_cycle=billing_cycle,
         server_location=server_location,
         tld=tld,
-        epp=epp
+        epp=epp,
+        ns1=ns1,
+        ns2=ns2,
+        ns3=ns3,
+        ns4=ns4,
+        ns5=ns5,
+        dns_management=dns_mgmt,
+        email_forwarding=email_fwd,
+        id_protection=id_prot,
+        nexus_category=nexus_cat,
+        nexus_country=nexus_country,
+        nexus_purpose=nexus_purpose,
     )
 
     # Calculate hosting price according to chosen billing cycle
@@ -736,6 +809,18 @@ def cart_checkout_view(request):
         'is_bundle': is_bundle,
         'suggested_packages': suggested_packages,
         'step': 3,
+        'ns1': ns1,
+        'ns2': ns2,
+        'ns3': ns3,
+        'ns4': ns4,
+        'ns5': ns5,
+        'dns_management': dns_mgmt,
+        'email_forwarding': email_fwd,
+        'id_protection': id_prot,
+        'nexus_category': nexus_cat,
+        'nexus_country': nexus_country,
+        'nexus_purpose': nexus_purpose,
+        'is_us_domain': is_us_domain,
     }
     return render(request, 'cart_checkout.html', context)
 
@@ -830,6 +915,19 @@ def cart_complete_order_view(request):
     sender_number = request.POST.get('sender_number', '').strip()
     trx_id = request.POST.get('trx_id', '').strip()
     notes = request.POST.get('notes', '').strip()
+
+    # WHMCS Domain Configuration Fields
+    ns1 = request.POST.get('ns1', '').strip() or cart.get('ns1', 'srv1.whitednszone.com')
+    ns2 = request.POST.get('ns2', '').strip() or cart.get('ns2', 'srv2.whitednszone.com')
+    ns3 = request.POST.get('ns3', '').strip() or cart.get('ns3', '')
+    ns4 = request.POST.get('ns4', '').strip() or cart.get('ns4', '')
+    ns5 = request.POST.get('ns5', '').strip() or cart.get('ns5', '')
+    dns_mgmt = request.POST.get('dns_management') in ('on', '1', 'true') or cart.get('dns_management', False)
+    email_fwd = request.POST.get('email_forwarding') in ('on', '1', 'true') or cart.get('email_forwarding', False)
+    id_prot = request.POST.get('id_protection') in ('on', '1', 'true') or cart.get('id_protection', False)
+    nexus_cat = request.POST.get('nexus_category', '').strip() or cart.get('nexus_category', '')
+    nexus_country = request.POST.get('nexus_country', '').strip() or cart.get('nexus_country', '')
+    nexus_purpose = request.POST.get('nexus_purpose', '').strip() or cart.get('nexus_purpose', '')
 
     package = safe_get_package(package_id)
 
@@ -1037,6 +1135,17 @@ def cart_complete_order_view(request):
                     domain_record.user = current_user
                     domain_record.registrar = registrar
                     domain_record.status = Domain.Status.PENDING
+                    domain_record.nameserver_1 = ns1 or 'srv1.whitednszone.com'
+                    domain_record.nameserver_2 = ns2 or 'srv2.whitednszone.com'
+                    domain_record.nameserver_3 = ns3
+                    domain_record.nameserver_4 = ns4
+                    domain_record.nameserver_5 = ns5
+                    domain_record.dns_management = bool(dns_mgmt)
+                    domain_record.email_forwarding = bool(email_fwd)
+                    domain_record.id_protection = bool(id_prot)
+                    domain_record.nexus_category = nexus_cat
+                    domain_record.nexus_country = nexus_country
+                    domain_record.nexus_purpose = nexus_purpose
                     domain_record.save()
                 else:
                     domain_record = Domain.objects.create(
@@ -1048,6 +1157,17 @@ def cart_complete_order_view(request):
                         registration_date=timezone.now().date(),
                         expiry_date=timezone.now().date() + timezone.timedelta(days=365),
                         next_due_date=timezone.now().date() + timezone.timedelta(days=365),
+                        nameserver_1=ns1 or 'srv1.whitednszone.com',
+                        nameserver_2=ns2 or 'srv2.whitednszone.com',
+                        nameserver_3=ns3,
+                        nameserver_4=ns4,
+                        nameserver_5=ns5,
+                        dns_management=bool(dns_mgmt),
+                        email_forwarding=bool(email_fwd),
+                        id_protection=bool(id_prot),
+                        nexus_category=nexus_cat,
+                        nexus_country=nexus_country,
+                        nexus_purpose=nexus_purpose,
                         auto_renew=True,
                     )
 

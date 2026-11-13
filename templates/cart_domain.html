@@ -306,16 +306,21 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                     </div>
                     {% endif %}
 
-                    <div class="flex flex-col sm:flex-row gap-2.5">
-                        <div class="relative flex-1">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-link text-sm"></i>
-                            </div>
-                            <input type="text" name="existing_domain" placeholder="e.g. mycompany.com" required
-                                class="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    <div class="flex flex-col sm:flex-row gap-2.5 items-center">
+                        <div class="flex items-center w-full flex-1 rounded-2xl border border-slate-300 bg-slate-50 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 overflow-hidden transition shadow-2xs">
+                            <span class="pl-4 pr-1 text-slate-400 font-mono text-xs font-bold select-none shrink-0 flex items-center gap-1.5">
+                                <i class="fa-solid fa-link text-slate-400 text-xs"></i> www.
+                            </span>
+                            <input type="text" id="existing_sld" name="existing_sld" placeholder="mycompany" value="{% if initial_option == 'existing' or domain_option == 'existing' %}{{ initial_sld|default:initial_domain }}{% endif %}" required
+                                oninput="handleExistingDomainInput(this)"
+                                class="flex-1 py-3.5 px-2 bg-transparent border-0 text-slate-900 font-mono text-sm focus:ring-0 focus:outline-none">
+                            <span class="px-1 text-slate-400 font-black text-base select-none">.</span>
+                            <input type="text" id="existing_tld" name="existing_tld" placeholder="com" value="{% if initial_option == 'existing' or domain_option == 'existing' %}{{ initial_tld|cut:'.'|default:'com' }}{% else %}com{% endif %}"
+                                class="w-24 sm:w-28 py-3.5 pr-4 bg-transparent border-0 text-slate-900 font-mono text-sm focus:ring-0 focus:outline-none text-left">
                         </div>
-                        <button type="submit"
-                            class="px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                        <input type="hidden" id="existing_domain_full" name="existing_domain" value="">
+                        <button type="submit" onclick="syncExistingDomainFull()"
+                            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
                             Use Domain <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -636,6 +641,40 @@ function switchDomainTab(tabKey) {
             }
         }
     });
+}
+
+function handleExistingDomainInput(input) {
+    if (!input) return;
+    let val = input.value.trim().toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
+    if (val.includes('.')) {
+        const parts = val.split('.');
+        const sld = parts[0];
+        const tld = parts.slice(1).join('.');
+        input.value = sld;
+        const tldInput = document.getElementById('existing_tld');
+        if (tldInput && tld) {
+            tldInput.value = tld;
+        }
+    }
+    syncExistingDomainFull();
+}
+
+function syncExistingDomainFull() {
+    const sldInput = document.getElementById('existing_sld');
+    const tldInput = document.getElementById('existing_tld');
+    const fullInput = document.getElementById('existing_domain_full');
+    if (sldInput && fullInput) {
+        let sld = sldInput.value.trim().toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
+        let tld = tldInput ? tldInput.value.trim().toLowerCase().replace(/^\.+/, '') : 'com';
+        if (!tld) tld = 'com';
+        if (sld.includes('.')) {
+            fullInput.value = sld;
+        } else if (sld) {
+            fullInput.value = `${sld}.${tld}`;
+        } else {
+            fullInput.value = '';
+        }
+    }
 }
 
 function switchRegisterSubMode(mode) {

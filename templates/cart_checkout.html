@@ -45,6 +45,17 @@
             <input type="hidden" name="server_location" value="{{ server_location|default:'germany' }}">
             <input type="hidden" name="tld" value="{{ tld }}">
             <input type="hidden" name="epp" value="{{ epp }}">
+            <input type="hidden" name="ns1" value="{{ ns1 }}">
+            <input type="hidden" name="ns2" value="{{ ns2 }}">
+            <input type="hidden" name="ns3" value="{{ ns3 }}">
+            <input type="hidden" name="ns4" value="{{ ns4 }}">
+            <input type="hidden" name="ns5" value="{{ ns5 }}">
+            <input type="hidden" name="dns_management" value="{% if dns_management %}1{% else %}0{% endif %}">
+            <input type="hidden" name="email_forwarding" value="{% if email_forwarding %}1{% else %}0{% endif %}">
+            <input type="hidden" name="id_protection" value="{% if id_protection %}1{% else %}0{% endif %}">
+            <input type="hidden" name="nexus_category" value="{{ nexus_category }}">
+            <input type="hidden" name="nexus_country" value="{{ nexus_country }}">
+            <input type="hidden" name="nexus_purpose" value="{{ nexus_purpose }}">
             <input type="hidden" name="auth_mode" id="auth_mode_input" value="register">
 
             <!-- LEFT 2 COLUMNS: ORDER ITEMS + ACCOUNT CREATION + PAYMENT -->
@@ -108,6 +119,18 @@
                                 </div>
                                 <span class="font-mono text-xs text-purple-600 font-semibold block mt-0.5">{{ domain }}</span>
                                 <span class="text-[11px] text-slate-400 font-medium">Free WHOIS Privacy &amp; DNS Zone Management</span>
+                                {% if ns1 or ns2 %}
+                                <div class="mt-1 flex items-center gap-1.5 flex-wrap text-[10px] text-slate-500 font-mono">
+                                    <span class="font-bold text-slate-600 font-sans">Nameservers:</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-slate-100">{{ ns1|default:'srv1.whitednszone.com' }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-slate-100">{{ ns2|default:'srv2.whitednszone.com' }}</span>
+                                </div>
+                                {% endif %}
+                                {% if nexus_country %}
+                                <div class="mt-1 text-[10px] text-amber-700 font-bold">
+                                    <i class="fa-solid fa-flag-usa mr-1"></i> .US Nexus Country: {{ nexus_country }} ({{ nexus_category }})
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="text-left sm:text-right">
                                 <span class="text-base font-extrabold text-slate-900">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
