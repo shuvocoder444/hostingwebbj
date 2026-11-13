@@ -332,15 +332,15 @@
                             </span>
                         </div>
 
-                        <!-- 2 Payment Gateways Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <!-- 3 Payment Gateways Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                             <!-- 1. WebKoders Pay (Instant bKash/Nagad/Rocket/Cards) -->
                             <div id="card-gateway-webkoders" onclick="selectPaymentGateway('webkoders')"
                                 class="relative p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/80 shadow-xs cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group ring-2 ring-emerald-500/20">
                                 <input type="radio" id="radio-gateway-webkoders" name="payment_gateway" value="webkoders" checked class="sr-only">
                                 <div class="flex items-center justify-between">
                                     <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px] shadow-xs tracking-wider uppercase flex items-center gap-1">
-                                        <i class="fa-solid fa-bolt"></i> Instant Auto Provisioning
+                                        <i class="fa-solid fa-bolt"></i> Instant Auto
                                     </span>
                                     <span id="check-gateway-webkoders" class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
                                         <i class="fa-solid fa-check"></i>
@@ -352,13 +352,37 @@
                                     </div>
                                     <div>
                                         <strong class="text-sm font-black text-slate-900 block">WebKoders Pay</strong>
-                                        <span class="text-xs text-emerald-800 font-bold">bKash, Nagad, Rocket, Cards</span>
+                                        <span class="text-xs text-emerald-800 font-bold">bKash, Nagad, Cards</span>
                                     </div>
                                 </div>
-                                <p class="text-[11px] text-slate-600 leading-snug">বিকাশ, নগদ, রকেট ও ভিসা/মাস্টারকার্ড দিয়ে তাৎক্ষণিক অটোমেটিক পেমেন্ট।</p>
+                                <p class="text-[11px] text-slate-600 leading-snug">বিকাশ, নগদ, রকেট ও ভিসা/মাস্টারকার্ড দিয়ে তাৎক্ষণিক অটো পেমেন্ট।</p>
                             </div>
 
-                            <!-- 2. Direct Crypto & Binance Pay (0% Fee) -->
+                            <!-- 2. Bangla QR (বাংলা কিউআর) -->
+                            <div id="card-gateway-bangla_qr" onclick="selectPaymentGateway('bangla_qr')"
+                                class="relative p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-rose-400 hover:bg-rose-50/30 cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group">
+                                <input type="radio" id="radio-gateway-bangla_qr" name="payment_gateway" value="bangla_qr" class="sr-only">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-extrabold text-[10px] shadow-xs tracking-wider uppercase flex items-center gap-1">
+                                        <i class="fa-solid fa-qrcode"></i> বাংলা কিউআর
+                                    </span>
+                                    <span id="check-gateway-bangla_qr" class="w-5 h-5 rounded-full bg-rose-600 text-white hidden items-center justify-center text-[10px]">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-500 text-white flex items-center justify-center text-lg font-black shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-sm font-black text-slate-900 block">বাংলা কিউআর (QR)</strong>
+                                        <span class="text-xs text-rose-800 font-bold">ব্যাংক ও বিকাশ/নগদ স্ক্যান</span>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-600 leading-snug">যেকোনো ব্যাংক অ্যাপ বা বিকাশ/নগদ এর বাংলা কিউআর স্ক্যান করে পে করুন।</p>
+                            </div>
+
+                            <!-- 3. Direct Crypto & Binance Pay (0% Fee) -->
                             <div id="card-gateway-direct_crypto" onclick="selectPaymentGateway('direct_crypto')"
                                 class="relative p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/30 cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group">
                                 <input type="radio" id="radio-gateway-direct_crypto" name="payment_gateway" value="direct_crypto" class="sr-only">
@@ -375,8 +399,8 @@
                                         <i class="fa-solid fa-wallet"></i>
                                     </div>
                                     <div>
-                                        <strong class="text-sm font-black text-slate-900 block">Direct Crypto &amp; Binance Pay</strong>
-                                        <span class="text-xs text-amber-800 font-bold">USDT (TRC-20, BEP-20) / Pay ID</span>
+                                        <strong class="text-sm font-black text-slate-900 block">Direct Crypto</strong>
+                                        <span class="text-xs text-amber-800 font-bold">USDT / Binance Pay</span>
                                     </div>
                                 </div>
                                 <p class="text-[11px] text-slate-600 leading-snug">বাইনান্স পে অথবা ক্রিপ্টো ওয়ালেট দিয়ে সরাসরি USDT পাঠান।</p>
@@ -570,6 +594,10 @@ const TRC20_WALLET = "{{ site_setting.usdt_trc20_wallet|default:'TV6y4s7X9hQweU3
 const BEP20_WALLET = "{{ site_setting.usdt_bep20_wallet|default:'0x71C9d832bA2A1e21bF7038166D4e8a4a581C650A' }}";
 const BINANCE_PAY_ID = "{{ site_setting.binance_pay_id|default:'589214732' }}";
 const SUPPORT_PHONE = "{{ site_setting.support_phone|default:site_setting.whatsapp_number|default:'01790830250' }}";
+const BANGLA_QR_IMG = "{{ site_settings.bangla_qr_image_url|default:'' }}";
+const BANGLA_QR_MERCHANT = "{{ site_settings.bangla_qr_merchant_name|default:'VeloHoster / Bangla QR' }}";
+const BANGLA_QR_NUMBER = "{{ site_settings.bangla_qr_merchant_number|default:'' }}";
+const BANGLA_QR_INSTRUCTIONS = `{{ site_settings.bangla_qr_instructions|default:'যেকোনো ব্যাংক অ্যাপ (City Bank, BRAC, EBL ইত্যাদি) বা বিকাশ, নগদ, রকেটের "বাংলা কিউআর" স্ক্যান করে পেমেন্ট করুন এবং নিচে TrxID ও মোবাইল নম্বর দিন।'|escapejs }}`;
 
 let currentCryptoNet = 'trc20';
 
@@ -676,6 +704,49 @@ const GATEWAY_CONFIG = {
         notesPlaceholder: 'Any notes for the order...',
         isAuto: true
     },
+    bangla_qr: {
+        cardClass: 'relative p-4 rounded-2xl border-2 border-rose-500 bg-rose-50/80 shadow-xs cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group ring-2 ring-rose-500/20',
+        guideBoxClass: 'p-4 sm:p-5 bg-gradient-to-br from-rose-50 via-pink-50/40 to-red-50 border border-rose-200 rounded-2xl text-xs text-rose-950 leading-relaxed space-y-4 transition-all shadow-xs',
+        guideTitleClass: 'font-bold flex items-center gap-2 text-rose-900',
+        guideTitle: '<i class="fa-solid fa-qrcode text-rose-600 text-sm"></i> বাংলা কিউআর (Bangla QR) পেমেন্ট স্ক্যানার:',
+        guideDesc: `
+            <div class="space-y-3">
+                <div class="p-4 bg-white rounded-2xl border border-rose-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-4">
+                    <div class="relative p-2 bg-slate-50 rounded-xl border border-slate-200 shrink-0 text-center group">
+                        ${BANGLA_QR_IMG ? `<img src="${BANGLA_QR_IMG}" alt="Bangla QR" class="w-36 h-36 sm:w-40 sm:h-40 rounded-lg object-contain mx-auto bg-white p-1">` : `<div class="w-36 h-36 flex flex-col items-center justify-center bg-rose-50 rounded-lg text-rose-400 border border-rose-200"><i class="fa-solid fa-qrcode text-5xl mb-1"></i><span class="text-[10px] font-bold">Bangla QR</span></div>`}
+                        <div class="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold text-rose-700">
+                            <i class="fa-solid fa-qrcode"></i> Scan with Bank / MFS App
+                        </div>
+                    </div>
+                    <div class="space-y-2 flex-1 text-left min-w-0 w-full">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border bg-rose-100 text-rose-800 border-rose-200">বাংলা কিউআর (Bangla QR)</span>
+                            <span class="text-xs font-extrabold text-rose-700">মোট প্রদেয়: <strong>৳{{ total }} BDT</strong></span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 text-[11px]">মার্চেন্ট / প্রাপক:</span>
+                                <strong class="text-slate-900 font-bold">${BANGLA_QR_MERCHANT}</strong>
+                            </div>
+                            ${BANGLA_QR_NUMBER ? `
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 text-[11px]">মার্চেন্ট / মোবাইল নং:</span>
+                                <strong class="font-mono text-slate-900 font-bold">${BANGLA_QR_NUMBER}</strong>
+                            </div>` : ''}
+                        </div>
+                        <p class="text-[11px] text-slate-700 leading-snug whitespace-pre-line">${BANGLA_QR_INSTRUCTIONS}</p>
+                        <p class="text-[10px] text-slate-400">পেমেন্ট সম্পন্ন করার পর নিচে আপনার প্রেরক মোবাইল নম্বর ও <strong>TrxID (Transaction ID)</strong> দিন।</p>
+                    </div>
+                </div>
+            </div>
+        `,
+        senderLabel: 'আপনার বিকাশ/নগদ/ব্যাংক মোবাইল নম্বর <span class="text-rose-500">*</span>',
+        senderPlaceholder: 'যেমন: 017xxxxxxxx বা ব্যাংক একাউন্ট',
+        trxLabel: 'Transaction ID (TrxID) <span class="text-rose-500">*</span>',
+        trxPlaceholder: 'যেমন: 8N7A6B5C বা ব্যাংক ট্রানজেকশন আইডি',
+        notesPlaceholder: 'যেমন: Paid via City Bank / bKash QR',
+        isAuto: false
+    },
     direct_crypto: {
         cardClass: 'relative p-4 rounded-2xl border-2 border-amber-500 bg-amber-50/80 shadow-xs cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group ring-2 ring-amber-500/20',
         guideBoxClass: 'p-4 sm:p-5 bg-gradient-to-br from-amber-50 via-orange-50/40 to-yellow-50 border border-amber-200 rounded-2xl text-xs text-amber-950 leading-relaxed space-y-4 transition-all shadow-xs',
@@ -734,7 +805,7 @@ const GATEWAY_CONFIG = {
 };
 
 function selectPaymentGateway(gateway) {
-    const gateways = ['webkoders', 'direct_crypto'];
+    const gateways = ['webkoders', 'bangla_qr', 'direct_crypto'];
     if (!gateways.includes(gateway)) gateway = 'webkoders';
 
     const defaultCardClass = 'relative p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 cursor-pointer flex flex-col gap-2.5 transition-all duration-200 group';

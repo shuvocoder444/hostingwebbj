@@ -63,8 +63,8 @@ class Server(models.Model):
         help_text='Maximum number of hosting accounts on this server.'
     )
     is_active = models.BooleanField(default=True, db_index=True)
-    nameserver_1 = models.CharField(max_length=100, blank=True)
-    nameserver_2 = models.CharField(max_length=100, blank=True)
+    nameserver_1 = models.CharField(max_length=100, blank=True, default='srv1.whitednszone.com')
+    nameserver_2 = models.CharField(max_length=100, blank=True, default='srv2.whitednszone.com')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

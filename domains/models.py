@@ -149,8 +149,8 @@ class Domain(models.Model):
     expiry_date = models.DateField(null=True, blank=True, db_index=True)
     next_due_date = models.DateField(null=True, blank=True, db_index=True)
 
-    nameserver_1 = models.CharField(max_length=150, default='ns1.hostpro.bd')
-    nameserver_2 = models.CharField(max_length=150, default='ns2.hostpro.bd')
+    nameserver_1 = models.CharField(max_length=150, default='srv1.whitednszone.com')
+    nameserver_2 = models.CharField(max_length=150, default='srv2.whitednszone.com')
     nameserver_3 = models.CharField(max_length=150, blank=True)
     nameserver_4 = models.CharField(max_length=150, blank=True)
 

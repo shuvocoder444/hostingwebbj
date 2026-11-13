@@ -505,12 +505,12 @@
                                 <div class="p-3 rounded-2xl bg-surface-50 border border-slate-200 space-y-2">
                                     <div class="text-[11px] font-bold text-slate-400 uppercase">Primary Nameservers</div>
                                     <div class="font-mono font-semibold text-slate-700 flex items-center justify-between">
-                                        <span>{{ server.nameserver_1|default:"ns1.velohoster.com" }}</span>
-                                        <button onclick="copyText('{{ server.nameserver_1|default:"ns1.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                        <span>{{ server.nameserver_1|default:"srv1.whitednszone.com" }}</span>
+                                        <button onclick="copyText('{{ server.nameserver_1|default:"srv1.whitednszone.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
                                     </div>
                                     <div class="font-mono font-semibold text-slate-700 flex items-center justify-between pt-1 border-t border-slate-200">
-                                        <span>{{ server.nameserver_2|default:"ns2.velohoster.com" }}</span>
-                                        <button onclick="copyText('{{ server.nameserver_2|default:"ns2.velohoster.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                        <span>{{ server.nameserver_2|default:"srv2.whitednszone.com" }}</span>
+                                        <button onclick="copyText('{{ server.nameserver_2|default:"srv2.whitednszone.com" }}')" class="text-slate-400 hover:text-brand-600" title="Copy"><i class="fa-regular fa-copy"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -728,18 +728,18 @@
                                         <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
                                             <div>
                                                 <span class="text-slate-400 text-[10px] block font-sans">Primary NS1</span>
-                                                <span class="font-bold text-slate-800">ns1.velohoster.com</span>
+                                                <span class="font-bold text-slate-800">srv1.whitednszone.com</span>
                                             </div>
-                                            <button type="button" onclick="copyText('ns1.velohoster.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
+                                            <button type="button" onclick="copyText('srv1.whitednszone.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
                                                 <i class="fa-regular fa-copy"></i> Copy
                                             </button>
                                         </div>
                                         <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
                                             <div>
                                                 <span class="text-slate-400 text-[10px] block font-sans">Secondary NS2</span>
-                                                <span class="font-bold text-slate-800">ns2.velohoster.com</span>
+                                                <span class="font-bold text-slate-800">srv2.whitednszone.com</span>
                                             </div>
-                                            <button type="button" onclick="copyText('ns2.velohoster.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
+                                            <button type="button" onclick="copyText('srv2.whitednszone.com')" class="px-2 py-1 rounded-lg bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-sans font-semibold transition">
                                                 <i class="fa-regular fa-copy"></i> Copy
                                             </button>
                                         </div>

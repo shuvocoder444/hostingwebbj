@@ -3,19 +3,20 @@ Domains Views & Endpoints
 ==========================
 Public domain availability search & Client domain management.
 """
-from rest_framework import viewsets, permissions, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import permissions, status, viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from billing.services import InvoiceService
 
 from .models import Domain, TLDPricing
-from .serializers import DomainSerializer, TLDPricingSerializer, OrderDomainSerializer
+from .serializers import DomainSerializer, OrderDomainSerializer, TLDPricingSerializer
 from .services import DomainService
-from billing.services import InvoiceService
 
 
 class DomainSearchView(APIView):
@@ -170,7 +171,7 @@ def order_domain_web_view(request):
             f"Invoice #{invoice.invoice_number} (BDT {invoice.total}) generated. Pay now for instant activation."
         )
     except Exception as exc:
-        messages.error(request, f"Failed to order domain: {str(exc)}")
+        messages.error(request, f"Failed to order domain: {exc!s}")
 
     return redirect('dashboard')
 
@@ -201,7 +202,6 @@ def domain_update_nameservers_web_view(request, domain_id):
             f"Changes will propagate worldwide in 15-30 minutes."
         )
     except Exception as exc:
-        messages.error(request, f"Failed to update nameservers: {str(exc)}")
+        messages.error(request, f"Failed to update nameservers: {exc!s}")
 
     return redirect('/dashboard/#domains')
-

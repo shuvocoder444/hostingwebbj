@@ -2278,6 +2278,59 @@
                         </div>
                     </div>
 
+                    <!-- 3. Bangla QR (বাংলা কিউআর) Settings -->
+                    <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/30 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-rose-200/80">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-qrcode text-rose-600 text-sm"></i>
+                                <span class="text-xs font-bold text-slate-900">3. বাংলা কিউআর (Bangla QR / Mobile Banking QR) Settings</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                <input type="checkbox" name="enable_bangla_qr" value="1" class="sr-only peer" {% if site_settings.enable_bangla_qr %}checked{% endif %}>
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                                <span class="ml-2 text-xs font-bold text-slate-700">Enable</span>
+                            </label>
+                        </div>
+                        <p class="text-[11px] text-slate-500">
+                            যেকোনো ব্যাংক অ্যাপ (City Bank, BRAC, EBL, ইত্যাদি) বা বিকাশ, নগদ, রকেটের "বাংলা কিউআর" স্ক্যান করে সরাসরি পেমেন্টের জন্য আপনার QR কোড ও নির্দেশনা যুক্ত করুন।
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                            <!-- QR Code Image Upload / Preview -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-700">Bangla QR Image (কিউআর ছবি আপলোড)</label>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-20 h-20 rounded-xl border border-slate-300 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                        {% if site_settings.bangla_qr_image_url %}
+                                            <img src="{{ site_settings.bangla_qr_image_url }}" alt="Bangla QR" class="w-full h-full object-contain">
+                                        {% else %}
+                                            <i class="fa-solid fa-qrcode text-3xl text-slate-300"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="space-y-1.5 flex-1">
+                                        <input type="file" name="bangla_qr_file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer">
+                                        <input type="text" name="bangla_qr_image_url" value="{{ site_settings.bangla_qr_image_url }}" placeholder="বা সরাসরি ছবির URL দিন" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-mono focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Merchant Name & Number -->
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">মার্চেন্ট / একাউন্টের নাম</label>
+                                    <input type="text" name="bangla_qr_merchant_name" value="{{ site_settings.bangla_qr_merchant_name }}" placeholder="যেমন: VeloHoster / HostPro" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">মার্চেন্ট / মোবাইল নম্বর (প্রযোজ্য ক্ষেত্রে)</label>
+                                    <input type="text" name="bangla_qr_merchant_number" value="{{ site_settings.bangla_qr_merchant_number }}" placeholder="যেমন: 017xxxxxxxx বা মার্চেন্ট আইডি" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <!-- Instructions -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">গ্রাহকের জন্য পেমেন্ট নির্দেশনা</label>
+                                <textarea name="bangla_qr_instructions" rows="3" placeholder="পেমেন্ট করার নিয়ম..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none">{{ site_settings.bangla_qr_instructions }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
  </div>
@@ -4365,11 +4418,11 @@
  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 1</label>
- <input type="text" name="nameserver_1" id="edit_dom_ns1" placeholder="ns1.velohoster.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ <input type="text" name="nameserver_1" id="edit_dom_ns1" placeholder="srv1.whitednszone.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
  </div>
  <div>
  <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 2</label>
- <input type="text" name="nameserver_2" id="edit_dom_ns2" placeholder="ns2.velohoster.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
+ <input type="text" name="nameserver_2" id="edit_dom_ns2" placeholder="srv2.whitednszone.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-500 focus:outline-none">
  </div>
  </div>
 
@@ -5059,8 +5112,8 @@ function openEditDomainModal(id, domainName, clientEmail, years, regDate, expDat
  document.getElementById('edit_dom_status').value = status || 'active';
  document.getElementById('edit_dom_auto_renew').checked = autoRenew !== false;
  document.getElementById('edit_dom_registrar').value = registrarId || '';
- document.getElementById('edit_dom_ns1').value = ns1 || 'ns1.velohoster.com';
- document.getElementById('edit_dom_ns2').value = ns2 || 'ns2.velohoster.com';
+ document.getElementById('edit_dom_ns1').value = ns1 || 'srv1.whitednszone.com';
+ document.getElementById('edit_dom_ns2').value = ns2 || 'srv2.whitednszone.com';
  openModal('modal-edit-domain');
 }
 

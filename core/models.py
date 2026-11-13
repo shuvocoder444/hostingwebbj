@@ -127,6 +127,35 @@ class SiteSetting(models.Model):
         help_text='WebKoders Webhook / Callback URL for payment IPN notifications'
     )
 
+    # ── Bangla QR Payment Gateway Settings ──
+    enable_bangla_qr = models.BooleanField(
+        default=True,
+        help_text='Enable Bangla QR (বাংলা কিউআর) on checkout and invoice payment pages.'
+    )
+    bangla_qr_image_url = models.CharField(
+        max_length=500,
+        blank=True,
+        default='',
+        help_text='Bangla QR Image URL or static path (e.g. /static/img/bangla_qr.png)'
+    )
+    bangla_qr_merchant_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default='VeloHoster / Bangla QR',
+        help_text='Merchant Name displayed with Bangla QR'
+    )
+    bangla_qr_merchant_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        help_text='Merchant Contact / Mobile Banking Number'
+    )
+    bangla_qr_instructions = models.TextField(
+        blank=True,
+        default='যেকোনো ব্যাংক অ্যাপ (City Bank, BRAC, EBL, ইত্যাদি) অথবা বিকাশ, নগদ, উপায় অ্যাপের "QR স্ক্যান" অপশন দিয়ে উপরের বাংলা কিউআর (Bangla QR) কোডটি স্ক্যান করে পেমেন্ট সম্পন্ন করুন এবং নিচে TrxID ও আপনার মোবাইল নম্বর প্রদান করুন।',
+        help_text='Payment instructions shown to the customer on checkout.'
+    )
+
     # ── International & Crypto Payment Gateway Settings ──
     cryptomus_merchant_id = models.CharField(
         max_length=100,

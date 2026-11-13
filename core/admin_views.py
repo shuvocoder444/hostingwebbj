@@ -2107,6 +2107,30 @@ def admin_action_handler_view(request, action_type):
         site.usdt_bep20_wallet = request.POST.get('usdt_bep20_wallet', site.usdt_bep20_wallet).strip()
         site.binance_pay_id = request.POST.get('binance_pay_id', site.binance_pay_id).strip()
 
+        # Bangla QR Settings & File Upload
+        if 'enable_bangla_qr' in request.POST:
+            site.enable_bangla_qr = request.POST.get('enable_bangla_qr') in ('true', '1', 'on')
+        elif 'bangla_qr_merchant_name' in request.POST:
+            site.enable_bangla_qr = False
+
+        site.bangla_qr_merchant_name = request.POST.get('bangla_qr_merchant_name', getattr(site, 'bangla_qr_merchant_name', '')).strip()
+        site.bangla_qr_merchant_number = request.POST.get('bangla_qr_merchant_number', getattr(site, 'bangla_qr_merchant_number', '')).strip()
+        site.bangla_qr_instructions = request.POST.get('bangla_qr_instructions', getattr(site, 'bangla_qr_instructions', '')).strip()
+
+        bangla_qr_url_input = request.POST.get('bangla_qr_image_url', '').strip()
+        if bangla_qr_url_input != '':
+            site.bangla_qr_image_url = bangla_qr_url_input
+
+        if request.FILES.get('bangla_qr_file'):
+            f = request.FILES['bangla_qr_file']
+            ext = os.path.splitext(f.name)[1].lower() or '.png'
+            filename = f"bangla_qr_{ts}{ext}"
+            for d in (static_img_dir, staticfiles_img_dir):
+                file_path = os.path.join(d, filename)
+                with open(file_path, 'wb+') as dest:
+                    dest.writelines(f.chunks())
+            site.bangla_qr_image_url = f"/static/img/{filename}"
+
         # Email OTP & SMTP Settings
         if 'require_email_otp' in request.POST:
             site.require_email_otp = request.POST.get('require_email_otp') in ('true', '1', 'on')

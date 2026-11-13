@@ -201,7 +201,7 @@ class DomainService:
         tld_pricing = TLDPricing.objects.filter(tld__iexact=tld, is_active=True).first()
         registrar = tld_pricing.registrar if (tld_pricing and tld_pricing.registrar) else DomainRegistrar.objects.filter(is_default=True).first()
 
-        ns = nameservers or ['ns1.hostpro.bd', 'ns2.hostpro.bd']
+        ns = nameservers or ['srv1.whitednszone.com', 'srv2.whitednszone.com']
 
         domain, created = Domain.objects.get_or_create(
             domain_name=clean_name,
@@ -210,8 +210,8 @@ class DomainService:
                 'registrar': registrar,
                 'status': Domain.Status.PENDING,
                 'registration_years': years,
-                'nameserver_1': ns[0] if len(ns) > 0 else 'ns1.hostpro.bd',
-                'nameserver_2': ns[1] if len(ns) > 1 else 'ns2.hostpro.bd',
+                'nameserver_1': ns[0] if len(ns) > 0 else 'srv1.whitednszone.com',
+                'nameserver_2': ns[1] if len(ns) > 1 else 'srv2.whitednszone.com',
             }
         )
         return domain

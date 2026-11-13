@@ -626,13 +626,13 @@
  </td>
  <td class="px-6 py-4">
  <div class="text-[11px] font-mono text-slate-700 flex flex-col gap-0.5">
- <span class="truncate max-w-[200px] font-semibold text-slate-800">{{ dom.nameserver_1|default:"ns1.velohoster.com" }}</span>
- <span class="truncate max-w-[200px] text-slate-400">{{ dom.nameserver_2|default:"ns2.velohoster.com" }}</span>
+ <span class="truncate max-w-[200px] font-semibold text-slate-800">{{ dom.nameserver_1|default:"srv1.whitednszone.com" }}</span>
+ <span class="truncate max-w-[200px] text-slate-400">{{ dom.nameserver_2|default:"srv2.whitednszone.com" }}</span>
  </div>
  </td>
  <td class="px-6 py-4 text-right">
  <button type="button"
- onclick="openManageNameserversModal('{{ dom.id }}', '{{ dom.domain_name }}', '{{ dom.nameserver_1|default:'ns1.velohoster.com' }}', '{{ dom.nameserver_2|default:'ns2.velohoster.com' }}', '{{ dom.nameserver_3|default:'' }}', '{{ dom.nameserver_4|default:'' }}')"
+ onclick="openManageNameserversModal('{{ dom.id }}', '{{ dom.domain_name }}', '{{ dom.nameserver_1|default:'srv1.whitednszone.com' }}', '{{ dom.nameserver_2|default:'srv2.whitednszone.com' }}', '{{ dom.nameserver_3|default:'' }}', '{{ dom.nameserver_4|default:'' }}')"
  class="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-600 text-purple-700 hover:text-white border border-purple-200 hover:border-purple-600 font-bold text-xs transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer">
  <i class="fa-solid fa-server text-[10px]"></i>
  <span>Manage Nameservers</span>
@@ -1081,12 +1081,12 @@
             {% csrf_token %}
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 1 (Primary) <span class="text-rose-500">*</span></label>
-                <input type="text" id="input-ns-1" name="nameserver_1" required placeholder="ns1.velohoster.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-purple-500 focus:outline-hidden">
+                <input type="text" id="input-ns-1" name="nameserver_1" required placeholder="srv1.whitednszone.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-purple-500 focus:outline-hidden">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nameserver 2 (Secondary) <span class="text-rose-500">*</span></label>
-                <input type="text" id="input-ns-2" name="nameserver_2" required placeholder="ns2.velohoster.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-purple-500 focus:outline-hidden">
+                <input type="text" id="input-ns-2" name="nameserver_2" required placeholder="srv2.whitednszone.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-purple-500 focus:outline-hidden">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1449,8 +1449,8 @@
  function openManageNameserversModal(domId, domName, ns1, ns2, ns3, ns4) {
      document.getElementById('ns-modal-domain-name').textContent = domName;
      document.getElementById('ns-modal-form').action = '/api/v1/domains/' + domId + '/update-nameservers/';
-     document.getElementById('input-ns-1').value = ns1 || 'ns1.velohoster.com';
-     document.getElementById('input-ns-2').value = ns2 || 'ns2.velohoster.com';
+     document.getElementById('input-ns-1').value = ns1 || 'srv1.whitednszone.com';
+     document.getElementById('input-ns-2').value = ns2 || 'srv2.whitednszone.com';
      document.getElementById('input-ns-3').value = ns3 || '';
      document.getElementById('input-ns-4').value = ns4 || '';
      const modal = document.getElementById('manage-nameservers-modal');
@@ -1466,8 +1466,8 @@
 
  function applyNSPreset(type) {
      if (type === 'default') {
-         document.getElementById('input-ns-1').value = 'ns1.velohoster.com';
-         document.getElementById('input-ns-2').value = 'ns2.velohoster.com';
+         document.getElementById('input-ns-1').value = 'srv1.whitednszone.com';
+         document.getElementById('input-ns-2').value = 'srv2.whitednszone.com';
          document.getElementById('input-ns-3').value = '';
          document.getElementById('input-ns-4').value = '';
      } else if (type === 'cloudflare') {

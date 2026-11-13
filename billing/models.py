@@ -138,6 +138,7 @@ class InvoiceItem(models.Model):
 
 class Gateway(models.TextChoices):
     WEBKODERS = 'webkoders', 'WebKoders Pay (bKash, Nagad, Rocket, Cards)'
+    BANGLA_QR = 'bangla_qr', 'Bangla QR (বাংলা কিউআর)'
     BKASH = 'bkash', 'bKash'
     NAGAD = 'nagad', 'Nagad'
     ROCKET = 'rocket', 'DBBL Rocket'
