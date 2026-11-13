@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}Dashboard — {{ COMPANY_NAME|default:'VeloHoster' }} Cloud Portal{% endblock %}
 
@@ -143,7 +144,7 @@
  <div class="sidebar-text-element min-w-0">
  <div class="text-xs font-bold text-slate-800 truncate">{{ user.get_full_name|default:user.email }}</div>
  <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
- <i class="fa-solid fa-wallet text-[10px]"></i> ৳{{ profile.credit_balance|floatformat:0 }}
+ <i class="fa-solid fa-wallet text-[10px]"></i> {{ CURRENCY_SYMBOL }}{{ profile.credit_balance|currency_val:CURRENT_CURRENCY }}
  </div>
  </div>
  </div>
@@ -301,7 +302,7 @@
  {{ unpaid_invoices_count }}
  </div>
  <div class="text-xs text-slate-500 mt-2 font-medium">
- Due: <strong class="text-slate-800">৳{{ total_unpaid_amount|floatformat:2 }} BDT</strong>
+ Due: <strong class="text-slate-800">{{ CURRENCY_SYMBOL }}{{ total_unpaid_amount|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</strong>
  </div>
  </div>
 
@@ -313,7 +314,7 @@
  <i class="fa-solid fa-wallet"></i>
  </div>
  </div>
- <div class="text-3xl font-extrabold text-emerald-600">৳{{ profile.credit_balance|floatformat:0 }}</div>
+ <div class="text-3xl font-extrabold text-emerald-600">{{ CURRENCY_SYMBOL }}{{ profile.credit_balance|currency_val:CURRENT_CURRENCY }}</div>
  <div class="text-xs text-emerald-700 font-semibold mt-2 flex items-center gap-1">
  <span>Instant 1-Click Pay Ready</span>
  </div>
@@ -417,7 +418,7 @@
  {% endif %}
  </div>
  <div class="text-xs text-slate-500 mt-1">
- Due: {{ inv.due_date }} &bull; <strong class="text-slate-800">৳{{ inv.total|floatformat:2 }}</strong>
+ Due: {{ inv.due_date }} &bull; <strong class="text-slate-800">{{ CURRENCY_SYMBOL }}{{ inv.total|currency_val:CURRENT_CURRENCY }}</strong>
  </div>
  </div>
  <div>
@@ -697,7 +698,7 @@
  {% endfor %}
  </td>
  <td class="px-6 py-4 font-extrabold text-sm text-slate-900">
- ৳{{ inv.total|floatformat:2 }} BDT
+ {{ CURRENCY_SYMBOL }}{{ inv.total|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}
  </td>
  <td class="px-6 py-4">
  {% if inv.status == 'paid' %}
@@ -792,7 +793,7 @@
  <p class="text-xs text-slate-500 mb-4 min-h-[35px]">{{ pkg.description }}</p>
 
  <div class="p-3 rounded-xl bg-surface-50 border border-slate-200 mb-5">
- <span class="text-2xl font-extrabold text-slate-900">৳{{ pkg.monthly_price|floatformat:0 }}</span>
+ <span class="text-2xl font-extrabold text-slate-900">{{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}</span>
  <span class="text-xs text-slate-500">/ month</span>
  </div>
 
@@ -845,8 +846,8 @@
  <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">{{ profile.company_name|default:"Individual" }}</div>
  </div>
  <div class="sm:col-span-2">
- <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Billing Country</label>
- <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">Bangladesh (BD) &bull; Currency: BDT (৳)</div>
+ <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Billing Country &amp; Currency</label>
+ <div class="p-3 bg-surface-50 border border-slate-200 rounded-xl text-slate-700">{{ CLIENT_COUNTRY|default:"Bangladesh (BD)" }} &bull; Currency: {{ CURRENT_CURRENCY }} ({{ CURRENCY_SYMBOL }})</div>
  </div>
  </div>
  </div>
@@ -855,7 +856,7 @@
  <div class="space-y-6">
  <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-3xl p-6 shadow-card">
  <span class="text-xs uppercase tracking-wider font-semibold text-emerald-200">Account Wallet</span>
- <div class="text-4xl font-extrabold mt-2">৳{{ profile.credit_balance|floatformat:2 }}</div>
+ <div class="text-4xl font-extrabold mt-2">{{ CURRENCY_SYMBOL }}{{ profile.credit_balance|currency_val:CURRENT_CURRENCY }}</div>
  <p class="text-xs text-emerald-100 mt-2">Use your account credit balance to instantly pay invoices without external redirection.</p>
  </div>
 
@@ -946,7 +947,7 @@
  <select id="modal-package-select" name="package_id" required
  class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-brand-500">
  {% for pkg in packages %}
- <option value="{{ pkg.id }}">{{ pkg.name }} — ৳{{ pkg.monthly_price|floatformat:0 }}/mo</option>
+ <option value="{{ pkg.id }}">{{ pkg.name }} — {{ CURRENCY_SYMBOL }}{{ pkg.monthly_price|currency_val:CURRENT_CURRENCY }}/mo</option>
  {% endfor %}
  </select>
  </div>
@@ -1015,7 +1016,7 @@
  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Starting Rate</label>
  <div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-700 font-semibold flex items-center justify-between">
  <span>.com from</span>
- <strong class="text-brand-600 font-bold">৳1,350/yr</strong>
+ <strong class="text-brand-600 font-bold">{{ CURRENCY_SYMBOL }}{% if IS_USD %}10.63{% else %}1,350{% endif %}/yr</strong>
  </div>
  </div>
  </div>
@@ -1024,7 +1025,7 @@
  <div class="p-3 bg-surface-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 flex flex-wrap gap-2">
  {% for tld in tld_prices %}
  <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">
- <strong>{{ tld.tld }}</strong>: ৳{{ tld.register_price|floatformat:0 }}
+ <strong>{{ tld.tld }}</strong>: {{ CURRENCY_SYMBOL }}{{ tld.register_price|currency_val:CURRENT_CURRENCY }}
  </span>
  {% endfor %}
  </div>

@@ -161,7 +161,7 @@
                         </div>
                         <a href="{% url 'cart_configure' %}?package={{ suggested_packages.0.id }}&domain={{ domain }}&domain_option=register&tld={{ tld }}"
                             class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] shadow-xs whitespace-nowrap">
-                            + Add {{ suggested_packages.0.name }} ({% if suggested_packages.0.monthly_price and suggested_packages.0.monthly_price > 0 %}৳{{ suggested_packages.0.monthly_price|floatformat:0 }}/mo{% else %}৳{{ suggested_packages.0.annual_price|floatformat:0 }}/yr{% endif %})
+                            + Add {{ suggested_packages.0.name }} ({% if suggested_packages.0.monthly_price and suggested_packages.0.monthly_price > 0 %}{{ CURRENCY_SYMBOL }}{{ suggested_packages.0.monthly_price|currency_val:CURRENT_CURRENCY }}/mo{% else %}{{ CURRENCY_SYMBOL }}{{ suggested_packages.0.annual_price|currency_val:CURRENT_CURRENCY }}/yr{% endif %})
                         </a>
                     </div>
                     {% endif %}
@@ -744,7 +744,7 @@ const GATEWAY_CONFIG = {
                     <div class="space-y-2 flex-1 text-left min-w-0 w-full">
                         <div class="flex items-center justify-between gap-2 flex-wrap">
                             <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border bg-rose-100 text-rose-800 border-rose-200">বাংলা কিউআর (Bangla QR)</span>
-                            <span class="text-xs font-extrabold text-rose-700">মোট প্রদেয়: <strong>৳{{ total }} BDT</strong></span>
+                            <span class="text-xs font-extrabold text-rose-700">মোট প্রদেয়: <strong>৳{{ total }} BDT</strong>{% if IS_USD %} <span class="text-[11px] text-slate-500 font-semibold">(${{ total_usd }} USD)</span>{% endif %}</span>
                         </div>
                         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
                             <div class="flex items-center justify-between">
@@ -1046,7 +1046,7 @@ function applyPromoCode() {
             document.getElementById('coupon-input-wrap').classList.add('hidden');
             document.getElementById('coupon-applied-wrap').classList.remove('hidden');
             document.getElementById('coupon-applied-wrap').classList.add('flex');
-            document.getElementById('coupon-applied-name').textContent = `${data.code} Applied (-৳${data.discount_amount})`;
+            document.getElementById('coupon-applied-name').textContent = `${data.code} Applied (-{{ CURRENCY_SYMBOL }}${data.discount_amount})`;
 
             const discRow = document.getElementById('discount-row');
             discRow.classList.remove('hidden');

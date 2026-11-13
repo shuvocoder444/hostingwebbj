@@ -61,10 +61,10 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
             <div class="flex items-center justify-between w-full md:w-auto md:flex-col md:items-end gap-3 z-10 shrink-0 border-t md:border-t-0 border-white/10 pt-3 md:pt-0">
                 <div class="text-left md:text-right">
                     {% if package.monthly_price and package.monthly_price > 0 %}
-                    <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.monthly_price|floatformat:0 }}</div>
+                    <div class="text-2xl sm:text-3xl font-black text-white">{{ CURRENCY_SYMBOL }}{{ package.monthly_price|currency_val:CURRENT_CURRENCY }}</div>
                     <span class="text-xs text-blue-200 font-medium">/ month</span>
                     {% else %}
-                    <div class="text-2xl sm:text-3xl font-black text-white">৳{{ package.annual_price|floatformat:0 }}</div>
+                    <div class="text-2xl sm:text-3xl font-black text-white">{{ CURRENCY_SYMBOL }}{{ package.annual_price|currency_val:CURRENT_CURRENCY }}</div>
                     <span class="text-xs text-blue-200 font-medium">/ year</span>
                     {% endif %}
                 </div>
@@ -186,13 +186,13 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                                 class="w-full sm:w-44 py-3.5 px-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-bold focus:outline-none focus:border-blue-500 font-mono shadow-xs">
                                 {% for t in tld_prices %}
                                 <option value="{{ t.tld }}" {% if t.tld == initial_tld or not initial_tld and t.tld == '.com' %}selected{% endif %}>
-                                    {{ t.tld }} (৳{{ t.register_price|floatformat:0 }})
+                                    {{ t.tld }} ({{ CURRENCY_SYMBOL }}{{ t.register_price|currency_val:CURRENT_CURRENCY }})
                                 </option>
                                 {% empty %}
-                                <option value=".com">.com (৳1,350)</option>
-                                <option value=".net">.net (৳1,450)</option>
-                                <option value=".org">.org (৳1,450)</option>
-                                <option value=".xyz">.xyz (৳350)</option>
+                                <option value=".com">.com ({{ CURRENCY_SYMBOL }}{% if IS_USD %}10.63{% else %}1,350{% endif %})</option>
+                                <option value=".net">.net ({{ CURRENCY_SYMBOL }}{% if IS_USD %}11.42{% else %}1,450{% endif %})</option>
+                                <option value=".org">.org ({{ CURRENCY_SYMBOL }}{% if IS_USD %}11.42{% else %}1,450{% endif %})</option>
+                                <option value=".xyz">.xyz ({{ CURRENCY_SYMBOL }}{% if IS_USD %}2.76{% else %}350{% endif %})</option>
                                 {% endfor %}
                             </select>
 
@@ -209,23 +209,23 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Popular Extensions:</span>
                         <button type="button" onclick="quickSelectTLD('.com')" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-xs font-mono font-bold transition cursor-pointer flex items-center gap-1.5">
                             <span>.com</span>
-                            <span class="text-blue-600 font-extrabold">৳1,350</span>
+                            <span class="text-blue-600 font-extrabold">{{ CURRENCY_SYMBOL }}{% if tld_dict.com %}{{ tld_dict.com.register_price|currency_val:CURRENT_CURRENCY }}{% else %}{% if IS_USD %}10.63{% else %}1,350{% endif %}{% endif %}</span>
                         </button>
                         <button type="button" onclick="quickSelectTLD('.net')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
                             <span>.net</span>
-                            <span class="text-blue-600 font-bold">৳1,450</span>
+                            <span class="text-blue-600 font-bold">{{ CURRENCY_SYMBOL }}{% if tld_dict.net %}{{ tld_dict.net.register_price|currency_val:CURRENT_CURRENCY }}{% else %}{% if IS_USD %}11.42{% else %}1,450{% endif %}{% endif %}</span>
                         </button>
                         <button type="button" onclick="quickSelectTLD('.shop')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-mono font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
                             <span class="text-rose-600 font-black">.shop</span>
-                            <span class="text-rose-700 font-bold">HOT</span>
+                            <span class="text-rose-700 font-bold">{% if tld_dict.shop %}{{ CURRENCY_SYMBOL }}{{ tld_dict.shop.register_price|currency_val:CURRENT_CURRENCY }}{% else %}HOT{% endif %}</span>
                         </button>
                         <button type="button" onclick="quickSelectTLD('.org')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
                             <span>.org</span>
-                            <span class="text-blue-600 font-bold">৳1,450</span>
+                            <span class="text-blue-600 font-bold">{{ CURRENCY_SYMBOL }}{% if tld_dict.org %}{{ tld_dict.org.register_price|currency_val:CURRENT_CURRENCY }}{% else %}{% if IS_USD %}11.42{% else %}1,450{% endif %}{% endif %}</span>
                         </button>
                         <button type="button" onclick="quickSelectTLD('.xyz')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
                             <span>.xyz</span>
-                            <span class="text-blue-600 font-bold">৳350</span>
+                            <span class="text-blue-600 font-bold">{{ CURRENCY_SYMBOL }}{% if tld_dict.xyz %}{{ tld_dict.xyz.register_price|currency_val:CURRENT_CURRENCY }}{% else %}{% if IS_USD %}2.76{% else %}350{% endif %}{% endif %}</span>
                         </button>
                         <button type="button" onclick="quickSelectTLD('.store')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
                             <span>.store</span>
@@ -657,6 +657,21 @@ let currentPackageParam = "{% if package %}&package={{ package.id }}{% else %}&p
 let globalMultiResults = [];
 let globalAiResults = [];
 
+// Dynamic currency configuration from server context
+const CURRENCY_SYMBOL = '{{ CURRENCY_SYMBOL }}';
+const CURRENT_CURRENCY = '{{ CURRENT_CURRENCY }}';
+const EXCHANGE_RATE = parseFloat('{{ EXCHANGE_RATE }}') || 127.0;
+
+function formatMoney(amountBdt) {
+    const num = parseFloat(amountBdt) || 0;
+    if (CURRENT_CURRENCY === 'USD') {
+        const usd = (num / EXCHANGE_RATE).toFixed(2);
+        return `$${usd}`;
+    } else {
+        return `৳${Math.round(num).toLocaleString()}`;
+    }
+}
+
 function filterCartHostingCategory(slug) {
     document.querySelectorAll('.cart-cat-tab').forEach(btn => {
         btn.className = "cart-cat-tab px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs whitespace-nowrap cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700";
@@ -954,7 +969,7 @@ async function checkLiveDomainMulti() {
                         <span class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-check"></i></span>
                         <div>
                             <strong class="font-mono font-bold text-sm text-emerald-900">${singleRes.domain}</strong> is available!
-                            <span class="block text-[11px] text-emerald-700 font-semibold">Price: ৳${parseFloat(singleRes.price).toLocaleString()} ${singleRes.currency}/year</span>
+                            <span class="block text-[11px] text-emerald-700 font-semibold">Price: ${formatMoney(singleRes.price)} / year</span>
                         </div>
                     </div>
                 `;
@@ -1038,7 +1053,7 @@ function renderCartMultiResults(baseName, results, showAll) {
                                     </span>
                                 </div>
                                 <span class="text-[11px] ${item.is_available ? 'text-blue-600 font-bold' : 'text-slate-500'} font-mono block">
-                                    ${item.is_available ? '৳' + parseFloat(item.price).toLocaleString() + ' / yr' : 'Registered by someone'}
+                                    ${item.is_available ? `${formatMoney(item.price)} / yr` : 'Registered by someone'}
                                 </span>
                             </div>
                         </div>
@@ -1182,7 +1197,7 @@ function renderCartAiResults(promptVal, results, showAll) {
                                         ${item.is_available ? 'Avail' : 'Taken'}
                                     </span>
                                 </div>
-                                <span class="text-[11px] text-blue-600 font-bold font-mono block">৳${parseFloat(item.price).toLocaleString()} / yr</span>
+                                <span class="text-[11px] text-blue-600 font-bold font-mono block">${formatMoney(item.price)} / yr</span>
                             </div>
                         </div>
 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load currency_tags %}
 
 {% block title %}Master Admin Dashboard — VeloHoster Cloud Automation{% endblock %}
 
@@ -2418,6 +2419,64 @@
                 </div>
             </div>
 
+            <!-- Section 8: Multi-Currency & USD/BDT Exchange Rate Settings -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Multi-Currency &amp; USD Exchange Rate (ডলার কনভার্সন ও এক্সচেঞ্জ রেট)</h3>
+                            <p class="text-[11px] text-slate-500">Configure real-time currency conversion rate between US Dollar ($ USD) and Bangladeshi Taka (৳ BDT)</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i> Live Dual Currency
+                    </span>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                                <span>1 USD ($) = কত টাকা (BDT) ?</span>
+                                <span class="text-rose-500 font-bold">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold text-xs">
+                                    ৳ BDT
+                                </span>
+                                <input type="number" step="0.01" min="1.00" name="bdt_per_usd"
+                                    value="{{ site_settings.bdt_per_usd|default:'127.00' }}"
+                                    placeholder="127.00" required
+                                    class="w-full pl-16 pr-4 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1.5">
+                                এখানে যে রেট দিবেন (যেমন: <strong>127.00</strong>), ওয়েবসাইটের সমস্ত হোস্টিং প্যাকেজ, ডোমেন রেজিস্টার, রিনিউ ও চেকআউট কার্টে ডলার ($) মোডে কনভার্ট হয়ে স্বয়ংক্রিয়ভাবে দেখাবে। পরবর্তীতে আপনি যেকোনো সময় এই রেট পরিবর্তন করতে পারবেন।
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                            <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-calculator text-emerald-600"></i> বর্তমান লাইভ কনভার্সন প্রিভিউ:
+                            </span>
+                            <div class="space-y-1 text-[11px] text-slate-600 font-mono">
+                                <div class="flex justify-between border-b border-slate-200 pb-1">
+                                    <span>ডলার রেট:</span>
+                                    <strong class="text-slate-900">1 USD = {{ site_settings.bdt_per_usd|default:'127.00' }} BDT</strong>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-200 pb-1">
+                                    <span>.com ডোমেন (৳1,350):</span>
+                                    <strong class="text-emerald-700">${{ 1350|usd_val }} USD</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>স্ট্যান্ডার্ড হোস্টিং (৳250/mo):</span>
+                                    <strong class="text-emerald-700">${{ 250|usd_val }} USD/mo</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         <!-- Sticky Bottom Save Bar -->
  <div class="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-xl flex items-center justify-between gap-4">

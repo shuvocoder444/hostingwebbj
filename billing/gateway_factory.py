@@ -320,8 +320,10 @@ class CryptomusGateway(BasePaymentGateway):
         if not self.merchant_id or not self.payment_api_key:
             raise PaymentGatewayError("Cryptomus Merchant ID or Payment API Key is not configured in Admin Settings.")
 
-        # Convert BDT to USD (125 BDT = 1 USD approx)
-        amount_usd = round(float(invoice.total) / 125.0, 2)
+        # Convert BDT to USD using live exchange rate from settings
+        from core.currency import get_exchange_rate
+        rate = float(get_exchange_rate())
+        amount_usd = round(float(invoice.total) / rate, 2)
         if amount_usd < 1.0:
             amount_usd = 1.0
 

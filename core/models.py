@@ -210,8 +210,8 @@ class SiteSetting(models.Model):
     bdt_per_usd = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=120.00,
-        help_text='Conversion Rate: How many BDT per 1 USD (e.g. 120.00)'
+        default=127.00,
+        help_text='Conversion Rate: How many BDT per 1 USD (e.g. 127.00)'
     )
 
     # ── Email & SMTP Settings ──
@@ -320,7 +320,7 @@ class SiteSetting(models.Model):
                 webkoders_api_key = ''
                 webkoders_api_secret = ''
                 webkoders_webhook_url = 'https://velohoster.com/payments/webhook/'
-                bdt_per_usd = 120.00
+                bdt_per_usd = 127.00
                 enable_google_login = True
                 google_client_id = ''
                 google_client_secret = ''

@@ -92,7 +92,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                             </h2>
                         </div>
                         <div class="text-left sm:text-right">
-                            <span class="text-2xl sm:text-3xl font-black text-slate-900">৳{{ domain_price|floatformat:0 }}</span>
+                            <span class="text-2xl sm:text-3xl font-black text-slate-900">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
                             <span class="text-xs text-slate-500 font-medium">/ 1 Year</span>
                         </div>
                     </div>
@@ -242,10 +242,10 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                         </div>
                         <div class="text-left sm:text-right">
                             {% if monthly_price and monthly_price > 0 %}
-                            <span class="text-2xl font-black text-slate-900">৳{{ monthly_price|floatformat:0 }}</span>
+                            <span class="text-2xl font-black text-slate-900">{{ CURRENCY_SYMBOL }}{{ monthly_price|currency_val:CURRENT_CURRENCY }}</span>
                             <span class="text-xs text-slate-500 font-medium">/ month</span>
                             {% else %}
-                            <span class="text-2xl font-black text-slate-900">৳{{ annual_price|floatformat:0 }}</span>
+                            <span class="text-2xl font-black text-slate-900">{{ CURRENCY_SYMBOL }}{{ annual_price|currency_val:CURRENT_CURRENCY }}</span>
                             <span class="text-xs text-slate-500 font-medium">/ year</span>
                             {% endif %}
                         </div>
@@ -307,7 +307,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                 class="mt-1 text-brand-600 focus:ring-brand-500">
                             <div>
                                 <strong class="block text-sm font-extrabold text-slate-900">Monthly</strong>
-                                <span class="text-xs font-bold text-slate-700 mt-0.5 block">৳{{ monthly_price|floatformat:0 }} BDT</span>
+                                <span class="text-xs font-bold text-slate-700 mt-0.5 block">{{ CURRENCY_SYMBOL }}{{ monthly_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</span>
                             </div>
                         </label>
                         {% endif %}
@@ -322,7 +322,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                     <strong class="text-sm font-extrabold text-slate-900">Annually</strong>
                                     <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">Best Value</span>
                                 </div>
-                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ annual_price|floatformat:0 }} BDT</span>
+                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">{{ CURRENCY_SYMBOL }}{{ annual_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</span>
                                 <span class="text-[10px] text-emerald-700 font-semibold mt-0.5 block">Save ~15% vs Monthly</span>
                             </div>
                         </label>
@@ -337,7 +337,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                     <strong class="text-sm font-extrabold text-slate-900">Biennially</strong>
                                     <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold">Save 25%</span>
                                 </div>
-                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ biennial_price|floatformat:0 }} BDT</span>
+                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">{{ CURRENCY_SYMBOL }}{{ biennial_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</span>
                             </div>
                         </label>
 
@@ -351,7 +351,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                     <strong class="text-sm font-extrabold text-slate-900">Triennially</strong>
                                     <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-extrabold">Save 35%</span>
                                 </div>
-                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">৳{{ triennial_price|floatformat:0 }} BDT</span>
+                                <span class="text-xs font-bold text-slate-900 mt-0.5 block">{{ CURRENCY_SYMBOL }}{{ triennial_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}</span>
                             </div>
                         </label>
 
@@ -437,7 +437,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                             </div>
                         </div>
                         <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase">
-                            Domain Fee: ৳0 (Free)
+                            Domain Fee: {{ CURRENCY_SYMBOL }}0 (Free)
                         </span>
                     </div>
                     <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-slate-700 space-y-2">
@@ -663,7 +663,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                 <span class="text-[11px] text-blue-200 font-mono" id="summary-domain-label">{{ domain }}</span>
                                 <span class="block text-[10px] text-blue-300 font-medium">1 Year Term</span>
                             </div>
-                            <span class="font-bold text-white text-sm">৳{{ domain_price|floatformat:0 }} BDT</span>
+                            <span class="font-bold text-white text-sm">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
                         </div>
 
                         <!-- Web Hosting Status -->
@@ -686,7 +686,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                     <i class="fa-solid fa-server text-[9px]"></i> Germany (AMD EPYC)
                                 </span>
                             </div>
-                            <span class="font-bold text-white text-sm" id="summary-hosting-price">৳{{ annual_price|floatformat:0 }} BDT</span>
+                            <span class="font-bold text-white text-sm" id="summary-hosting-price">{{ CURRENCY_SYMBOL }}{{ annual_price|currency_val:CURRENT_CURRENCY }}</span>
                         </div>
 
                         {% if domain_option == 'register' %}
@@ -695,7 +695,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                                 <span class="text-blue-100 font-semibold block">Domain Registration</span>
                                 <span class="text-[10px] text-blue-300 font-mono">{{ domain }} (1 Yr)</span>
                             </div>
-                            <span class="font-bold text-white">৳{{ domain_price|floatformat:0 }} BDT</span>
+                            <span class="font-bold text-white">{{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }}</span>
                         </div>
                         {% else %}
                         <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs">
@@ -711,7 +711,7 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
 
                         <div class="flex items-center justify-between gap-2 text-xs text-blue-200 pt-2 border-t border-white/10">
                             <span>Setup Fee</span>
-                            <span class="text-emerald-300 font-bold uppercase text-[11px]">৳0.00 (Free)</span>
+                            <span class="text-emerald-300 font-bold uppercase text-[11px]">{{ CURRENCY_SYMBOL }}0.00 (Free)</span>
                         </div>
                     </div>
 
@@ -720,9 +720,9 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
                         <span class="text-[11px] font-bold text-blue-200 uppercase tracking-wider block">Total Due Today</span>
                         <div class="text-3xl sm:text-4xl font-black text-white" id="summary-total-due">
                             {% if is_domain_only %}
-                            ৳{{ domain_price|floatformat:0 }} BDT
+                            {{ CURRENCY_SYMBOL }}{{ domain_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}
                             {% else %}
-                            ৳{{ annual_price|add:domain_price|floatformat:0 }} BDT
+                            {{ CURRENCY_SYMBOL }}{{ annual_price|add:domain_price|currency_val:CURRENT_CURRENCY }} {{ CURRENT_CURRENCY }}
                             {% endif %}
                         </div>
                     </div>
@@ -750,6 +750,19 @@ Configure Product — {{ package.name }} — {{ COMPANY_NAME|default:'VeloHoster
 <script>
 let currentDomainPrice = parseFloat("{{ domain_price }}") || 0;
 let isDomainOnly = {% if is_domain_only %}true{% else %}false{% endif %};
+const CURRENCY_SYMBOL = '{{ CURRENCY_SYMBOL }}';
+const CURRENT_CURRENCY = '{{ CURRENT_CURRENCY }}';
+const EXCHANGE_RATE = parseFloat('{{ EXCHANGE_RATE }}') || 127.0;
+
+function formatCartMoney(valBdt, withCurrencyName=true) {
+    const num = parseFloat(valBdt) || 0;
+    if (CURRENT_CURRENCY === 'USD') {
+        const usd = (num / EXCHANGE_RATE).toFixed(2);
+        return `$${usd}${withCurrencyName ? ' USD' : ''}`;
+    } else {
+        return `৳${Math.round(num).toLocaleString()}${withCurrencyName ? ' BDT' : ''}`;
+    }
+}
 
 function updateSelectedCycle(cycleKey, price, cycleLabel) {
     if (isDomainOnly) return;
@@ -772,11 +785,11 @@ function updateSelectedCycle(cycleKey, price, cycleLabel) {
     if (cycleSummary) cycleSummary.textContent = cycleLabel;
 
     const hostPriceSummary = document.getElementById('summary-hosting-price');
-    if (hostPriceSummary) hostPriceSummary.textContent = '৳' + Math.round(price).toLocaleString() + ' BDT';
+    if (hostPriceSummary) hostPriceSummary.textContent = formatCartMoney(price);
 
-    const totalDue = Math.round(price + currentDomainPrice);
+    const totalDue = price + currentDomainPrice;
     const totalDueSummary = document.getElementById('summary-total-due');
-    if (totalDueSummary) totalDueSummary.textContent = '৳' + totalDue.toLocaleString() + ' BDT';
+    if (totalDueSummary) totalDueSummary.textContent = formatCartMoney(totalDue);
 }
 
 function updateSelectedLocation(locKey, locLabel) {

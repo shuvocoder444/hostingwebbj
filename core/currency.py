@@ -12,7 +12,7 @@ from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_EXCHANGE_RATE = Decimal('120.00')  # 1 USD = 120 BDT
+DEFAULT_EXCHANGE_RATE = Decimal('127.00')  # 1 USD = 127 BDT
 
 
 def get_client_ip(request) -> str:

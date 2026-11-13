@@ -22,6 +22,7 @@ from accounts.models import ClientProfile, EmailOTP
 from accounts.otp_service import OTPService
 from billing.models import Gateway, Invoice, InvoiceItem, Transaction, Coupon, CouponUsage
 from billing.services import InvoiceNumberGenerator
+from core.currency import get_exchange_rate, get_current_currency
 from core.models import SiteSetting
 from core.security import rate_limit
 from core.views import (
@@ -403,6 +404,7 @@ def cart_domain_view(request):
         package = safe_get_package(saved_pkg_id) if saved_pkg_id else None
 
     tld_prices = sorted(get_cached_tld_prices(), key=lambda t: t.tld.lower())
+    tld_dict = {t.tld.lower().lstrip('.').replace('.', '_'): t for t in tld_prices}
 
     # Handle incoming query parameters from home search or direct buy links
     initial_domain = request.GET.get('domain', '').strip().lower() or cart.get('domain', '')
@@ -497,6 +499,7 @@ def cart_domain_view(request):
         'packages': cart_packages,
         'categories': categories,
         'tld_prices': tld_prices,
+        'tld_dict': tld_dict,
         'step': 1,
         'initial_domain': initial_domain,
         'initial_sld': initial_sld,
@@ -779,7 +782,8 @@ def cart_checkout_view(request):
 
     total = max(Decimal('0.00'), subtotal - discount_amount + tax_amount)
 
-    total_usd = max(1.0, round(float(total) / 125.0, 2))
+    rate = get_exchange_rate()
+    total_usd = max(1.0, round(float(total) / float(rate), 2))
     from core.models import SiteSetting
     site_setting = SiteSetting.get_settings()
     suggested_packages = sorted(get_cached_packages(), key=lambda p: (not getattr(p, 'is_featured', False), p.monthly_price or p.annual_price or Decimal('0.00')))[:3]
