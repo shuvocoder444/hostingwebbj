@@ -134,9 +134,9 @@
  <!-- 10. Site Branding, SEO & WhatsApp Settings -->
  <button type="button" onclick="switchAdminTab('settings')" id="admin-tab-btn-settings"
  class="admin-tab-btn w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition group">
- <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-sliders text-indigo-500"></i></div>
- <span class="sidebar-text-element whitespace-nowrap">Site & SEO Settings</span>
- <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-extrabold sidebar-text-element">LIVE</span>
+ <div class="w-6 text-center text-base shrink-0"><i class="fa-solid fa-qrcode text-rose-500"></i></div>
+ <span class="sidebar-text-element whitespace-nowrap font-bold text-slate-800">Settings &amp; QR Code</span>
+ <span class="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-extrabold sidebar-text-element">QR CODE</span>
  </button>
 
  <div class="px-3 pt-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 sidebar-text-element">
@@ -1726,12 +1726,15 @@
  <i class="fa-solid fa-sliders"></i>
  </div>
  <div>
- <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Website Branding & SEO Control</h2>
- <p class="text-xs text-slate-500 mt-0.5">Customize Website Title, Meta Description, OG Share Thumbnail, Logo, WhatsApp & Social Links</p>
+ <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Website Settings &amp; Payment Configuration</h2>
+ <p class="text-xs text-slate-500 mt-0.5">Customize Website Title, Logo, WhatsApp, <strong>Bangla QR Code</strong>, Dollar Exchange Rate &amp; Gateways</p>
  </div>
  </div>
- <div class="flex items-center gap-2">
- <a href="{% url 'landing' %}" target="_blank" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-2">
+ <div class="flex flex-wrap items-center gap-2">
+ <a href="#section-bangla-qr" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 transition">
+ <i class="fa-solid fa-qrcode"></i> Upload Bangla QR Code
+ </a>
+ <a href="{% url 'landing' %}" target="_blank" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
  <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Live Website
  </a>
  </div>
@@ -2161,16 +2164,16 @@
 
  </div>
 
-            <!-- Section 6: Payment Gateways (WebKoders Pay & Direct Crypto) -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <!-- Section 6: Payment Gateways & Bangla QR Code -->
+            <div id="section-gateways" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
                             <i class="fa-solid fa-credit-card"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900">Payment Gateway Configuration (পেমেন্ট গেটওয়ে সেটিংস)</h3>
-                            <p class="text-[11px] text-slate-500">Configure WebKoders Pay (bKash, Nagad, Rocket, Cards) &amp; Direct Crypto (USDT, Binance Pay)</p>
+                            <h3 class="text-sm font-bold text-slate-900">Payment Gateways &amp; Bangla QR (পেমেন্ট গেটওয়ে ও কিউআর কোড সেটিংস)</h3>
+                            <p class="text-[11px] text-slate-500">Configure WebKoders Pay, Direct Crypto, and Bangla QR Code Image Upload (বাংলা কিউআর ছবি আপলোড)</p>
                         </div>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -2275,6 +2278,106 @@
                                 </label>
                                 <input type="text" name="binance_pay_id" value="{{ site_settings.binance_pay_id }}" placeholder="e.g. 123456789" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                                 <p class="text-[11px] text-slate-400 mt-1">Direct Binance Pay ID for instant user-to-user transfers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Bangla QR Code (বাংলা কিউআর) Settings & QR Image Upload -->
+                    <div id="section-bangla-qr" class="p-5 rounded-2xl border-2 border-rose-200 bg-gradient-to-r from-rose-50/60 via-pink-50/30 to-white space-y-5 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-rose-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg shadow-xs shrink-0">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="text-sm font-extrabold text-slate-900">3. Bangla QR Code (বাংলা কিউআর পেমেন্ট ও কিউআর ছবি আপলোড)</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-200">বিকাশ / নগদ / ব্যাংক স্ক্যান</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500">চেকআউট পেজে কাস্টমারদের জন্য আপনার ব্যাংক বা এমএফএস (MFS) বাংলা কিউআর কোডের ছবি প্রদর্শন করুন</p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                <input type="checkbox" name="enable_bangla_qr" value="1" class="sr-only peer" {% if site_settings.enable_bangla_qr %}checked{% endif %}>
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                                <span class="ml-2.5 text-xs font-bold text-slate-700">Enable Gateway</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                            <!-- QR Image Preview & File Upload (5 Cols) -->
+                            <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-rose-200 shadow-2xs space-y-3">
+                                <label class="block text-xs font-extrabold text-slate-800 flex items-center justify-between">
+                                    <span><i class="fa-solid fa-image text-rose-600 mr-1"></i> QR কোড ইমেজ (Upload QR Code)</span>
+                                    <span class="text-[10px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">PNG / JPG / WEBP</span>
+                                </label>
+
+                                <!-- Visual QR Image Preview -->
+                                <div class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                                    {% if site_settings.bangla_qr_image_url %}
+                                    <div class="relative group">
+                                        <img src="{{ site_settings.bangla_qr_image_url }}" alt="Bangla QR" class="w-36 h-36 rounded-lg object-contain bg-white p-1.5 border border-slate-200 shadow-xs">
+                                        <span class="absolute bottom-1 right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">Active QR</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-mono mt-2 truncate max-w-full block">{{ site_settings.bangla_qr_image_url }}</span>
+                                    {% else %}
+                                    <div class="w-32 h-32 rounded-xl bg-rose-50 border-2 border-dashed border-rose-200 flex flex-col items-center justify-center text-rose-400 gap-1">
+                                        <i class="fa-solid fa-qrcode text-4xl"></i>
+                                        <span class="text-[10px] font-bold text-rose-500">কোন QR আপলোড করা নেই</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mt-2">নিচের বাটন দিয়ে আপনার QR ছবি সিলেক্ট করুন</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- File Input Upload Button -->
+                                <div>
+                                    <input type="file" name="bangla_qr_file" id="input_bangla_qr_file" accept="image/*"
+                                        class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-rose-600 file:text-white hover:file:bg-rose-700 file:cursor-pointer cursor-pointer border border-slate-200 rounded-xl bg-slate-50 p-1">
+                                    <p class="text-[10px] text-slate-400 mt-1">কম্পিউটার বা মোবাইল থেকে আপনার বাংলা QR কোডের ছবিটি সরাসরি নির্বাচন করুন।</p>
+                                </div>
+
+                                <!-- Optional Direct Image URL Input -->
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">অথবা সরাসরি Image URL / Path (ঐচ্ছিক):</label>
+                                    <input type="text" name="bangla_qr_image_url" value="{{ site_settings.bangla_qr_image_url }}" placeholder="/static/img/my_bangla_qr.png"
+                                        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Merchant Details & Instructions (7 Cols) -->
+                            <div class="lg:col-span-7 space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                            মার্চেন্ট / প্রতিষ্ঠানের নাম (Merchant Name)
+                                        </label>
+                                        <input type="text" name="bangla_qr_merchant_name" value="{{ site_settings.bangla_qr_merchant_name|default:'VeloHoster Ltd' }}" placeholder="e.g. VeloHoster Ltd"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white">
+                                        <p class="text-[11px] text-slate-400 mt-1">QR কোডের স্ক্যান স্ক্রিন ও রিসিটে যে নাম থাকবে</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                            মার্চেন্ট / মোবাইল নম্বর (Phone Number)
+                                        </label>
+                                        <input type="text" name="bangla_qr_merchant_number" value="{{ site_settings.bangla_qr_merchant_number }}" placeholder="e.g. 01700000000"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white">
+                                        <p class="text-[11px] text-slate-400 mt-1">প্রয়োজনে যোগাযোগ বা ভেরিফিকেশনের জন্য</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                        পেমেন্ট নির্দেশনা (Payment Instructions)
+                                    </label>
+                                    <textarea name="bangla_qr_instructions" rows="3" placeholder="যেকোনো ব্যাংক অ্যাপ (Citytouch, EBL SKYBANKING, ইত্যাদি) অথবা বিকাশ/নগদ অ্যাপ দিয়ে কিউআর স্ক্যান করে পেমেন্ট করুন।"
+                                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs leading-relaxed focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white">{{ site_settings.bangla_qr_instructions|default:'যেকোনো ব্যাংক অ্যাপ (Citytouch, EBL SKYBANKING, ইত্যাদি) অথবা বিকাশ/নগদ অ্যাপ দিয়ে কিউআর স্ক্যান করে পেমেন্ট করুন।' }}</textarea>
+                                    <p class="text-[11px] text-slate-400 mt-1">চেকআউট পেজে গ্রাহক এই নির্দেশনা দেখে QR কোড স্ক্যান করে পেমেন্ট করবেন।</p>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-white border border-rose-100 flex items-center gap-2 text-xs text-rose-900">
+                                    <i class="fa-solid fa-circle-check text-rose-600 text-sm shrink-0"></i>
+                                    <span>ছবি সিলেক্ট করে নিচে <strong>"Save Site &amp; SEO Settings"</strong> বাটনে ক্লিক করলেই QR কোডটি তাৎক্ষণিক সাইটে লাইভ হয়ে যাবে!</span>
+                                </div>
                             </div>
                         </div>
                     </div>

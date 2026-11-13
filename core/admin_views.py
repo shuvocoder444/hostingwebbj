@@ -2125,8 +2125,15 @@ def admin_action_handler_view(request, action_type):
             f = request.FILES['bangla_qr_file']
             ext = os.path.splitext(f.name)[1].lower() or '.png'
             filename = f"bangla_qr_{ts}{ext}"
-            for d in (static_img_dir, staticfiles_img_dir):
+            for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
+                f.seek(0)
                 file_path = os.path.join(d, filename)
+                with open(file_path, 'wb+') as dest:
+                    dest.writelines(f.chunks())
+            # Also save default bangla_qr.png
+            for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
+                f.seek(0)
+                file_path = os.path.join(d, f"bangla_qr{ext}")
                 with open(file_path, 'wb+') as dest:
                     dest.writelines(f.chunks())
             site.bangla_qr_image_url = f"/static/img/{filename}"
