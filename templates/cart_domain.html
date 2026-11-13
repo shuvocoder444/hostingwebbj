@@ -205,19 +205,37 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                     </form>
 
                     <!-- Popular TLD Fast Badges -->
-                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1">
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Popular Extensions:</span>
-                        {% for t in tld_prices|slice:":6" %}
-                        <button type="button" onclick="quickSelectTLD('{{ t.tld }}')"
-                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
-                            <span>{{ t.tld }}</span>
-                            <span class="text-blue-600 font-bold">৳{{ t.register_price|floatformat:0 }}</span>
+                        <button type="button" onclick="quickSelectTLD('.com')" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-xs font-mono font-bold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.com</span>
+                            <span class="text-blue-600 font-extrabold">৳1,350</span>
                         </button>
-                        {% empty %}
-                        <button type="button" onclick="quickSelectTLD('.com')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.com ৳1,350</button>
-                        <button type="button" onclick="quickSelectTLD('.net')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.net ৳1,450</button>
-                        <button type="button" onclick="quickSelectTLD('.xyz')" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono">.xyz ৳350</button>
-                        {% endfor %}
+                        <button type="button" onclick="quickSelectTLD('.net')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.net</span>
+                            <span class="text-blue-600 font-bold">৳1,450</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.shop')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-mono font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                            <span class="text-rose-600 font-black">.shop</span>
+                            <span class="text-rose-700 font-bold">HOT</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.org')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.org</span>
+                            <span class="text-blue-600 font-bold">৳1,450</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.xyz')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.xyz</span>
+                            <span class="text-blue-600 font-bold">৳350</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.store')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.store</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.online')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 border border-slate-200 text-slate-700 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.online</span>
+                        </button>
+                        <button type="button" onclick="quickSelectTLD('.com.bd')" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-xs font-mono font-semibold transition cursor-pointer flex items-center gap-1.5">
+                            <span>.com.bd</span>
+                        </button>
                     </div>
 
                     <!-- Transfer Quick Callout -->
@@ -306,23 +324,71 @@ Search &amp; Register Domain — {{ COMPANY_NAME|default:'VeloHoster' }}
                     </div>
                     {% endif %}
 
-                    <div class="flex flex-col sm:flex-row gap-2.5 items-center">
-                        <div class="flex items-center w-full flex-1 rounded-2xl border border-slate-300 bg-slate-50 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 overflow-hidden transition shadow-2xs">
-                            <span class="pl-4 pr-1 text-slate-400 font-mono text-xs font-bold select-none shrink-0 flex items-center gap-1.5">
-                                <i class="fa-solid fa-link text-slate-400 text-xs"></i> www.
-                            </span>
-                            <input type="text" id="existing_sld" name="existing_sld" placeholder="mycompany" value="{% if initial_option == 'existing' or domain_option == 'existing' %}{{ initial_sld|default:initial_domain }}{% endif %}" required
-                                oninput="handleExistingDomainInput(this)"
-                                class="flex-1 py-3.5 px-2 bg-transparent border-0 text-slate-900 font-mono text-sm focus:ring-0 focus:outline-none">
-                            <span class="px-1 text-slate-400 font-black text-base select-none">.</span>
-                            <input type="text" id="existing_tld" name="existing_tld" placeholder="com" value="{% if initial_option == 'existing' or domain_option == 'existing' %}{{ initial_tld|cut:'.'|default:'com' }}{% else %}com{% endif %}"
-                                class="w-24 sm:w-28 py-3.5 pr-4 bg-transparent border-0 text-slate-900 font-mono text-sm focus:ring-0 focus:outline-none text-left">
+                    <div class="space-y-3">
+                        <div class="flex flex-col sm:flex-row gap-2.5 items-center">
+                            <!-- Domain Name (SLD) Box -->
+                            <div class="flex items-center w-full flex-1 rounded-2xl border border-slate-300 bg-slate-50 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 overflow-hidden transition shadow-2xs">
+                                <span class="pl-4 pr-1 text-slate-400 font-mono text-xs font-bold select-none shrink-0 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-link text-slate-400 text-xs"></i> www.
+                                </span>
+                                <input type="text" id="existing_sld" name="existing_sld" placeholder="mycompany" value="{% if initial_option == 'existing' or domain_option == 'existing' %}{{ initial_sld|default:initial_domain }}{% endif %}" required
+                                    oninput="handleExistingDomainInput(this)"
+                                    class="flex-1 py-3.5 px-2 bg-transparent border-0 text-slate-900 font-mono text-sm sm:text-base font-bold focus:ring-0 focus:outline-none">
+                            </div>
+
+                            <!-- Extension (TLD) Dropdown Selector & Custom Input -->
+                            <div class="w-full sm:w-auto flex items-center gap-1.5">
+                                <div class="relative w-full sm:w-44">
+                                    <select id="existing_tld_select" onchange="handleExistingTLDSelect(this)"
+                                        class="w-full py-3.5 px-3 bg-white border border-slate-300 rounded-2xl text-slate-900 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-2xs cursor-pointer">
+                                        <option value=".com" selected>.com</option>
+                                        <option value=".net">.net</option>
+                                        <option value=".shop">.shop</option>
+                                        <option value=".org">.org</option>
+                                        <option value=".xyz">.xyz</option>
+                                        <option value=".store">.store</option>
+                                        <option value=".online">.online</option>
+                                        <option value=".info">.info</option>
+                                        <option value=".biz">.biz</option>
+                                        <option value=".site">.site</option>
+                                        <option value=".co">.co</option>
+                                        <option value=".com.bd">.com.bd</option>
+                                        <option value=".us">.us</option>
+                                        <option value=".tech">.tech</option>
+                                        <option value=".cloud">.cloud</option>
+                                        <option value=".io">.io</option>
+                                        <option value=".me">.me</option>
+                                        <option value="other">Other / Custom...</option>
+                                    </select>
+                                </div>
+                                <input type="text" id="existing_custom_tld" placeholder=".other" oninput="syncExistingDomainFull()"
+                                    class="hidden w-24 py-3.5 px-3 bg-white border border-slate-300 rounded-2xl text-slate-900 font-mono text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-2xs">
+                            </div>
+
+                            <input type="hidden" id="existing_tld" name="existing_tld" value="com">
+                            <input type="hidden" id="existing_domain_full" name="existing_domain" value="">
+
+                            <!-- Submit Button -->
+                            <button type="submit" onclick="syncExistingDomainFull()"
+                                class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                                Use Domain <i class="fa-solid fa-arrow-right"></i>
+                            </button>
                         </div>
-                        <input type="hidden" id="existing_domain_full" name="existing_domain" value="">
-                        <button type="submit" onclick="syncExistingDomainFull()"
-                            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
-                            Use Domain <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+
+                        <!-- Fast TLD Badges / Pills (.com, .net, .shop, etc.) -->
+                        <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Extensions:</span>
+                            <button type="button" onclick="setExistingTLD('.com')" id="pill-tld-com" class="pill-ext px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-300 font-mono text-xs font-black text-blue-700 transition cursor-pointer shadow-2xs">.com</button>
+                            <button type="button" onclick="setExistingTLD('.net')" id="pill-tld-net" class="pill-ext px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-blue-400 font-mono text-xs font-bold text-slate-700 hover:text-blue-600 transition cursor-pointer">.net</button>
+                            <button type="button" onclick="setExistingTLD('.shop')" id="pill-tld-shop" class="pill-ext px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 hover:border-rose-400 font-mono text-xs font-black text-rose-700 transition cursor-pointer shadow-2xs">.shop</button>
+                            <button type="button" onclick="setExistingTLD('.org')" id="pill-tld-org" class="pill-ext px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-blue-400 font-mono text-xs font-bold text-slate-700 hover:text-blue-600 transition cursor-pointer">.org</button>
+                            <button type="button" onclick="setExistingTLD('.xyz')" id="pill-tld-xyz" class="pill-ext px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-blue-400 font-mono text-xs font-bold text-slate-700 hover:text-blue-600 transition cursor-pointer">.xyz</button>
+                            <button type="button" onclick="setExistingTLD('.store')" id="pill-tld-store" class="pill-ext px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 hover:border-amber-400 font-mono text-xs font-bold text-amber-800 transition cursor-pointer">.store</button>
+                            <button type="button" onclick="setExistingTLD('.online')" id="pill-tld-online" class="pill-ext px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-blue-400 font-mono text-xs font-bold text-slate-700 hover:text-blue-600 transition cursor-pointer">.online</button>
+                            <button type="button" onclick="setExistingTLD('.com.bd')" id="pill-tld-combd" class="pill-ext px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 hover:border-emerald-400 font-mono text-xs font-bold text-emerald-800 transition cursor-pointer">.com.bd</button>
+                            <button type="button" onclick="setExistingTLD('.info')" id="pill-tld-info" class="pill-ext px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-blue-400 font-mono text-xs font-bold text-slate-700 hover:text-blue-600 transition cursor-pointer">.info</button>
+                            <button type="button" onclick="setExistingTLD('other')" id="pill-tld-other" class="pill-ext px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 hover:border-slate-400 font-mono text-xs font-bold text-slate-600 transition cursor-pointer">other...</button>
+                        </div>
                     </div>
 
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
@@ -643,34 +709,109 @@ function switchDomainTab(tabKey) {
     });
 }
 
+function setExistingTLD(tld) {
+    if (!tld) return;
+    if (!tld.startsWith('.') && tld !== 'other') tld = '.' + tld;
+    const select = document.getElementById('existing_tld_select');
+    const customInput = document.getElementById('existing_custom_tld');
+    const hiddenTld = document.getElementById('existing_tld');
+
+    if (tld === 'other') {
+        if (select) select.value = 'other';
+        if (customInput) {
+            customInput.classList.remove('hidden');
+            customInput.focus();
+        }
+    } else {
+        if (select) {
+            let found = false;
+            for (let opt of select.options) {
+                if (opt.value.toLowerCase() === tld.toLowerCase()) {
+                    opt.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                select.value = 'other';
+                if (customInput) {
+                    customInput.classList.remove('hidden');
+                    customInput.value = tld;
+                }
+            } else if (customInput) {
+                customInput.classList.add('hidden');
+            }
+        }
+        if (hiddenTld) hiddenTld.value = tld.replace(/^\.+/, '');
+    }
+
+    // Highlight active pill
+    document.querySelectorAll('.pill-ext').forEach(p => {
+        p.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-700', 'font-black');
+        p.classList.add('bg-white', 'text-slate-700');
+    });
+    const cleanPillId = 'pill-tld-' + tld.replace(/\./g, '').toLowerCase();
+    const activePill = document.getElementById(cleanPillId);
+    if (activePill) {
+        activePill.classList.remove('bg-white', 'text-slate-700');
+        activePill.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-700', 'font-black');
+    }
+
+    syncExistingDomainFull();
+}
+
+function handleExistingTLDSelect(select) {
+    if (!select) return;
+    const val = select.value;
+    const customInput = document.getElementById('existing_custom_tld');
+    if (val === 'other') {
+        if (customInput) {
+            customInput.classList.remove('hidden');
+            customInput.focus();
+        }
+    } else {
+        if (customInput) customInput.classList.add('hidden');
+        setExistingTLD(val);
+    }
+}
+
 function handleExistingDomainInput(input) {
     if (!input) return;
     let val = input.value.trim().toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
     if (val.includes('.')) {
         const parts = val.split('.');
         const sld = parts[0];
-        const tld = parts.slice(1).join('.');
+        const ext = '.' + parts.slice(1).join('.');
         input.value = sld;
-        const tldInput = document.getElementById('existing_tld');
-        if (tldInput && tld) {
-            tldInput.value = tld;
-        }
+        setExistingTLD(ext);
     }
     syncExistingDomainFull();
 }
 
 function syncExistingDomainFull() {
     const sldInput = document.getElementById('existing_sld');
-    const tldInput = document.getElementById('existing_tld');
+    const select = document.getElementById('existing_tld_select');
+    const customInput = document.getElementById('existing_custom_tld');
+    const hiddenTld = document.getElementById('existing_tld');
     const fullInput = document.getElementById('existing_domain_full');
-    if (sldInput && fullInput) {
-        let sld = sldInput.value.trim().toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0];
-        let tld = tldInput ? tldInput.value.trim().toLowerCase().replace(/^\.+/, '') : 'com';
-        if (!tld) tld = 'com';
+
+    let sld = sldInput ? sldInput.value.trim().toLowerCase().replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] : '';
+    let ext = '.com';
+
+    if (select && select.value === 'other') {
+        ext = customInput && customInput.value.trim() ? customInput.value.trim().toLowerCase() : '.com';
+        if (!ext.startsWith('.')) ext = '.' + ext;
+    } else if (select) {
+        ext = select.value;
+    }
+
+    if (hiddenTld) hiddenTld.value = ext.replace(/^\.+/, '');
+
+    if (fullInput) {
         if (sld.includes('.')) {
             fullInput.value = sld;
         } else if (sld) {
-            fullInput.value = `${sld}.${tld}`;
+            fullInput.value = `${sld}${ext}`;
         } else {
             fullInput.value = '';
         }
