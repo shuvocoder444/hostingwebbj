@@ -2122,21 +2122,34 @@ def admin_action_handler_view(request, action_type):
             site.bangla_qr_image_url = bangla_qr_url_input
 
         if request.FILES.get('bangla_qr_file'):
-            f = request.FILES['bangla_qr_file']
-            ext = os.path.splitext(f.name)[1].lower() or '.png'
-            filename = f"bangla_qr_{ts}{ext}"
-            for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
-                f.seek(0)
-                file_path = os.path.join(d, filename)
-                with open(file_path, 'wb+') as dest:
-                    dest.writelines(f.chunks())
-            # Also save default bangla_qr.png
-            for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
-                f.seek(0)
-                file_path = os.path.join(d, f"bangla_qr{ext}")
-                with open(file_path, 'wb+') as dest:
-                    dest.writelines(f.chunks())
-            site.bangla_qr_image_url = f"/static/img/{filename}"
+            try:
+                f = request.FILES['bangla_qr_file']
+                ext = os.path.splitext(f.name)[1].lower() or '.png'
+                filename = f"bangla_qr_{ts}{ext}"
+                for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
+                    try:
+                        os.makedirs(d, exist_ok=True)
+                        f.seek(0)
+                        file_path = os.path.join(d, filename)
+                        with open(file_path, 'wb+') as dest:
+                            for chunk in f.chunks():
+                                dest.write(chunk)
+                    except Exception as fe:
+                        logger.warning("Could not write QR image to %s: %s", d, fe)
+                # Also save default bangla_qr.png
+                for d in (static_img_dir, staticfiles_img_dir, mediafiles_img_dir):
+                    try:
+                        f.seek(0)
+                        file_path = os.path.join(d, f"bangla_qr{ext}")
+                        with open(file_path, 'wb+') as dest:
+                            for chunk in f.chunks():
+                                dest.write(chunk)
+                    except Exception as fe:
+                        logger.warning("Could not write default QR image to %s: %s", d, fe)
+                site.bangla_qr_image_url = f"/static/img/{filename}"
+            except Exception as exc:
+                logger.exception("Failed to process uploaded bangla_qr_file: %s", exc)
+                messages.warning(request, f"QR Code image upload note: {exc}")
 
         # Email OTP & SMTP Settings
         if 'require_email_otp' in request.POST:
@@ -2171,6 +2184,7 @@ def admin_action_handler_view(request, action_type):
 
         site.save()
         messages.success(request, "Website Settings, Email OTP & Payment Gateway Settings saved successfully!")
+        return redirect_to_admin_tab('settings', request)
 
     # ── 10. SEND TEST EMAIL ───
     elif action_type == 'send_test_email':
@@ -2275,4 +2289,4 @@ def admin_action_handler_view(request, action_type):
         res = out.getvalue()
         messages.success(request, "VeloHoster Daily Automation executed successfully!")
 
-        return redirect_to_admin_tab(action_type, request)
+    return redirect_to_admin_tab(action_type, request)

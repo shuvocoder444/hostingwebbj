@@ -90,6 +90,7 @@ from core.page_views import (
     our_datacenter_view,
 )
 from core.sitemaps import StaticViewSitemap
+from tickets.views import ticket_create_view, ticket_list_view, ticket_detail_view
 from core.views import (
     dashboard_view,
     landing_page_view,
@@ -144,6 +145,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('tickets/', include('tickets.urls')),
+    path('tickets/new/', ticket_create_view, name='ticket_create'),
     path('hosting/order/', order_hosting_view, name='order_hosting'),
     path('billing/invoices/<uuid:invoice_id>/pay/', pay_invoice_view, name='pay_invoice'),
     path('billing/invoices/<uuid:invoice_id>/pay-online/', initiate_online_payment_view, name='initiate_online_payment'),
