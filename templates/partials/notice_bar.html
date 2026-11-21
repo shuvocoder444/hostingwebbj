@@ -1,39 +1,41 @@
 {% if site_settings.enable_notice_bar and site_settings.notice_bar_text %}
 <!-- Sitewide Important Notice Bar (Sliding Marquee Ticker) -->
-<div id="site-important-notice-bar" class="notice-ticker-wrapper relative z-30 bg-slate-900 border-b border-rose-500/40 text-slate-100 py-2 sm:py-2.5 px-3 sm:px-6 overflow-hidden flex items-center shadow-md select-none">
+<div id="site-important-notice-bar" class="notice-ticker-wrapper relative z-30 bg-[#0b1329] border-b border-rose-500/30 text-white py-2 sm:py-2.5 px-3 sm:px-5 overflow-hidden flex items-center shadow-md select-none">
     
-    <!-- Left Badge (Fixed) -->
-    <div class="flex items-center gap-2 shrink-0 pr-3 sm:pr-4 border-r border-slate-700/80 z-10 bg-slate-900 shadow-lg">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs">
-            <i class="fa-solid fa-triangle-exclamation text-amber-200 animate-pulse"></i>
-            <span class="hidden xs:inline sm:inline">IMPORTANT</span> NOTICE
+    <!-- Left Badge (Fixed, High Contrast & Clear) -->
+    <div class="flex items-center gap-2 shrink-0 pr-3 sm:pr-4 border-r border-slate-700/80 z-10 bg-[#0b1329] shadow-lg">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-sm ring-1 ring-white/20">
+            <i class="fa-solid fa-triangle-exclamation text-amber-200 animate-pulse text-xs"></i>
+            <span>IMPORTANT NOTICE:</span>
         </span>
     </div>
 
-    <!-- Scrolling Ticker Container -->
+    <!-- Scrolling Ticker Container (Clicking the sliding text opens the page) -->
     <div class="relative flex-1 overflow-hidden mx-2 sm:mx-3 ticker-viewport">
         <div class="notice-ticker-track">
-            <span class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white transition">
+            {% if site_settings.notice_bar_link %}
+            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100 hover:text-amber-300 transition duration-150 cursor-pointer group">
+                <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
+                <span class="group-hover:underline underline-offset-4 decoration-amber-400">{{ site_settings.notice_bar_text }}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-400 opacity-70 group-hover:opacity-100 ml-1"></i>
+            </a>
+            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100 hover:text-amber-300 transition duration-150 cursor-pointer group">
+                <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
+                <span class="group-hover:underline underline-offset-4 decoration-amber-400">{{ site_settings.notice_bar_text }}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-400 opacity-70 group-hover:opacity-100 ml-1"></i>
+            </a>
+            {% else %}
+            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
                 <span>{{ site_settings.notice_bar_text }}</span>
-            </span>
-            <span class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white transition">
+            </div>
+            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
                 <span>{{ site_settings.notice_bar_text }}</span>
-            </span>
+            </div>
+            {% endif %}
         </div>
     </div>
-
-    <!-- Right Action Button / Page Link (Optional) -->
-    {% if site_settings.notice_bar_link %}
-    <div class="shrink-0 pl-2 sm:pl-3 border-l border-slate-700/80 z-10 bg-slate-900 shadow-lg flex items-center">
-        <a href="{{ site_settings.notice_bar_link }}" 
-           class="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white text-[11px] sm:text-xs font-bold transition transform hover:scale-105 active:scale-95 shadow-sm whitespace-nowrap">
-            <span>{{ site_settings.notice_bar_link_text|default:'Read Rules' }}</span>
-            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-        </a>
-    </div>
-    {% endif %}
 
 </div>
 
@@ -51,7 +53,7 @@
     display: inline-flex;
     white-space: nowrap;
     will-change: transform;
-    animation: siteNoticeTickerSlide 38s linear infinite;
+    animation: siteNoticeTickerSlide 36s linear infinite;
 }
 
 .notice-ticker-wrapper:hover .notice-ticker-track {
@@ -59,8 +61,8 @@
 }
 
 .ticker-viewport {
-    mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
 }
 </style>
 {% endif %}
