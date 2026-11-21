@@ -141,3 +141,10 @@ def hosting_vps_view(request):
         'page_title': 'Managed Cloud VPS Hosting — Dedicated KVM NVMe Performance',
         'packages': get_packages_for_page('vps'),
     })
+
+
+def terms_of_service_view(request):
+    """Terms of Service & Acceptable Use Policy (AUP) Page."""
+    return render(request, 'pages/terms_of_service.html', {
+        'page_title': 'Terms of Service & Acceptable Use Policy — VeloHoster',
+    })

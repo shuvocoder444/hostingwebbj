@@ -1,37 +1,37 @@
 {% if site_settings.enable_notice_bar and site_settings.notice_bar_text %}
 <!-- Sitewide Important Notice Bar (Sliding Marquee Ticker) -->
-<div id="site-important-notice-bar" class="notice-ticker-wrapper relative z-30 bg-[#0b1329] border-b border-rose-500/30 text-white py-2 sm:py-2.5 px-3 sm:px-5 overflow-hidden flex items-center shadow-md select-none">
+<div id="site-important-notice-bar" class="notice-ticker-wrapper relative z-30 py-2 sm:py-2.5 px-3 sm:px-5 overflow-hidden flex items-center select-none" style="background-color: #0f172a !important; color: #ffffff !important; border-bottom: 1px solid #334155 !important; box-shadow: none !important;">
     
-    <!-- Left Badge (Fixed, High Contrast & Clear) -->
-    <div class="flex items-center gap-2 shrink-0 pr-3 sm:pr-4 border-r border-slate-700/80 z-10 bg-[#0b1329] shadow-lg">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-sm ring-1 ring-white/20">
-            <i class="fa-solid fa-triangle-exclamation text-amber-200 animate-pulse text-xs"></i>
+    <!-- Left Badge (Fixed, High Contrast, Solid Red, No Shadow) -->
+    <div class="flex items-center gap-2 shrink-0 pr-3 sm:pr-4 z-10" style="background-color: #0f172a !important; border-right: 1px solid #334155 !important; box-shadow: none !important;">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-black uppercase tracking-wider" style="background-color: #dc2626 !important; color: #ffffff !important; box-shadow: none !important;">
+            <i class="fa-solid fa-triangle-exclamation text-amber-300 text-xs"></i>
             <span>IMPORTANT NOTICE:</span>
         </span>
     </div>
 
-    <!-- Scrolling Ticker Container (Clicking the sliding text opens the page) -->
-    <div class="relative flex-1 overflow-hidden mx-2 sm:mx-3 ticker-viewport">
+    <!-- Scrolling Ticker Container (Clickable to Page Link) -->
+    <div class="relative flex-1 overflow-hidden mx-2 sm:mx-3">
         <div class="notice-ticker-track">
             {% if site_settings.notice_bar_link %}
-            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100 hover:text-amber-300 transition duration-150 cursor-pointer group">
+            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold transition duration-150 cursor-pointer group" style="color: #ffffff !important; text-decoration: none;">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
-                <span class="group-hover:underline underline-offset-4 decoration-amber-400">{{ site_settings.notice_bar_text }}</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-400 opacity-70 group-hover:opacity-100 ml-1"></i>
+                <span class="group-hover:text-amber-300 group-hover:underline underline-offset-4" style="color: #ffffff !important;">{{ site_settings.notice_bar_text }}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-300 ml-1"></i>
             </a>
-            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100 hover:text-amber-300 transition duration-150 cursor-pointer group">
+            <a href="{{ site_settings.notice_bar_link }}" class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold transition duration-150 cursor-pointer group" style="color: #ffffff !important; text-decoration: none;">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
-                <span class="group-hover:underline underline-offset-4 decoration-amber-400">{{ site_settings.notice_bar_text }}</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-400 opacity-70 group-hover:opacity-100 ml-1"></i>
+                <span class="group-hover:text-amber-300 group-hover:underline underline-offset-4" style="color: #ffffff !important;">{{ site_settings.notice_bar_text }}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-300 ml-1"></i>
             </a>
             {% else %}
-            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100">
+            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold" style="color: #ffffff !important;">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
-                <span>{{ site_settings.notice_bar_text }}</span>
+                <span style="color: #ffffff !important;">{{ site_settings.notice_bar_text }}</span>
             </div>
-            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold text-slate-100">
+            <div class="notice-ticker-item inline-flex items-center gap-3 px-8 text-xs sm:text-[13px] font-semibold" style="color: #ffffff !important;">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i>
-                <span>{{ site_settings.notice_bar_text }}</span>
+                <span style="color: #ffffff !important;">{{ site_settings.notice_bar_text }}</span>
             </div>
             {% endif %}
         </div>
@@ -40,6 +40,13 @@
 </div>
 
 <style>
+#site-important-notice-bar,
+#site-important-notice-bar * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
 @keyframes siteNoticeTickerSlide {
     0% {
         transform: translate3d(0, 0, 0);
@@ -60,9 +67,8 @@
     animation-play-state: paused;
 }
 
-.ticker-viewport {
-    mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+.notice-ticker-item:hover span {
+    color: #fde047 !important;
 }
 </style>
 {% endif %}

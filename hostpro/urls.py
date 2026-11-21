@@ -88,6 +88,7 @@ from core.page_views import (
     hosting_usa_view,
     hosting_vps_view,
     our_datacenter_view,
+    terms_of_service_view,
 )
 from core.sitemaps import StaticViewSitemap
 from tickets.views import ticket_create_view, ticket_list_view, ticket_detail_view
@@ -157,6 +158,11 @@ urlpatterns = [
     path('contact-us/', contact_us_view, name='contact_us'),
     path('our-datacenter/', our_datacenter_view, name='our_datacenter'),
     path('blog/', blog_view, name='blog'),
+    path('terms-of-service/', terms_of_service_view, name='terms_of_service'),
+    path('terms/', terms_of_service_view, name='terms'),
+    path('terms-and-conditions/', terms_of_service_view),
+    path('acceptable-use-policy/', terms_of_service_view, name='acceptable_use_policy'),
+    path('aup/', terms_of_service_view),
     
     # Domains
     path('domain/register/', domain_register_view, name='domain_register'),
