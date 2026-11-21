@@ -256,6 +256,29 @@ class SiteSetting(models.Model):
         help_text='Sender Email Address displayed in inbox.'
     )
 
+    # Important Notice Bar (Header Ticker)
+    enable_notice_bar = models.BooleanField(
+        default=True,
+        help_text='Enable or disable the sliding important notice bar below the header.'
+    )
+    notice_bar_text = models.TextField(
+        blank=True,
+        default='Valued customers, please use accurate information; otherwise, your service may be terminated.      |      Illegal websites (Betting, MLM, Phishing, Pornography) are strictly prohibited.      |      Violation of terms will lead to service termination without notice and no refunds will be provided.',
+        help_text='Notice text displayed inside the scrolling marquee below header.'
+    )
+    notice_bar_link = models.CharField(
+        max_length=500,
+        blank=True,
+        default='/terms-of-service/',
+        help_text='Optional link/URL for the notice bar action button.'
+    )
+    notice_bar_link_text = models.CharField(
+        max_length=120,
+        blank=True,
+        default='Terms & Conditions',
+        help_text='Text for the notice button (e.g. Terms & Conditions).'
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -324,6 +347,10 @@ class SiteSetting(models.Model):
                 enable_google_login = True
                 google_client_id = ''
                 google_client_secret = ''
+                enable_notice_bar = True
+                notice_bar_text = 'Valued customers, please use accurate information; otherwise, your service may be terminated.      |      Illegal websites (Betting, MLM, Phishing, Pornography) are strictly prohibited.      |      Violation of terms will lead to service termination without notice and no refunds will be provided.'
+                notice_bar_link = '/terms-of-service/'
+                notice_bar_link_text = 'Terms & Conditions'
                 def get_google_client_id(self):
                     return ''
                 def get_google_client_secret(self):

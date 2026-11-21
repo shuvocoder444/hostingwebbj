@@ -1837,6 +1837,88 @@
  </div>
  </div>
 
+ <!-- Section: Important Notice Bar (Header Ticker) Settings -->
+ <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+ <div class="px-6 py-4 bg-gradient-to-r from-rose-50/80 via-amber-50/50 to-white border-b border-slate-200 flex items-center justify-between">
+ <div class="flex items-center gap-2.5">
+ <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xs font-bold">
+ <i class="fa-solid fa-bullhorn"></i>
+ </div>
+ <div>
+ <h3 class="text-sm font-bold text-slate-900">Important Notice Bar (হেডার নোটিশ বার)</h3>
+ <p class="text-[11px] text-slate-500">Manage sliding announcement marquee below the main header</p>
+ </div>
+ </div>
+ <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {% if site_settings.enable_notice_bar %}bg-emerald-100 text-emerald-700 border border-emerald-200{% else %}bg-slate-200 text-slate-600{% endif %}">
+ {% if site_settings.enable_notice_bar %}Active / Live Ticker{% else %}Disabled / Hidden{% endif %}
+ </span>
+ </div>
+ <div class="p-6 space-y-5">
+ <input type="hidden" name="notice_bar_submitted" value="1">
+
+ <!-- Toggle Switch -->
+ <label class="flex items-start sm:items-center gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition cursor-pointer group">
+ <input type="checkbox" name="enable_notice_bar" value="1" {% if site_settings.enable_notice_bar %}checked{% endif %} class="w-5 h-5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 mt-0.5 sm:mt-0 cursor-pointer">
+ <div class="flex-1">
+ <div class="flex items-center gap-2">
+ <span class="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition">Enable Important Notice Bar</span>
+ <span class="text-[11px] text-slate-400 font-medium">(টিক চিহ্ন দিলে ওয়েবসাইটের হেডারের নিচে নোটিশ বার স্লাইডার হিসেবে চলবে)</span>
+ </div>
+ <p class="text-[11px] text-slate-500 mt-0.5">When checked, the notice bar will slide across the screen continuously directly below the header.</p>
+ </div>
+ </label>
+
+ <!-- Notice Text Area -->
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+ <span>Notice Scrolling Text (স্লাইডার নোটিশ টেক্সট) <span class="text-rose-500">*</span></span>
+ <span class="text-[11px] text-slate-400 font-normal">Auto-scrolls horizontally; pauses on hover</span>
+ </label>
+ <textarea name="notice_bar_text" rows="3"
+ class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none leading-relaxed"
+ placeholder="Enter important notice text to display in header ticker...">{{ site_settings.notice_bar_text }}</textarea>
+ <p class="text-[11px] text-slate-400 mt-1">Default warning: Valued customers, please use accurate information; otherwise, your service may be terminated. | Illegal websites (Betting, MLM, Phishing, Pornography) are strictly prohibited. | Violation of terms will lead to service termination without notice and no refunds will be provided.</p>
+ </div>
+
+ <!-- Target Link & Button Text -->
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1.5">
+ Target Page Link / URL (পেজ বা পলিসি লিংক)
+ </label>
+ <input type="text" name="notice_bar_link" value="{{ site_settings.notice_bar_link }}"
+ placeholder="e.g. /terms-of-service/ or https://velohoster.com/terms/"
+ class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+ <p class="text-[11px] text-slate-400 mt-1">Users will be redirected to this URL when clicking the button on the notice bar.</p>
+ </div>
+ <div>
+ <label class="block text-xs font-bold text-slate-700 mb-1.5">
+ Link Button Text (বাটন টেক্সট)
+ </label>
+ <input type="text" name="notice_bar_link_text" value="{{ site_settings.notice_bar_link_text }}"
+ placeholder="e.g. Terms & Conditions / Read Rules"
+ class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+ <p class="text-[11px] text-slate-400 mt-1">Leave empty to use 'Read Rules' as default.</p>
+ </div>
+ </div>
+
+ <!-- Live Preview Box -->
+ <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white space-y-2">
+ <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+ <i class="fa-solid fa-eye text-rose-400"></i> Notice Bar Live Preview:
+ </div>
+ <div class="flex items-center gap-2 overflow-hidden text-xs py-1">
+ <span class="px-2 py-0.5 rounded-full bg-rose-600 text-[10px] font-black uppercase shrink-0">NOTICE</span>
+ <span class="truncate text-slate-200 text-xs italic">{{ site_settings.notice_bar_text|default:'No notice text configured.' }}</span>
+ {% if site_settings.notice_bar_link %}
+ <span class="ml-auto shrink-0 px-2 py-0.5 rounded bg-rose-700 text-[10px] font-bold text-white">{{ site_settings.notice_bar_link_text|default:'Read More' }} &rarr;</span>
+ {% endif %}
+ </div>
+ </div>
+
+ </div>
+ </div>
+
  <!-- Section 1: Site Identity & Brand -->
  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
  <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">

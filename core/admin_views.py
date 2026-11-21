@@ -2182,6 +2182,20 @@ def admin_action_handler_view(request, action_type):
         if 'google_client_secret' in request.POST:
             site.google_client_secret = request.POST.get('google_client_secret', '').strip()
 
+        # Important Notice Bar (Header Ticker) Settings
+        if 'enable_notice_bar' in request.POST:
+            site.enable_notice_bar = request.POST.get('enable_notice_bar') in ('true', '1', 'on')
+        elif 'notice_bar_submitted' in request.POST or 'company_name' in request.POST:
+            # Checkbox unchecked when form submitted
+            site.enable_notice_bar = False
+
+        if 'notice_bar_text' in request.POST:
+            site.notice_bar_text = request.POST.get('notice_bar_text', '').strip()
+        if 'notice_bar_link' in request.POST:
+            site.notice_bar_link = request.POST.get('notice_bar_link', '').strip()
+        if 'notice_bar_link_text' in request.POST:
+            site.notice_bar_link_text = request.POST.get('notice_bar_link_text', '').strip()
+
         site.save()
         messages.success(request, "Website Settings, Email OTP & Payment Gateway Settings saved successfully!")
         return redirect_to_admin_tab('settings', request)
