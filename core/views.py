@@ -501,7 +501,10 @@ def dashboard_view(request):
     # Expiration notice (50 days window)
     today = timezone.now().date()
     expiring_accounts = []
+    from hosting.health_service import DomainHealthScanner
     for acc in hosting_accounts:
+        expected_ip = acc.server.ip_address if acc.server else None
+        acc.health = DomainHealthScanner.get_health(acc.domain, expected_ip=expected_ip)
         if acc.status == HostingAccount.Status.ACTIVE and acc.next_due_date:
             days_left = (acc.next_due_date - today).days
             if days_left <= 50:
@@ -514,6 +517,7 @@ def dashboard_view(request):
 
     expiring_domains = []
     for dom in client_domains:
+        dom.health = DomainHealthScanner.get_health(dom.domain_name)
         if dom.status == Domain.Status.ACTIVE and dom.expiry_date:
             exp_date = dom.expiry_date
             days_left = (exp_date - today).days
@@ -831,23 +835,30 @@ def service_detail_view(request, account_id):
     wp_status = {'installed': False, 'version': '6.6.2', 'admin_url': f"https://{account.domain}/wp-admin", 'php_version': 'PHP 8.2'}
     current_php = 'PHP 8.2 (LiteSpeed)'
 
-    if server and account.username and account.status == HostingAccount.Status.ACTIVE:
+    # Only fetch detailed secondary hPanel UAPI data if user explicitly requested a specific sub-tab
+    if active_tab != 'overview' and server and account.username and account.status == HostingAccount.Status.ACTIVE:
         try:
             from hosting.cpanel_uapi import CPanelUAPIManager
             uapi = CPanelUAPIManager(account)
-            wp_status = uapi.get_wordpress_status()
-            current_php = uapi.get_current_php_version()
-            if active_tab in ('emails', 'overview'):
+            if active_tab == 'wordpress':
+                wp_status = uapi.get_wordpress_status()
+            if active_tab == 'advanced':
+                current_php = uapi.get_current_php_version()
+            if active_tab == 'emails':
                 hpanel_emails = uapi.list_email_accounts()
-            if active_tab in ('databases', 'overview'):
+            if active_tab == 'databases':
                 hpanel_databases = uapi.list_databases()
-            if active_tab in ('domains', 'overview'):
+            if active_tab == 'domains':
                 hpanel_subdomains = uapi.list_subdomains()
                 hpanel_ssl_hosts = uapi.get_installed_ssl_certificates()
-            if active_tab in ('files', 'overview'):
+            if active_tab == 'files':
                 hpanel_ftp_accounts = uapi.list_ftp_accounts()
         except Exception as exc:
             logger.warning("Could not fetch hPanel UAPI data for %s: %s", account.username, exc)
+
+    # Real-time Website & Domain Health & Security Audit
+    from hosting.health_service import DomainHealthScanner
+    health_data = DomainHealthScanner.get_health(account.domain, expected_ip=server.ip_address if server else None)
 
     # Check if a matching domain registration exists
     from domains.models import Domain
@@ -918,6 +929,7 @@ def service_detail_view(request, account_id):
         'current_php': current_php,
         'analytics': analytics,
         'is_vps': is_vps,
+        'health_data': health_data,
     }
     return render(request, 'service_detail.html', context)
 
@@ -927,6 +939,7 @@ def service_sso_view(request, account_id, shortcut=None):
     """
     Generate dynamic Single Sign-On (SSO) session token via WHM create_user_session API
     and redirect directly to cPanel or the selected shortcut application.
+    If WHM API times out or is unreachable, seamlessly fall back to direct cPanel login!
     """
     account = get_object_or_404(HostingAccount, id=account_id)
 
@@ -939,9 +952,7 @@ def service_sso_view(request, account_id, shortcut=None):
         return redirect('service_detail', account_id=account.id)
 
     server = account.server
-    if not server:
-        messages.error(request, "Server configuration not found.")
-        return redirect('service_detail', account_id=account.id)
+    target_host = server.hostname if server and server.hostname else 'srv1.whitednszone.com'
 
     # App and service mapping
     shortcut_map = {
@@ -960,21 +971,41 @@ def service_sso_view(request, account_id, shortcut=None):
     }
 
     service_name, app_name = shortcut_map.get(shortcut, ('cpaneld', None))
+    port = 2096 if service_name == 'webmaild' else 2083
 
-    try:
-        from hosting.drivers import get_driver
-        driver = get_driver(server)
-        if hasattr(driver, 'get_user_session_url'):
-            sso_url = driver.get_user_session_url(account.username, service=service_name, app=app_name)
-            return redirect(sso_url)
-        else:
-            # Fallback direct cPanel port
-            port = 2096 if service_name == 'webmaild' else 2083
-            return redirect(f"https://{server.hostname}:{port}/")
-    except Exception as exc:
-        logger.error("SSO generation error for %s: %s", account.username, exc)
-        messages.error(request, f"Could not log in to control panel automatically: {exc!s}")
-        return redirect('service_detail', account_id=account.id)
+    if server:
+        try:
+            from hosting.drivers import get_driver
+            driver = get_driver(server)
+            if hasattr(driver, 'get_user_session_url'):
+                sso_url = driver.get_user_session_url(account.username, service=service_name, app=app_name)
+                if sso_url:
+                    return redirect(sso_url)
+        except Exception as exc:
+            logger.warning("SSO session generation note for %s: %s. Using resilient direct port fallback.", account.username, exc)
+
+    # Resilient direct cPanel / Webmail redirect fallback
+    direct_url = f"https://{target_host}:{port}/"
+    return redirect(direct_url)
+
+
+@login_required(login_url='login')
+def service_health_check_api(request, account_id):
+    """
+    AJAX endpoint to return live/cached health & security audit for an account's domain.
+    Supports force_refresh=true query parameter.
+    """
+    from django.http import JsonResponse
+    account = get_object_or_404(HostingAccount, id=account_id)
+    if account.user != request.user and not (request.user.is_staff or request.user.role == 'admin'):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    force_refresh = request.GET.get('refresh') == 'true' or request.GET.get('force') == '1'
+    expected_ip = account.server.ip_address if account.server else None
+
+    from hosting.health_service import DomainHealthScanner
+    health = DomainHealthScanner.get_health(account.domain, expected_ip=expected_ip, force_refresh=force_refresh)
+    return JsonResponse({'success': True, 'health': health})
 
 
 @login_required(login_url='login')

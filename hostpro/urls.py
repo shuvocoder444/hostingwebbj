@@ -104,6 +104,7 @@ from core.views import (
     resend_otp_view,
     service_change_password_view,
     service_detail_view,
+    service_health_check_api,
     service_hpanel_action_view,
     service_request_cancellation_view,
     service_sso_view,
@@ -194,6 +195,7 @@ urlpatterns = [
 
     # ── Service Details & cPanel Management ───────────────────────────────────
     path('services/<uuid:account_id>/', service_detail_view, name='service_detail'),
+    path('services/<uuid:account_id>/health-check/', service_health_check_api, name='service_health_check_api'),
     path('services/<uuid:account_id>/sso/', service_sso_view, name='service_sso'),
     path('services/<uuid:account_id>/sso/<str:shortcut>/', service_sso_view, name='service_sso_shortcut'),
     path('services/<uuid:account_id>/hpanel-action/<str:action_type>/', service_hpanel_action_view, name='service_hpanel_action'),

@@ -389,25 +389,25 @@ class CPanelDriver(BaseServerDriver):
         Services: 'cpaneld', 'webmaild', 'whostmgrd'
         Apps: 'FileManager_Home', 'Email_Accounts', 'Database_MySQL', 'Database_phpMyAdmin', etc.
         """
-        params = {'user': username, 'service': service}
-        if app:
-            params['app'] = app
+        port = 2096 if service == 'webmaild' else 2083
+        default_direct = f"https://{self.host}:{port}/"
+        try:
+            params = {'user': username, 'service': service}
+            if app:
+                params['app'] = app
 
-        res = self._call('create_user_session', params=params)
-        data = res.get('data', {})
-        url = data.get('url')
-        if not url:
-            # Fallback direct cPanel port
-            port = 2096 if service == 'webmaild' else 2083
-            return f"https://{self.host}:{port}/"
-        return url
+            res = self._call('create_user_session', params=params, timeout=5)
+            data = res.get('data', {})
+            return data.get('url') or default_direct
+        except Exception:
+            return default_direct
 
     def get_live_usage(self, username: str) -> dict:
         """
         Fetch live disk and bandwidth usage stats for a cPanel user.
         """
         try:
-            res = self._call('accountsummary', params={'user': username})
+            res = self._call('accountsummary', params={'user': username}, timeout=4)
             accts = res.get('acct') or res.get('data', {}).get('acct', [])
             if accts:
                 acct = accts[0]
