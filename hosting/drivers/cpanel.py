@@ -89,7 +89,16 @@ class CPanelDriver(BaseServerDriver):
         all_params = {'api.version': '1', **(params or {})}
         
         try:
-            response = self._session.get(
+            # If a short timeout is requested, use 0 retries to avoid blocking the user UI
+            if timeout <= 5:
+                session = requests.Session()
+                session.mount('https://', HTTPAdapter(max_retries=0))
+                session.mount('http://', HTTPAdapter(max_retries=0))
+                session.headers.update(self._session.headers)
+            else:
+                session = self._session
+
+            response = session.get(
                 url,
                 params=all_params,
                 timeout=timeout,

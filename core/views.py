@@ -740,7 +740,12 @@ def service_detail_view(request, account_id):
         'plan': account.package.name if account.package else '',
     }
 
-    if server and account.username and account.status == HostingAccount.Status.ACTIVE:
+    # ─── Live Resource Usage (Fast & Cached) ──────────────────────────
+    cache_key_stats = f"live_stats_{account.id}"
+    cached_stats = cache.get(cache_key_stats)
+    if cached_stats:
+        live_stats.update(cached_stats)
+    elif server and account.username and account.status == HostingAccount.Status.ACTIVE:
         try:
             from hosting.drivers import get_driver
             driver = get_driver(server)
@@ -748,64 +753,45 @@ def service_detail_view(request, account_id):
                 res_stats = driver.get_live_usage(account.username)
                 if res_stats:
                     live_stats.update(res_stats)
+                    cache.set(cache_key_stats, res_stats, 600)
+        except Exception as e_stats:
+            logger.debug("Could not fetch live usage for %s: %s", account.username, e_stats)
 
-            # Fallback to cPanel UAPI Quota if disk_used_mb is 0
-            if live_stats.get('disk_used_mb', 0) == 0:
-                try:
-                    from hosting.cpanel_uapi import CPanelUAPIManager
-                    uapi = CPanelUAPIManager(account)
-                    r_quota = uapi.call_uapi('Quota', 'get_local_quota_info')
-                    if r_quota.get('success') and r_quota.get('data'):
-                        q_data = r_quota['data']
-                        b_used = float(q_data.get('bytes_used', 0) or 0)
-                        b_limit = float(q_data.get('byte_limit', 0) or 0)
-                        if b_used > 0:
-                            live_stats['disk_used_mb'] = round(b_used / (1024 * 1024), 2)
-                        if b_limit > 0 and live_stats['disk_limit_mb'] == 0:
-                            live_stats['disk_limit_mb'] = round(b_limit / (1024 * 1024), 2)
-                        if q_data.get('inodes_used'):
-                            live_stats['inodes_used'] = q_data['inodes_used']
-                except Exception:
-                    pass
+    # If WHM reported disk_limit_mb is 0 (unlimited), use package quota for visual gauge
+    if live_stats['disk_limit_mb'] == 0 and account.package and account.package.disk_quota_mb > 0:
+        live_stats['disk_limit_mb'] = float(account.package.disk_quota_mb)
+    if live_stats['disk_limit_mb'] > 0:
+        live_stats['disk_percent'] = min(int((live_stats['disk_used_mb'] / live_stats['disk_limit_mb']) * 100), 100)
 
-            # If WHM reported disk_limit_mb is 0 (unlimited), use package quota for visual gauge
-            if live_stats['disk_limit_mb'] == 0 and account.package and account.package.disk_quota_mb > 0:
-                live_stats['disk_limit_mb'] = float(account.package.disk_quota_mb)
-            if live_stats['disk_limit_mb'] > 0:
-                live_stats['disk_percent'] = min(int((live_stats['disk_used_mb'] / live_stats['disk_limit_mb']) * 100), 100)
+    if live_stats['bandwidth_limit_mb'] == 0 and account.package and account.package.bandwidth_mb > 0:
+        live_stats['bandwidth_limit_mb'] = float(account.package.bandwidth_mb)
+    if live_stats['bandwidth_limit_mb'] > 0:
+        live_stats['bandwidth_percent'] = min(int((live_stats['bandwidth_used_mb'] / live_stats['bandwidth_limit_mb']) * 100), 100)
 
-            if live_stats['bandwidth_limit_mb'] == 0 and account.package and account.package.bandwidth_mb > 0:
-                live_stats['bandwidth_limit_mb'] = float(account.package.bandwidth_mb)
-            if live_stats['bandwidth_limit_mb'] > 0:
-                live_stats['bandwidth_percent'] = min(int((live_stats['bandwidth_used_mb'] / live_stats['bandwidth_limit_mb']) * 100), 100)
+    # Human-friendly readable strings
+    if live_stats['disk_used_mb'] >= 1024:
+        live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'] / 1024, 2)} GB"
+    else:
+        live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'], 1)} MB"
 
-            # Human-friendly readable strings
-            if live_stats['disk_used_mb'] >= 1024:
-                live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'] / 1024, 2)} GB"
-            else:
-                live_stats['disk_used_human'] = f"{round(live_stats['disk_used_mb'], 1)} MB"
+    if live_stats['disk_limit_mb'] >= 1024:
+        live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'] / 1024, 1)} GB"
+    elif live_stats['disk_limit_mb'] > 0:
+        live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'], 0)} MB"
+    else:
+        live_stats['disk_limit_human'] = "Unlimited"
 
-            if live_stats['disk_limit_mb'] >= 1024:
-                live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'] / 1024, 1)} GB"
-            elif live_stats['disk_limit_mb'] > 0:
-                live_stats['disk_limit_human'] = f"{round(live_stats['disk_limit_mb'], 0)} MB"
-            else:
-                live_stats['disk_limit_human'] = "Unlimited"
+    if live_stats['bandwidth_used_mb'] >= 1024:
+        live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'] / 1024, 2)} GB"
+    else:
+        live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'], 2)} MB"
 
-            if live_stats['bandwidth_used_mb'] >= 1024:
-                live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'] / 1024, 2)} GB"
-            else:
-                live_stats['bandwidth_used_human'] = f"{round(live_stats['bandwidth_used_mb'], 2)} MB"
-
-            if live_stats['bandwidth_limit_mb'] >= 1024:
-                live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'] / 1024, 1)} GB"
-            elif live_stats['bandwidth_limit_mb'] > 0:
-                live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'], 0)} MB"
-            else:
-                live_stats['bandwidth_limit_human'] = "Unlimited"
-
-        except Exception as exc:
-            logger.warning("Could not fetch live usage for account %s: %s", account.username, exc)
+    if live_stats['bandwidth_limit_mb'] >= 1024:
+        live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'] / 1024, 1)} GB"
+    elif live_stats['bandwidth_limit_mb'] > 0:
+        live_stats['bandwidth_limit_human'] = f"{round(live_stats['bandwidth_limit_mb'], 0)} MB"
+    else:
+        live_stats['bandwidth_limit_human'] = "Unlimited"
 
     # Shortcuts list
     shortcuts = [
