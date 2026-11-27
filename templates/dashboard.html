@@ -1638,50 +1638,50 @@
 
      if (scoreEl) scoreEl.textContent = (h.health_score || 0) + '%';
      if (labelEl) labelEl.textContent = h.status_badge || 'Good';
-     if (scannedEl) scannedEl.textContent = h.last_checked ? `Last audited: ${h.last_checked}` : 'Audited just now';
+     if (scannedEl) scannedEl.textContent = h.scanned_at ? ('Last audited: ' + h.scanned_at) : 'Audited just now';
 
      // HTTP
      const httpStatus = document.getElementById('health-card-http-status');
      const httpLatency = document.getElementById('health-card-http-latency');
-     if (httpStatus && h.http) {
-         httpStatus.textContent = h.http.is_online ? `${h.http.status_code || 200} Online` : 'Offline / Error';
-         httpStatus.className = h.http.is_online ? 'font-bold text-slate-900' : 'font-bold text-rose-600';
+     if (httpStatus) {
+         httpStatus.textContent = h.http_ok ? ((h.http_code || 200) + ' OK (Online)') : 'Offline / Error';
+         httpStatus.className = h.http_ok ? 'font-bold text-slate-900' : 'font-bold text-rose-600';
      }
-     if (httpLatency && h.http) {
-         httpLatency.textContent = (h.http.response_time_ms || 0) + ' ms';
+     if (httpLatency) {
+         httpLatency.textContent = (h.response_time_ms || 0) + ' ms';
      }
 
      // SSL
      const sslStatus = document.getElementById('health-card-ssl-status');
      const sslIssuer = document.getElementById('health-card-ssl-issuer');
-     if (sslStatus && h.ssl) {
-         sslStatus.textContent = h.ssl.is_valid ? 'Valid & Secure' : (h.ssl.error || 'No SSL');
-         sslStatus.className = h.ssl.is_valid ? 'font-bold text-slate-900' : 'font-bold text-amber-600';
+     if (sslStatus) {
+         sslStatus.textContent = h.ssl_ok ? 'Valid & Secure' : (h.ssl_error || 'No SSL');
+         sslStatus.className = h.ssl_ok ? 'font-bold text-slate-900' : 'font-bold text-amber-600';
      }
-     if (sslIssuer && h.ssl) {
-         sslIssuer.textContent = h.ssl.issuer ? `${h.ssl.issuer} (${h.ssl.days_left || 0}d left)` : 'Self-signed / None';
+     if (sslIssuer) {
+         sslIssuer.textContent = h.ssl_issuer ? (h.ssl_issuer + ' (' + (h.ssl_days_left || 0) + 'd left)') : 'Self-signed / None';
      }
 
      // DNS
      const dnsStatus = document.getElementById('health-card-dns-status');
      const dnsIp = document.getElementById('health-card-dns-ip');
-     if (dnsStatus && h.dns) {
-         dnsStatus.textContent = h.dns.is_resolved ? (h.dns.is_pointed_to_server ? 'Pointed to Server' : 'Resolved Elsewhere') : 'DNS Not Resolved';
-         dnsStatus.className = h.dns.is_resolved ? 'font-bold text-slate-900' : 'font-bold text-rose-600';
+     if (dnsStatus) {
+         dnsStatus.textContent = h.dns_ok ? (h.ip_matched ? 'Pointed to Server' : 'Resolved Elsewhere') : 'DNS Not Resolved';
+         dnsStatus.className = h.dns_ok ? 'font-bold text-slate-900' : 'font-bold text-rose-600';
      }
-     if (dnsIp && h.dns) {
-         dnsIp.textContent = (h.dns.resolved_ips && h.dns.resolved_ips.length > 0) ? h.dns.resolved_ips.join(', ') : 'No IP';
+     if (dnsIp) {
+         dnsIp.textContent = h.resolved_ip || 'No IP';
      }
 
      // Malware
      const malwareStatus = document.getElementById('health-card-malware-status');
      const malwareNotes = document.getElementById('health-card-malware-notes');
-     if (malwareStatus && h.malware) {
-         malwareStatus.textContent = h.malware.is_clean ? 'Clean & Safe' : 'Threats Detected';
-         malwareStatus.className = h.malware.is_clean ? 'font-bold text-emerald-700' : 'font-bold text-rose-600';
+     if (malwareStatus) {
+         malwareStatus.textContent = h.security_ok ? 'Clean & Safe' : 'Threats Detected';
+         malwareStatus.className = h.security_ok ? 'font-bold text-emerald-700' : 'font-bold text-rose-600';
      }
-     if (malwareNotes && h.malware) {
-         malwareNotes.textContent = h.malware.threats && h.malware.threats.length > 0 ? h.malware.threats.join(', ') : 'No threats found';
+     if (malwareNotes) {
+         malwareNotes.textContent = h.threats && h.threats.length > 0 ? h.threats.join(', ') : 'No threats found';
      }
  }
 
